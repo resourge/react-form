@@ -278,6 +278,7 @@ const [
 ...
 getErrors('product.category') /// [<<Error Messages>>]
 ///
+
 ```
 
 #### `getFormErrors`
