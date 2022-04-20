@@ -1,6 +1,6 @@
 {
   "name": "@resourge/react-form",
-  "version": "0.0.0-development",
+  "version": "1.0.0",
   "main": "./dist/main.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
