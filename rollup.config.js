@@ -53,6 +53,10 @@ const sourcemap = true;
 const banner = createBanner(PROJECT_NAME, VERSION, AUTHOR_NAME, LICENSE);
 const umdName = PROJECT_NAME.split('-').map(capitalizeFirstLetter).join('')
 
+const babelPlugins = [
+	'babel-plugin-dev-expression'
+]
+
 const defaultExtPlugin = [
 	size(),
 	nodeResolve({
@@ -77,11 +81,19 @@ const modules = [
 				exclude: /node_modules/,
 				babelHelpers: 'bundled',
 				presets: [
-					['@babel/preset-modules', { loose: true }],
+					['@babel/preset-env', { 
+						targets: [
+							'defaults',
+							'not IE 11',
+							'maintained node versions'
+						], 
+						loose: true, 
+						bugfixes: true 
+					}],
 					'@babel/preset-react',
 					'@babel/preset-typescript'
 				],
-				plugins: ['babel-plugin-dev-expression'],
+				plugins: babelPlugins,
 				extensions: ['.ts', '.tsx']
 			})
 		]
@@ -117,11 +129,18 @@ const cjsModules = [
 				exclude: /node_modules/,
 				babelHelpers: 'bundled',
 				presets: [
-					'@babel/preset-modules',
+					['@babel/preset-env', { 
+						targets: [
+							'defaults',
+							'not IE 11',
+							'maintained node versions'
+						], 
+						bugfixes: true 
+					}],
 					'@babel/preset-react',
 					'@babel/preset-typescript'
 				],
-				plugins: ['babel-plugin-dev-expression'],
+				plugins: babelPlugins,
 				extensions: ['.ts', '.tsx']
 			}),
 			replace({
@@ -145,13 +164,15 @@ const cjsModules = [
 				exclude: /node_modules/,
 				babelHelpers: 'bundled',
 				presets: [
-					[
-						'@babel/preset-modules',
-						{
-							// Don't spoof `.name` for Arrow Functions, which breaks when minified anyway.
-							loose: true
-						}
-					],
+					['@babel/preset-env', { 
+						targets: [
+							'defaults',
+							'not IE 11',
+							'maintained node versions'
+						], 
+						loose: true, 
+						bugfixes: true 
+					}],
 					[
 						'@babel/preset-react',
 						{
@@ -161,7 +182,7 @@ const cjsModules = [
 					],
 					'@babel/preset-typescript'
 				],
-				plugins: ['babel-plugin-dev-expression'],
+				plugins: babelPlugins,
 				extensions: ['.ts', '.tsx']
 			}),
 			replace({
