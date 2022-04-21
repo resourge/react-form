@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/resourge/react-form/compare/v1.0.1...v1.0.2) (2022-04-21)
+
+
+### Bug Fixes
+
+* **rollup.config.js:** update rollup config to not transform async/await ([760c060](https://github.com/resourge/react-form/commit/760c060a0bf7b0e138767332e62de94974d53963))
+
 ## [1.0.1](https://github.com/resourge/react-form/compare/v1.0.0...v1.0.1) (2022-04-20)
 
 
