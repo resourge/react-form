@@ -7,6 +7,9 @@
 - Controlled form.
 - Possibility of using `class` as default form data (see more [Form Data](#form-data)).
 - No native validation. The entire validation is up to the developer.
+- Simple to use with existing HTML form inputs and 3rd-party UI libraries.
+- Build with typescript.
+- Easy to use in react and react-native.
 
 
 ## Installation
@@ -27,19 +30,19 @@ npm install @resourge/react-form --save
 
 ```Typescript
 const [
-	{
-		form, // Form Data
-		touches, isTouched, // Form touches
-		errors, isValid, // Form validation
-		context // Context
-	},
-	{
-		triggerChange, reset, field,
-		changeValue, getErrors, getFormErrors,
-		getValue, handleSubmit, merge,
-		onChange, resetTouch, setError,
-		triggerManualTouch
-	}
+  {
+    form, // Form Data
+    touches, isTouched, // Form touches
+    errors, isValid, // Form validation
+    context // Context
+  },
+  {
+    triggerChange, reset, field,
+    changeValue, getErrors, getFormErrors,
+    getValue, handleSubmit, merge,
+    onChange, resetTouch, setError,
+    triggerManualTouch
+  }
 ] = useForm(formData, formOptions)
 ```
 
@@ -54,41 +57,36 @@ import React, { useState } from 'react';
 import { useForm } from '@resourge/react-form';
 
 export default function Form() {
-	const [
-		{
-			isValid
-		},
-		{
-			field, handleSubmit
-		}
-	] = useForm(
-		{
-			name: 'Rimuru'
-		}
-	)
+  const [
+    { 
+      isValid },
+    { 
+	  field, 
+	  handleSubmit 
+	}
+  ] = useForm(
+    { 
+	  name: 'Rimuru' 
+	}
+  )
 
-	const onSubmit = handleSubmit((form) => {
-		....
-	})
+  const onSubmit = handleSubmit((form) => {
+    ....
+  })
 
-	return (
-		<form onSubmit={onSubmit}>
-			<input {
-				...field('name', {
-					onChange: (e) => e.target.value
-				})
-			}/>
-			<span>
-				{
-					isValid ? "Valid" : "Invalid" 
-				} Form
-			</span>
-			
-			<button type="submit">
-				Save
-			</button>
-		</form>
-	);
+  return (
+    <form onSubmit={onSubmit}>
+      <input { ...field('name', { onChange: (e) => e.target.value }) }/>
+      <span>
+      {
+        isValid ? "Valid" : "Invalid" 
+      } Form
+      </span>
+      <button type="submit">
+        Save
+      </button>
+    </form>
+  );
 }
 ```
 
@@ -104,27 +102,27 @@ Rules:
 ```Typescript
 // object
 const [
-	.....
+  ...
 ] = useForm(
-	{
-		name: 'Rimuru',
-		age: 39
-	}
+  {
+    name: 'Rimuru',
+    age: 39
+  }
 )
 // class
 class User {
-	name = 'Rimuru';
-	age = 39
+  name = 'Rimuru';
+  age = 39
 	
-	get fullName() {
-		return `${this.name} Tempest`
-	}
+  get fullName() {
+    return `${this.name} Tempest`
+  }
 }
 
 const [
-	.....
+  ...
 ] = useForm(
-	new User()
+  new User()
 )
 ```
 
@@ -161,16 +159,14 @@ Method to connect the form element to the key by providing native attributes lik
 
 ```Typescript
 const [
-	{
-		...
-	},
-	{
-		field
-	}
+  ...,
+  {
+    field
+  }
 ] = useForm(
-	{
-		name: 'Rimuru'
-	}
+  {
+    name: 'Rimuru'
+  }
 )
 <input {...field('name')} />
 
@@ -184,20 +180,18 @@ Method to make multiple changes in one render
 
 ```Typescript
 const [
-	{
-		...
-	},
-	{
-		triggerChange
-	}
+  ...,
+  {
+    triggerChange
+  }
 ] = useForm(
-	...
+  ...
 )
 ...
 triggerChange((form) => {
-	form.name = 'Rimuru';
-	form.age = '39';
-	form.sex = 'sexless';
+  form.name = 'Rimuru';
+  form.age = '39';
+  form.sex = 'sexless';
 })
 ...
 ```
@@ -208,17 +202,17 @@ Method to handle form submission
 
 ```Typescript
 const onSubmit = handleSubmit((form) => {
-	/// Will only be called when form is valid
-	/// do something with it
+  /// Will only be called when form is valid
+  /// do something with it
 })
 //
 const onSubmit = handleSubmit(
-	(form) => {
-		/// Will always be called 
-		/// because the next method returns true
-		/// do something with it
-	},
-	(errors) => true 
+  (form) => {
+    /// Will always be called 
+    /// because the next method returns true
+    /// do something with it
+  },
+  (errors) => true 
 )
 ```
 
@@ -228,25 +222,22 @@ Method to set custom errors
 
 ```Typescript
 const [
-	{
-		...
-	},
-	{
-		setError
-	}
+  ...,
+  {
+    setError
+  }
 ] = useForm(
-	{
-		name: 'Rimuru'
-	}
+  {
+    name: 'Rimuru'
+  }
 )
 ...
 setError([
-	{
-		key: 'name',
-		message: 'Beautiful name'
-	}
+  {
+    key: 'name',
+    message: 'Beautiful name'
+  }
 ])
-///
 ```
 
 #### `getErrors`
@@ -255,30 +246,26 @@ Returns error messages for the matched key
 
 ```Typescript
 const [
-	{
-		...
-	},
-	{
-		getErrors
-	}
+  ...,
+  {
+    getErrors
+  }
 ] = useForm(
-	{
-		product: {
-			name: 'Apple',
-			category: {
-				name: 'Food',
-				type: {
-					name: 'Solid',
-					type: 'Vegetal'
-				}
-			}
-		}
-	}
+  {
+    product: {
+      name: 'Apple',
+      category: {
+        name: 'Food',
+        type: {
+          name: 'Solid',
+          type: 'Vegetal'
+        }
+      }
+    }
+  }
 )
 ...
 getErrors('product.category') /// [<<Error Messages>>]
-///
-
 ```
 
 #### `getFormErrors`
@@ -287,37 +274,34 @@ Returns `FormErrors` for the matched key
 
 ```Typescript
 const [
-	{
-		...
-	},
-	{
-		getFormErrors
-	}
+  ...,
+  {
+    getFormErrors
+  }
 ] = useForm(
-	{
-		product: {
-			name: 'Apple',
-			category: {
-				name: 'Food',
-				type: {
-					name: 'Solid',
-					type: 'Vegetal'
-				}
-			}
-		}
-	}
+  {
+    product: {
+      name: 'Apple',
+      category: {
+        name: 'Food',
+        type: {
+          name: 'Solid',
+          type: 'Vegetal'
+        }
+      }
+    }
+  }
 )
 ...
 getFormErrors('product.category') 
 /// Can return (depends on the validation)
 {
-	'category': [<<Error Messages>>],
-	'category.name': [<<Error Messages>>],
-	'category.type': [<<Error Messages>>],
-	'category.type.name': [<<Error Messages>>],
-	'category.type.type': [<<Error Messages>>]
+  'category': [<<Error Messages>>],
+  'category.name': [<<Error Messages>>],
+  'category.type': [<<Error Messages>>],
+  'category.type.name': [<<Error Messages>>],
+  'category.type.type': [<<Error Messages>>]
 }
-///
 ```
 
 #### `reset`
@@ -326,30 +310,28 @@ Resets form state
 
 ```Typescript
 const [
-	{
-		...
-	},
-	{
-		reset
-	}
+  ...,
+  {
+    reset
+  }
 ] = useForm(
-	{
-		name: 'Rimuru'
-	}
+  {
+    name: 'Rimuru'
+  }
 )
 ...
 reset({
-	name: 'Rimuru Tempest'
+  name: 'Rimuru Tempest'
 })
 
 /// Validates new data, triggers validation
 reset(
-	{
-		name: 'Rimuru Tempest'
-	},
-	{
-		validate: true
-	}
+  {
+    name: 'Rimuru Tempest'
+  },
+  {
+    validate: true
+  }
 )
 ```
 
@@ -359,21 +341,19 @@ Unlike reset, `merge` will merge a new partial form to the new form
 
 ```Typescript
 const [
-	{
-		...
-	},
-	{
-		merge
-	}
+  ...,
+  {
+    merge
+  }
 ] = useForm(
-	{
-		name: 'Rimuru',
-		age: '40'
-	}
+  {
+    name: 'Rimuru',
+    age: '40'
+  }
 )
 ...
 merge({
-	age: '39'
+  age: '39'
 })
 ```
 
@@ -383,16 +363,14 @@ Returns a method to change key value
 
 ```Typescript
 const [
-	{
-		...
-	},
-	{
-		onChange
-	}
+  ...,
+  {
+    onChange
+  }
 ] = useForm(
-	{
-		name: 'Rimuru'
-	}
+  {
+    name: 'Rimuru'
+  }
 )
 ...
 onChange('name')
@@ -409,17 +387,15 @@ Simplified version of `onChange`, without the return method
 
 ```Typescript
 const [
-	{
-		...
-	},
-	{
-		changeValue
-	}
+  ...,
+  {
+    changeValue
+  }
 ] = useForm(
-	{
-		name: 'Rimuru',
-		age: '40'
-	}
+  {
+    name: 'Rimuru',
+    age: '40'
+  }
 )
 ...
 changeValue('name', 'Rimuru Tempest')
@@ -434,16 +410,14 @@ Return the value for the matched key
 
 ```Typescript
 const [
-	{
-		...
-	},
-	{
-		changeValue
-	}
+  ...,
+  {
+    changeValue
+  }
 ] = useForm(
-	{
-		name: 'Rimuru'
-	}
+  {
+    name: 'Rimuru'
+  }
 )
 ...
 getValue('name') /// Rimuru
@@ -457,14 +431,12 @@ _Note: Will not render the component_
 
 ```Typescript
 const [
-	 {
-		 ...
-	 },
-	 {
-		 resetTouch
-	 }
+  ...,
+  {
+    resetTouch
+  }
 ] = useForm(
-	 ...
+  ...
 )
 ...
 resetTouch()
@@ -478,16 +450,14 @@ _Note: Will not render the component_
 
 ```Typescript
 const [
-	{
-		...
-	},
-	{
-		resetTouch
-	}
+  ...,
+  {
+    resetTouch
+  }
 ] = useForm(
-	{
-		name: 'Rimuru'
-	}
+  {
+    name: 'Rimuru'
+  }
 )
 ...
 triggerManualTouch('name')
@@ -502,36 +472,34 @@ import React from 'react';
 import { FormProvider, useForm } from '@resourge/react-form'
 
 export function CustomElement() {
-	// field is the same as doing field('name')
-	const { field, formState } = useFormField('name')
+  // field is the same as doing field('name')
+  const { field, formState } = useFormField('name')
 
-	return (
-		<>
-			<span>
-				{
-					formState.isValid ? "Valid" : "Invalid" 
-				} CustomElement
-			</span>
-			<input {...field} />
-		</>
-	)
+  return (
+    <>
+      <span>
+      {
+        formState.isValid ? "Valid" : "Invalid" 
+      } CustomElement
+      </span>
+      <input {...field} />
+    </>
+  )
 }
 
 export function App() {
-	const [
-		{
-			context
-		}
-	] = useForm(
-		...
-	)
+  const [
+    {
+      context
+    }
+  ] = useForm( ... )
 
-	return (
-		<FormProvider context={context}>
-			<CustomElement />
-			...
-		</FormProvider>
-	)
+  return (
+    <FormProvider context={context}>
+      <CustomElement />
+      ...
+    </FormProvider>
+  )
 }
 ```
 
@@ -604,10 +572,9 @@ To simplify the process of converting errors from validation packages (like joi,
 import { setDefaultOnError } from '@resourge/react-form'
 
 setDefaultOnError((errors: any) => {
-	// Customize errors to fit the model 
-	// { [errors path]: [array of path error messages] }
-
-	return {}
+  // Customize errors to fit the model 
+  // { [errors path]: [array of path error messages] }
+  return {}
 });
 ```
 
