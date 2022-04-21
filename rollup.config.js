@@ -57,6 +57,16 @@ const babelPlugins = [
 	'babel-plugin-dev-expression'
 ]
 
+const babelPresetEnv = ['@babel/preset-env', { 
+	targets: [
+		'defaults',
+		'not IE 11',
+		'maintained node versions'
+	],
+	loose: true,
+	bugfixes: true
+}]
+
 const defaultExtPlugin = [
 	size(),
 	nodeResolve({
@@ -73,6 +83,7 @@ const modules = [
 			format: 'esm',
 			sourcemap,
 			banner: banner
+			
 		},
 		external,
 		plugins: [
@@ -81,15 +92,7 @@ const modules = [
 				exclude: /node_modules/,
 				babelHelpers: 'bundled',
 				presets: [
-					['@babel/preset-env', { 
-						targets: [
-							'defaults',
-							'not IE 11',
-							'maintained node versions'
-						], 
-						loose: true, 
-						bugfixes: true 
-					}],
+					babelPresetEnv,
 					'@babel/preset-react',
 					'@babel/preset-typescript'
 				],
@@ -129,16 +132,9 @@ const cjsModules = [
 				exclude: /node_modules/,
 				babelHelpers: 'bundled',
 				presets: [
-					['@babel/preset-env', { 
-						targets: [
-							'defaults',
-							'not IE 11',
-							'maintained node versions'
-						], 
-						bugfixes: true 
-					}],
+					'@babel/preset-typescript',
 					'@babel/preset-react',
-					'@babel/preset-typescript'
+					babelPresetEnv
 				],
 				plugins: babelPlugins,
 				extensions: ['.ts', '.tsx']
@@ -164,15 +160,7 @@ const cjsModules = [
 				exclude: /node_modules/,
 				babelHelpers: 'bundled',
 				presets: [
-					['@babel/preset-env', { 
-						targets: [
-							'defaults',
-							'not IE 11',
-							'maintained node versions'
-						], 
-						loose: true, 
-						bugfixes: true 
-					}],
+					babelPresetEnv,
 					[
 						'@babel/preset-react',
 						{
@@ -213,7 +201,7 @@ const umdModules = [
 				exclude: /node_modules/,
 				babelHelpers: 'bundled',
 				presets: [
-					['@babel/preset-env', { loose: true }],
+					babelPresetEnv,
 					'@babel/preset-react',
 					'@babel/preset-typescript'
 				],
@@ -243,7 +231,7 @@ const umdModules = [
 				exclude: /node_modules/,
 				babelHelpers: 'bundled',
 				presets: [
-					['@babel/preset-env', { loose: true }],
+					babelPresetEnv,
 					'@babel/preset-react',
 					'@babel/preset-typescript'
 				],
