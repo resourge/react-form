@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/resourge/react-form/compare/v1.0.2...v1.1.0) (2022-04-22)
+
+
+### Features
+
+* **controller.tsx:** add Controller component ([f24ff64](https://github.com/resourge/react-form/commit/f24ff6437659c10e17a7596879f2ef4ac7f68405))
+
 ## [1.0.2](https://github.com/resourge/react-form/compare/v1.0.1...v1.0.2) (2022-04-21)
 
 
