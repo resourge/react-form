@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-invalid-void-type */
-import { FormEvent, useRef, MouseEvent } from 'react';
+import { FormEvent, useRef, MouseEvent, useEffect } from 'react';
 
 import observeChanges from 'on-change';
 
@@ -16,7 +16,7 @@ import { getDefaultOnError } from '../validators/setDefaultOnError';
 import { useCacheErrors } from './useCacheErrors';
 import { useCancelableState } from './useCancelableState';
 import { useGetterSetter } from './useGetterSetter';
-import { useTouches } from './useTouches';
+import { Touches, useTouches } from './useTouches';
 
 type State<T extends object> = {
 	form: T
@@ -42,7 +42,8 @@ export const useForm = <T extends Record<string, any>>(
 		{
 			resetTouch,
 			setTouch,
-			triggerManualTouch
+			triggerManualTouch,
+			clearCurrentTouches
 		}
 	] = useTouches<T>();
 	const getterSetter = useGetterSetter<T>();
@@ -147,6 +148,13 @@ export const useForm = <T extends Record<string, any>>(
 	}
 
 	/**
+	 * After each render clear current touches to not pollute the next render
+	 */
+	useEffect(() => {
+		clearCurrentTouches();
+	})
+
+	/**
 	 * Main function that validates form changes.
 	 * All changes made on the from will be validated here 
 	 * 
@@ -166,6 +174,8 @@ export const useForm = <T extends Record<string, any>>(
 		};
 
 		let isOnUpdateTouched = isTouched.current;
+
+		clearCurrentTouches();
 
 		const proxy = observeChanges(
 			newState.form,
@@ -187,9 +197,9 @@ export const useForm = <T extends Record<string, any>>(
 						value,
 						previousValue
 					)
-	
+
 					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-					const didTouch = Boolean(`${previousValue})` !== `${value}`)
+					const didTouch = typeof value === 'boolean' ? Boolean(`${previousValue})` !== `${value}`) : previousValue !== value
 					setTouch(key, didTouch);
 
 					isOnUpdateTouched = isOnUpdateTouched || didTouch;
@@ -198,7 +208,9 @@ export const useForm = <T extends Record<string, any>>(
 				// getterSetter.set(key, newState.form, value);
 			},
 			{
-				pathAsArray: true
+				pathAsArray: true,
+				details: true
+				
 			}
 		)
 
@@ -396,7 +408,7 @@ export const useForm = <T extends Record<string, any>>(
 		return setCacheErrors(
 			_key, 
 			() => {
-				if ( !onlyOnTouch || (onlyOnTouch && touches[key]) ) {
+				if ( !onlyOnTouch || (onlyOnTouch && touches.current[key as keyof Touches<T>]) ) {
 					return errors && errors[key] ? errors[key] ?? [] : [];
 				}
 				return [];
@@ -423,7 +435,7 @@ export const useForm = <T extends Record<string, any>>(
 				) ?? nativeIsValid
 			},
 			isTouched: isTouched.current,
-			touches,
+			touches: touches.current,
 			get context() {
 				return getFormRef.current as FormState<T>;
 			}

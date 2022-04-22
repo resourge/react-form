@@ -225,6 +225,7 @@ export type FormStateValues<T extends Record<string, any>> = {
 	isValid: boolean
 	/**
 	 * Form touches // { [form key]: boolean }
+	 * * Note: To be `touched` the system does a shallow comparison (ex: previousValue !== value)
 	 */
 	touches: Touches<T>
 	/**
@@ -232,7 +233,7 @@ export type FormStateValues<T extends Record<string, any>> = {
 	 */
 	isTouched: boolean
 	/**
-	 * Context mainly for use in `FormProvider`, basically returns {@link FormState}
+	 * Context mainly for use in `FormProvider/Controller`, basically returns {@link FormState}
 	 */
 	context: FormState<T>
 }
