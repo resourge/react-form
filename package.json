@@ -9,6 +9,16 @@
   "publishConfig": {
     "access": "public"
   },
+  "keywords": [
+    "react",
+    "hooks",
+    "form",
+    "forms",
+    "form-validation",
+    "validation",
+    "typescript",
+    "react-hooks"
+  ],
   "files": [
     "dist"
   ],
