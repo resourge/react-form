@@ -1,8 +1,7 @@
 import React, { memo } from 'react';
 
+import { ControllerContext } from '../contexts/ControllerContext';
 import { FormKey, FormState } from '../types';
-
-import { FormProvider } from './FormProvider';
 
 export type ControllerProps<T extends Record<string, any>> = {
 	name: FormKey<T>
@@ -41,12 +40,21 @@ export type ControllerProps<T extends Record<string, any>> = {
  * ```
  */
 export const Controller = memo(function Controller<T extends Record<string, any>>({ 
-	context, children 
+	name, context, children 
 }: ControllerProps<T>) {
+	const field = context[1].field(
+		name
+	);
+
 	return (
-		<FormProvider context={context}>
+		<ControllerContext.Provider
+			value={{
+				field,
+				formState: context
+			}}
+		>
 			{ children }
-		</FormProvider>
+		</ControllerContext.Provider>
 	);
 }, (prevProps, nextProps) => (
 	prevProps.name === nextProps.name && !(

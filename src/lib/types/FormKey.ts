@@ -14,4 +14,4 @@ export type RecursiveKeyOf<TObj extends object, isFirstLevel extends boolean = t
 		: RecursiveKeyOfHandleValue<TObj[TKey], RecursiveKeyOfAccess<TKey>>;
 }[keyof TObj & (string | number)];
 
-export type FormKey<T extends object> = RecursiveKeyOf<T>
+export type FormKey<T extends Record<string, any>> = RecursiveKeyOf<T>
