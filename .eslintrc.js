@@ -47,6 +47,7 @@ module.exports = {
 		}
 	],
 	rules: {
+		'react/prop-types': 'off',
 		'require-await': 'off',
 		'@typescript-eslint/require-await': 'error',
 		'@typescript-eslint/triple-slash-reference': ['error', { path: 'never', types: 'always', lib: 'never' }],

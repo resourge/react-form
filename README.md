@@ -545,14 +545,12 @@ is `touched`.
 
 ```jsx
 import React from 'react';
-import { FormProvider, useForm } from '@resourge/react-form'
+import { Controller, useFormField, useForm } from '@resourge/react-form'
 
-function CustomElement({ name, value }: { name: any, value: number }) {
-	// Value is not really necessary using `useFormField` but it's for the example
+function CustomElement({ value }: { value: number }) {
 	const { 
-		field,
-		formState
-	} = useFormField(name)
+		field
+	} = useController()
 
 	return (
 		<div>
@@ -580,19 +578,15 @@ export function App() {
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column' }}>
 			{
-				form.list.map((value, index) => {
-					const name = `list[${index}]`
-
-					return (
-						<Controller
-							key={`${index}`}
-							name={name}
-							context={context}
-						>
-							<CustomElement name={name} value={value} />
-						</Controller>
-					)
-				})
+				form.list.map((value, index) => (
+					<Controller
+						key={`${index}`}
+						name={`list[${index}]`}
+						context={context}
+					>
+						<CustomElement value={value} />
+					</Controller>
+				))
 			}
 		</div>
 	)
@@ -632,7 +626,8 @@ setFormYupValidation();
 
 Future features:
 
-* Control component to make sure children will only update if changes where made (making sure the children component will only render when the values changes, to improve the performance of bigger forms) 
+<s> * Control component to make sure children will only update if changes where made (making sure the children component will only render when the values changes, to improve the performance of bigger forms) <s>
+* List Controller (basically the same as controller but for list's)
 * Custom hook for uncontrolled form
 
 ## License
