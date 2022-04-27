@@ -119,7 +119,9 @@ export default function Form() {
 }
 ```
 
-`<form></form>` the usage of form as wrapper is optional. 
+. 
+
+_Note: `<form></form>` the usage of form as wrapper is optional._
 
 ### Form Data
 
@@ -553,48 +555,48 @@ import React from 'react';
 import { Controller, useFormField, useForm } from '@resourge/react-form'
 
 function CustomElement({ value }: { value: number }) {
-	const { 
-		field
-	} = useController()
+  const { 
+    field
+  } = useController()
 
-	return (
-		<div>
-			{ value } <button
-				onClick={() => {
-					field.onChange && field.onChange(Math.random())
-				}}
-			>
-				Update with random value
-			</button>
-		</div>
-	)
+  return (
+    <div>
+      { value } <button
+        onClick={() => {
+          field.onChange && field.onChange(Math.random())
+        }}
+      >
+        Update with random value
+      </button>
+    </div>
+  )
 }
 
 export function App() {
-	const [
-		{
-			context,
-			form
-		}
-	] = useForm({
-		list: Array.from({ length: 1000 }).map((_, index) => index + 1)
-	})
+  const [
+    {
+      context,
+      form
+    }
+  ] = useForm({
+    list: Array.from({ length: 1000 }).map((_, index) => index + 1)
+  })
 
-	return (
-		<div style={{ display: 'flex', flexDirection: 'column' }}>
-			{
-				form.list.map((value, index) => (
-					<Controller
-						key={`${index}`}
-						name={`list[${index}]`}
-						context={context}
-					>
-						<CustomElement value={value} />
-					</Controller>
-				))
-			}
-		</div>
-	)
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      {
+        form.list.map((value, index) => (
+          <Controller
+            key={`${index}`}
+            name={`list[${index}]`}
+            context={context}
+          >
+            <CustomElement value={value} />
+          </Controller>
+        ))
+      }
+    </div>
+  )
 }
 ```
 
