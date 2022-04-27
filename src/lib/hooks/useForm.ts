@@ -2,6 +2,7 @@
 import { FormEvent, useRef, MouseEvent, useEffect } from 'react';
 
 import observeChanges from 'on-change';
+import invariant from 'tiny-invariant'
 
 import { FormKey } from '../types/FormKey';
 import { 
@@ -28,6 +29,8 @@ export const useForm = <T extends Record<string, any>>(
 	options?: FormOptions<T>
 ): FormState<T> => {
 	const onErrors = options?.onErrors ?? getDefaultOnError();
+
+	invariant(onErrors, 'Missing declaration setDefaultOnError handler on the initialization of your application.')
 
 	const defaultValue = useRef(_defaultValue).current;
 
@@ -82,6 +85,10 @@ export const useForm = <T extends Record<string, any>>(
 		}
 		catch ( errors ) {
 			if ( errors ) {
+				if (!onErrors) {
+					throw new Error('Missing declaration setDefaultOnError handler on the initialization of your application.')
+				}
+				
 				const newErrors = onErrors(errors);
 
 				_setFormState({
