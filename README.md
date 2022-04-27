@@ -26,6 +26,35 @@ or NPM:
 npm install @resourge/react-form --save
 ```
 
+## (Optional) Setup Errors
+
+To simplify the process of converting errors from validation packages (like joi, yup, zod, ajv, etc) to `useForm` lookalike errors, use `setDefaultOnError`.
+You only need to setup this on the inicialization of the applicaction in this case App.tsx
+
+`setDefaultOnError` will, by default (unless `onError` from [Form Options](#form-options) is set), customize the errors to fit `useForm` errors
+
+```jsx
+// In App.tsx
+import { setDefaultOnError } from '@resourge/react-form'
+
+setDefaultOnError((errors: any) => {
+  // Customize errors to fit the model 
+  // { [errors path]: [array of path error messages] }
+  return {}
+});
+```
+
+_Note: We plan to add more default validations in the future (like zod). If you have one and want to share, please do and contribute._
+
+For yup validation, `setFormYupValidation`
+
+```jsx
+// In App.tsx
+import { setFormYupValidation } from '@resourge/react-form'
+
+setFormYupValidation();
+```
+
 ## Usage
 
 ```Typescript
@@ -61,13 +90,13 @@ export default function Form() {
     { 
       isValid },
     { 
-	  field, 
-	  handleSubmit 
-	}
+    field, 
+    handleSubmit 
+  }
   ] = useForm(
     { 
-	  name: 'Rimuru' 
-	}
+    name: 'Rimuru' 
+  }
   )
 
   const onSubmit = handleSubmit((form) => {
@@ -90,6 +119,8 @@ export default function Form() {
 }
 ```
 
+`<form></form>` the usage of form as wrapper is optional. 
+
 ### Form Data
 
 Form data is the default form values. Can be a simple object or a class (I made it specifically for class support)
@@ -100,25 +131,31 @@ Rules:
 * Cached on the first render (changes will not affect the form data.)
 
 ```Typescript
-// object
+
+// definition of a plain object
+const user = {
+    name: 'Rimuru',
+    age: 39
+}
+
+// usage of the from from a object
 const [
   ...
 ] = useForm(
-  {
-    name: 'Rimuru',
-    age: 39
-  }
+  user
 )
-// class
+
+// definition of class
 class User {
   name = 'Rimuru';
   age = 39
-	
+  
   get fullName() {
     return `${this.name} Tempest`
   }
 }
 
+// usage of the from from a class
 const [
   ...
 ] = useForm(
@@ -168,9 +205,10 @@ const [
     name: 'Rimuru'
   }
 )
+
 <input {...field('name')} />
 
-/// For validating on change
+/// For validating when changing the value without triggering the submit to get the error validation
 <input {...field('name', { validate: true })} />
 ```
 
@@ -191,7 +229,7 @@ const [
 triggerChange((form) => {
   form.name = 'Rimuru';
   form.age = '39';
-  form.sex = 'sexless';
+  ...
 })
 ...
 ```
@@ -503,7 +541,6 @@ export function App() {
 }
 ```
 
-
 ## Controller
 
 For more complex and deep forms, where render's can impact performance 
@@ -561,40 +598,11 @@ export function App() {
 }
 ```
 
-## Errors
-
-To simplify the process of converting errors from validation packages (like joi, yup, zod, ajv, etc) to `useForm` lookalike errors, use `setDefaultOnError`.
-
-`setDefaultOnError` will, by default (unless `onError` from [Form Options](#form-options) is set), customize the errors to fit `useForm` errors
-
-```jsx
-// In App.tsx
-import { setDefaultOnError } from '@resourge/react-form'
-
-setDefaultOnError((errors: any) => {
-  // Customize errors to fit the model 
-  // { [errors path]: [array of path error messages] }
-  return {}
-});
-```
-
-_Note: I plan to add more default validations in the future (like zod). If you have one and want to share, please do._
-
-For yup validation, `setFormYupValidation`
-
-```jsx
-// In App.tsx
-import { setFormYupValidation } from '@resourge/react-form'
-
-setFormYupValidation();
-```
-
 ## Future plans
 
 Future features:
 
-<s> * Control component to make sure children will only update if changes where made (making sure the children component will only render when the values changes, to improve the performance of bigger forms) <s>
-* List Controller (basically the same as controller but for list's)
+* Control component to make sure children will only update if changes where made (making sure the children component will only render when the values changes, to improve the performance of bigger forms) 
 * Custom hook for uncontrolled form
 
 ## License
