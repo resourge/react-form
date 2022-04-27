@@ -29,7 +29,7 @@ npm install @resourge/react-form --save
 ## (Optional) Setup Errors
 
 To simplify the process of converting errors from validation packages (like joi, yup, zod, ajv, etc) to `useForm` lookalike errors, use `setDefaultOnError`.
-You only need to setup this on the inicialization of the applicaction in this case App.tsx
+You only need to setup this on the initialization of the application in this case App.tsx
 
 `setDefaultOnError` will, by default (unless `onError` from [Form Options](#form-options) is set), customize the errors to fit `useForm` errors
 
