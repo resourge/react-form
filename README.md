@@ -167,12 +167,12 @@ const [
 
 ### Form Options
 
-| Name | Type | Default | Required | Description |
-| ---- | ---- | ------- | -------- | ----------- |
-| **validate** | `(form: T) => void \| Promise<void>` | | false | Method to validate form. Usually with some kind of validator. (like yup, zod, joi, etc) |
-| **isValid** | `({ form, isValid, errors }) => boolean` | | false |  Method to define if form is valid |
-| **onErrors** | `(errors: any \| any[]) => FormErrors` | | false | Local method to treat errors. It's preferable to use [setDefaultOnError](#errors) |
-| **onTouch** | `(key: FormKey<T>, value: unknown, previousValue: unknown) => void` | | false | Method called every time a value is changed |
+| Name | Type | Required | Description |
+| ---- | ---- | -------- | ----------- |
+| **validate** | `(form: T) => void \| Promise<void>` | false | Method to validate form. Usually with some kind of validator. (like yup, zod, joi, etc) |
+| **isValid** | `({ form, isValid, errors }) => boolean` | false |  Method to define if form is valid |
+| **onErrors** | `(errors: any \| any[]) => FormErrors` | false | Local method to treat errors. It's preferable to use [setDefaultOnError](#errors) |
+| **onTouch** | `(key: FormKey<T>, value: unknown, previousValue: unknown) => void` | false | Method called every time a value is changed |
 
 ## Form State and Actions
 
@@ -183,7 +183,7 @@ const [
 | Name | Type | Default | Description |
 | ---- | ---- | ------- | ----------- |
 | **form** | `object` | [`formData`](#form-data) | Form data |
-| **errors** | `{ [form path]: [path error messages] }` | | Depends if `useForm` `validate` is set. (ex: { 'user.name': ['Name is required'] }) |
+| **errors** | `{ [form path]: [path error messages] }` | undefined | Depends if `useForm` `validate` is set. (ex: { 'user.name': ['Name is required'] }) |
 | **isValid** | `boolean` | false | Form state by default is false if `errors` are undefined or an empty object |
 | **touches** | `{ [form path]: boolean }` | {} | Form touches (ex: { 'user.name': true }) |
 | **isTouched** | `boolean` | false | Form touches state by default is false if `touches` are undefined or an empty object |
@@ -599,14 +599,6 @@ export function App() {
   )
 }
 ```
-
-## Future plans
-
-Future features:
-
-* Control component to make sure children will only update if changes where made (making sure the children component will only render when the values changes, to improve the performance of bigger forms) 
-* Custom hook for uncontrolled form
-
 ## License
 
 MIT Licensed.
