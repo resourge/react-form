@@ -25,7 +25,8 @@
   "author": "resourge",
   "license": "MIT",
   "scripts": {
-    "commit": "git pull && git add . && git-cz",
+	"commitizen": "git-cz",
+    "commit": "git pull && git add . && npm run commitizen",
     "lint": "eslint \"./src/**/*.{ts,tsx}\"",
     "lint:prod": "cross-env NODE_ENV=production npm run lint",
     "fix-types": "replace 'declare' 'export declare' dist/index.d.ts --silent",

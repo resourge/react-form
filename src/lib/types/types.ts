@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-invalid-void-type */
 import { Touches } from '../hooks/useTouches';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { OnErrors } from '../validators/setDefaultOnError';
+import { OnErrors, setDefaultOnError } from '../validators/setDefaultOnError';
 
 import { FormKey } from './FormKey';
 
@@ -25,6 +25,16 @@ type IsValid<T extends Record<string, any>> = {
 }
 
 export type FormOptions<T extends Record<string, any>> = {
+	/**
+	 * Validate form.
+	 * When `true` every change batch will validate the form
+	 * With `false` will only validate on method {@link FormActions#handleSubmit} 
+	 * or if {@link FieldOptions#validate}/{@link ProduceNewStateOptions#validate} is set `true`.
+	 * 
+	 * * Note: Local {@link FieldOptions#validate} takes priority over global {@link FormOptions#validateDefault}
+	 * @default false
+	 */
+	validateDefault?: boolean 
 	/**
 	 * Method to validate form.
 	 * Usually with some kind of validator.
