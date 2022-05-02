@@ -14,11 +14,6 @@ export function useCancelableState <S>(initialState: S | (() => S)): [S, Dispatc
 	const [_state, _setState] = useState(initialState);
 	const stateRef = useRef<S | undefined>(typeof initialState !== 'function' ? initialState : undefined);
 
-	if ( !stateRef.current && typeof initialState === 'function' ) {
-		// @ts-expect-error
-		stateRef.current = initialState()
-	}
-
 	stateRef.current = _state;
 
 	const setState = (state: S | ((state: S) => S | (null | undefined | void))) => {
