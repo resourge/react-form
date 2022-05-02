@@ -59,6 +59,10 @@ export const Controller = memo(function Controller<T extends Record<string, any>
 }, (prevProps, nextProps) => (
 	prevProps.name === nextProps.name && !(
 		(nextProps.context[0].touches.currentTouches[nextProps.name] ?? false) ||
-		nextProps.context[0].touches.currentTouches.some((currentTouche) => currentTouche.includes(nextProps.name) || nextProps.name.includes(currentTouche))
+		nextProps.context[0].touches.currentTouches
+		.some((currentTouche) => currentTouche.includes(nextProps.name) || nextProps.name.includes(currentTouche))
+	) && !(
+		(nextProps.context[1].getErrors(nextProps.name).length ?? false) ||
+		(Object.keys(nextProps.context[1].getFormErrors(nextProps.name)).length ?? false)
 	)
 )) as <T extends Record<string, any>>(props: ControllerProps<T>) => JSX.Element

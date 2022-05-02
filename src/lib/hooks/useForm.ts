@@ -30,7 +30,7 @@ export const useForm = <T extends Record<string, any>>(
 ): FormState<T> => {
 	const onErrors = options?.onErrors ?? getDefaultOnError();
 
-	invariant(onErrors, 'Missing declaration setDefaultOnError handler on the initialization of your application.')
+	invariant(onErrors, 'Missing declaration `setDefaultOnError` handler on the initialization of your application.')
 
 	const defaultValue = useRef(_defaultValue).current;
 
