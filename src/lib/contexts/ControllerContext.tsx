@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-invalid-void-type */
 import { createContext, useContext } from 'react'
 
 import invariant from 'tiny-invariant'

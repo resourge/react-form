@@ -51,10 +51,35 @@ export const useForm = <T extends Record<string, any>>(
 	] = useTouches<T>();
 	const getterSetter = useGetterSetter<T>();
 
-	const [state, setFormState] = useCancelableState<State<T>>(() => ({
-		errors: undefined,
-		form: shallowClone(defaultValue)
-	}));
+	const wasInitialValidationPromise = useRef(false);
+	const [state, setFormState] = useCancelableState<State<T>>(() => {
+		const form = shallowClone(defaultValue)
+		let errors: FormErrors<T> | undefined;
+
+		if ( options?.validateDefault ) {
+			try {
+				const valid = options?.validate && options?.validate(form);
+				wasInitialValidationPromise.current = valid instanceof Promise;
+			}
+			catch ( err ) {
+				errors = onErrors(err);
+			}
+		}
+
+		return {
+			errors,
+			form
+		}
+	});
+
+	useEffect(() => {
+		if ( options?.validateDefault && wasInitialValidationPromise.current === true ) {
+			validateState(state)
+			.then((state) => {
+				setFormState(state)
+			})
+		}
+	}, [])
 
 	const {
 		form,
@@ -225,10 +250,12 @@ export const useForm = <T extends Record<string, any>>(
 
 		newState.form = observeChanges.unsubscribe(proxy);
 
+		const validate = produceOptions?.validate ?? options?.validateDefault;
+
 		if ( 
 			Boolean(produceOptions?.forceValidation) || 
 			(
-				produceOptions?.validate && 
+				validate && 
 				isOnUpdateTouched
 			)
 		) {
