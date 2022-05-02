@@ -9,7 +9,7 @@ import { FieldOptions, FieldForm, FormState } from '../types/types';
  * @param options - {@link FieldOptions}
  * @returns 
  */
-export const useFormField = <T extends Record<string, any>>(
+export const useFormField = <T extends Record<string, any>, Value = any>(
 	key: FormKey<T>, 
 	options?: FieldOptions
 ): {
@@ -18,7 +18,7 @@ export const useFormField = <T extends Record<string, any>>(
 } => {
 	const formState = useFormContext<T>();
 
-	const field = formState[1].field(key, options);
+	const field = formState[1].field<Value>(key, options);
 
 	return {
 		field,

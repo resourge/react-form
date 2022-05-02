@@ -267,7 +267,7 @@ export type FormActions<T extends Record<string, any>> = {
 	 * ...
 	 * ```
 	 */
-	field: (key: FormKey<T>, options?: FieldOptions<any>) => FieldForm
+	field: <Value = any>(key: FormKey<T>, options?: FieldOptions<any>) => FieldForm<Value>
 	/**
 	 * Method to make multiple changes in one render
 	 * 
