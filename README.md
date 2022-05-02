@@ -26,7 +26,7 @@ or NPM:
 npm install @resourge/react-form --save
 ```
 
-## (Optional) Setup Errors
+## Setup Errors
 
 To simplify the process of converting errors from validation packages (like joi, yup, zod, ajv, etc) to `useForm` lookalike errors, use `setDefaultOnError`.
 You only need to setup this on the initialization of the application in this case App.tsx
@@ -88,15 +88,16 @@ import { useForm } from '@resourge/react-form';
 export default function Form() {
   const [
     { 
-      isValid },
+      isValid 
+	},
     { 
-    field, 
-    handleSubmit 
-  }
+	  field, 
+	  handleSubmit 
+    }
   ] = useForm(
     { 
-    name: 'Rimuru' 
-  }
+      name: 'Rimuru' 
+    }
   )
 
   const onSubmit = handleSubmit((form) => {
@@ -140,7 +141,7 @@ const user = {
     age: 39
 }
 
-// usage of the from from a object
+// usage with an object
 const [
   ...
 ] = useForm(
@@ -157,7 +158,7 @@ class User {
   }
 }
 
-// usage of the from from a class
+// usage with a class
 const [
   ...
 ] = useForm(
