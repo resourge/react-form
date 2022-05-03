@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 
 import { FormErrors } from '../types/types';
 
-export type CacheType = string[] | FormErrors<any>
+export type CacheType = string[] | FormErrors<any> | boolean
 
 /**
  * Caches the errors by the deps

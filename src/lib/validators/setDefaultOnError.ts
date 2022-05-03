@@ -1,13 +1,16 @@
-import { FormErrors } from '../types/types';
+export type ValidationErrors = Array<{
+	path: string | string[]
+	errors: string[]
+}>
 
-export type OnErrors<T extends Record<string, any>> = (errors: any | any[]) => FormErrors<T>
+export type OnErrors = (errors: any | any[]) => ValidationErrors
 
-export let onErrorFn: undefined | OnErrors<any>
+export let onErrorFn: undefined | OnErrors
 
 export const getDefaultOnError = () => {
 	return onErrorFn;
 }
 
-export const setDefaultOnError = (onError: OnErrors<any>) => {
+export const setDefaultOnError = (onError: OnErrors) => {
 	onErrorFn = onError;
 }
