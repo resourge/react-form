@@ -8,8 +8,11 @@ import { FormKey } from '../types/FormKey';
 import { 
 	FormErrors, OnFunctionChange, ValidateSubmission, 
 	SubmitHandler, FieldForm, FormState, ProduceNewStateOptions, 
-	FieldOptions, ResetOptions, FormOptions
+	FieldOptions, ResetOptions, FormOptions, 
+	GetErrorsOptions, GetErrorsWithChildren, FormSimpleErrors, 
+	HasErrorOptions
 } from '../types/types'
+import { createFormErrors, formatErrors, getFormErrorsDefault } from '../utils/createFormErrors';
 import { shallowClone } from '../utils/shallowClone';
 import { getKeyFromPaths } from '../utils/utils';
 import { getDefaultOnError } from '../validators/setDefaultOnError';
@@ -19,18 +22,27 @@ import { useCancelableState } from './useCancelableState';
 import { useGetterSetter } from './useGetterSetter';
 import { Touches, useTouches } from './useTouches';
 
-type State<T extends object> = {
+type State<T extends Record<string, any>> = {
 	form: T
-	errors?: FormErrors<T>
+} & FormErrors<T>
+
+const checkIfCanCheckError = (
+	key: string,
+	touches: React.MutableRefObject<Touches<any>>,
+	onlyOnTouch?: boolean
+) => {
+	return !onlyOnTouch || (onlyOnTouch && touches.current[key])
 }
 
 export const useForm = <T extends Record<string, any>>(
 	_defaultValue: T, 
 	options?: FormOptions<T>
 ): FormState<T> => {
-	const onErrors = options?.onErrors ?? getDefaultOnError();
+	const _onErrors = options?.onErrors ?? getDefaultOnError();
 
-	invariant(onErrors, 'Missing declaration `setDefaultOnError` handler on the initialization of your application.')
+	invariant(_onErrors, 'Missing declaration `setDefaultOnError` handler on the initialization of your application.')
+
+	const onErrors = createFormErrors<T>(_onErrors)
 
 	const defaultValue = useRef(_defaultValue).current;
 
@@ -54,7 +66,7 @@ export const useForm = <T extends Record<string, any>>(
 	const wasInitialValidationPromise = useRef(false);
 	const [state, setFormState] = useCancelableState<State<T>>(() => {
 		const form = shallowClone(defaultValue)
-		let errors: FormErrors<T> | undefined;
+		let errors: FormErrors<T> = getFormErrorsDefault();
 
 		if ( options?.validateDefault ) {
 			try {
@@ -67,11 +79,15 @@ export const useForm = <T extends Record<string, any>>(
 		}
 
 		return {
-			errors,
+			...errors,
 			form
 		}
 	});
 
+	/**
+	 * In case validate `useCancelableState` is not able to validate the errors
+	 * (ex: validate is a promise), this useEffect will
+	 */
 	useEffect(() => {
 		if ( options?.validateDefault && wasInitialValidationPromise.current === true ) {
 			validateState(state)
@@ -79,11 +95,13 @@ export const useForm = <T extends Record<string, any>>(
 				setFormState(state)
 			})
 		}
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
 	const {
 		form,
-		errors
+		errors,
+		simpleErrors
 	} = state
 
 	const {
@@ -118,7 +136,7 @@ export const useForm = <T extends Record<string, any>>(
 
 				_setFormState({
 					form,
-					errors: newErrors
+					...newErrors
 				})
 
 				if ( onInvalidRef.current ) {
@@ -138,7 +156,8 @@ export const useForm = <T extends Record<string, any>>(
 
 		_setFormState({
 			form,
-			errors: undefined
+			simpleErrors: {},
+			errors: {}
 		})
 		
 		// @ts-expect-error
@@ -162,19 +181,19 @@ export const useForm = <T extends Record<string, any>>(
 	 * @returns New validated state
 	 */
 	const validateState = async (state: State<T>): Promise<State<T>> => {
-		let newErrors;
 		try {
 			options?.validate && await (Promise.resolve(options?.validate(state.form)));
-			newErrors = {}
-		}
-		catch ( errors ) {
-			newErrors = onErrors(errors);
-		}
-		finally {
-			// eslint-disable-next-line no-unsafe-finally
 			return { 
 				form: state.form,
-				errors: newErrors ?? {}
+				errors: {},
+				simpleErrors: {}
+			}
+		}
+		catch ( errors ) {
+			const newErrors = onErrors(errors);
+			return { 
+				form: state.form,
+				...newErrors
 			}
 		}
 	}
@@ -202,7 +221,8 @@ export const useForm = <T extends Record<string, any>>(
 	): State<T> | Promise<State<T>> => {
 		const newState: State<T> = {
 			form: oldState.form,
-			errors: { ...oldState.errors }
+			errors: { ...oldState.errors },
+			simpleErrors: { ...oldState.simpleErrors }
 		};
 
 		let isOnUpdateTouched = isTouched.current;
@@ -264,7 +284,8 @@ export const useForm = <T extends Record<string, any>>(
 
 		return { 
 			form: newState.form,
-			errors: newState.errors
+			errors: newState.errors,
+			simpleErrors: newState.simpleErrors
 		}
 	}
 
@@ -296,7 +317,8 @@ export const useForm = <T extends Record<string, any>>(
 		}
 
 		if ( !options.forceValidation ) {
-			_newState.errors = undefined;
+			_newState.errors = {};
+			_newState.simpleErrors = {};
 		}
 
 		if ( options.clearTouched ) {
@@ -387,65 +409,122 @@ export const useForm = <T extends Record<string, any>>(
 	// #region Errors
 	const setError = (
 		newErrors: Array<{
-			key: FormKey<T>
-			message: string
+			path: FormKey<T>
+			errors: string[]
 		}>
 	) => {
-		const _errors: FormErrors<T> = {
-			...(errors ?? {})
-		}
-
-		newErrors.forEach(({ key, message }) => {
-			(!_errors[key] ? (_errors[key] = []) : _errors[key])?.push(message)
-		})
-
+		const _newErrors = formatErrors(newErrors, { errors, simpleErrors })
 		setFormState({
 			form,
-			errors: _errors
+			..._newErrors
 		})
 	}
 
-	const getFormErrors = <Model extends object>(_key: FormKey<T>) => {
-		const key: string = _key as string;
-		const deepKey: string = `get_deep_errors_${key}`;
+	const hasError = (
+		key: FormKey<T>, 
+		options: HasErrorOptions = {
+			strict: true,
+			onlyOnTouch: false
+		}
+	): boolean => {
+		const {
+			strict = true,
+			onlyOnTouch = false
+		} = options;
+		// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+		const _key: string = `get_errors_${key}_${strict}_${onlyOnTouch}`;
 
-		return setCacheErrors(
-			deepKey, 
+		return setCacheErrors<boolean>(
+			_key, 
 			() => {
-				return Object.keys(errors ?? {})
-				.reduce((err: FormErrors<Model>, errorKey: string) => {
-					if ( errorKey.includes(key) ) {
-						const keys: [string, FormKey<Model>] = errorKey.split(key) as [string, FormKey<Model>];
-						if ( keys.length > 1 ) {
-							// eslint-disable-next-line @typescript-eslint/no-unused-vars
-							const [_, newKey] = keys;
-		
-							const elementKey: FormKey<Model> = newKey
-							.replace(/^\..*?/igm, '')
-							.replace(/^\[\d\]\..*?/igm, '') as FormKey<Model>
-		
-							err[elementKey] = (errors ?? {})[errorKey as keyof typeof errors];
-						}
+				const _errors: FormSimpleErrors<T> = simpleErrors ?? {};
+
+				let hasError = false;
+				if ( checkIfCanCheckError(key, touches, onlyOnTouch) ) {
+					hasError = Boolean(_errors[key]);
+				}
+
+				if ( hasError ) {
+					return true;
+				}
+				else {
+					if ( !strict ) {
+						const regex = new RegExp(`^${key.replace('[', '\\[').replace(']', '\\]')}`, 'g')
+	
+						return Object.keys(_errors)
+						.some((errorKey) => {
+							if ( checkIfCanCheckError(errorKey, touches, onlyOnTouch) ) {
+								return regex.test(errorKey)
+							}
+							return false;
+						})
 					}
-					return err;
-				}, {});
+				}
+
+				return hasError;
 			}
 		)
 	}
 
-	const getErrors = (
-		key: FormKey<T>, 
-		onlyOnTouch: boolean = false
-	): string[] => {
-		const _key: string = `get_errors_${key}`;
+	function getErrors<Model extends Record<string, any> = T>(
+		key: FormKey<Model>, 
+		options: GetErrorsOptions = {
+			strict: true,
+			onlyOnTouch: false,
+			includeKeyInChildErrors: true,
+			includeChildsIntoArray: false
+		}
+	): GetErrorsWithChildren<Model> {
+		const {
+			strict = true,
+			onlyOnTouch = false,
+			includeKeyInChildErrors = true,
+			includeChildsIntoArray = false
+		} = options;
 
-		return setCacheErrors(
+		// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+		const _key: string = `get_errors_${key}_${strict}_${onlyOnTouch}_${includeKeyInChildErrors}_${includeChildsIntoArray}`;
+
+		return setCacheErrors<GetErrorsWithChildren<Model>>(
 			_key, 
 			() => {
-				if ( !onlyOnTouch || (onlyOnTouch && touches.current[key as keyof Touches<T>]) ) {
-					return errors && errors[key] ? errors[key] ?? [] : [];
+				const _errors: FormSimpleErrors<T> = simpleErrors ?? {};
+				const getErrors = (key: FormKey<Model>): GetErrorsWithChildren<Model> => {
+					if ( checkIfCanCheckError(key, touches, onlyOnTouch) ) {
+						// @ts-expect-error // Working with array and object
+						return [..._errors[key] ?? []];
+					}
+					// @ts-expect-error // Working with array and object
+					return []
 				}
-				return [];
+
+				const newErrors = getErrors(key);
+
+				if ( !strict ) {
+					const regex = new RegExp(`^${key.replace('[', '\\[').replace(']', '\\]')}`, 'g')
+
+					Object.keys(_errors)
+					.forEach((errorKey: string) => {
+						if ( errorKey.includes(key) && errorKey !== key ) {
+							let newErrorKey = includeKeyInChildErrors === true ? errorKey : (
+								errorKey.replace(regex, '') || key
+							)
+
+							// Remove first char if is a "."
+							if ( newErrorKey[0] === '.' ) {
+								newErrorKey = newErrorKey.substring(1, newErrorKey.length)
+							}
+
+							if ( includeChildsIntoArray ) {
+								newErrors.push(errorKey as FormKey<T>);
+							}
+							
+							newErrors[newErrorKey as keyof GetErrorsWithChildren<Model>] = getErrors(errorKey as FormKey<Model>) as any;
+						}
+					});
+				}
+
+				return newErrors;
 			}
 		)
 	}
@@ -464,6 +543,7 @@ export const useForm = <T extends Record<string, any>>(
 					options?.isValid && options?.isValid({
 						form, 
 						errors,
+						simpleErrors,
 						isValid: nativeIsValid
 					})
 				) ?? nativeIsValid
@@ -480,8 +560,8 @@ export const useForm = <T extends Record<string, any>>(
 			handleSubmit,
 
 			setError,
+			hasError,
 			getErrors,
-			getFormErrors,
 
 			reset,
 			merge,
