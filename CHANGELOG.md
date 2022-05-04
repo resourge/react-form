@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/resourge/react-form/compare/v1.3.0...v1.3.1) (2022-05-04)
+
+
+### Bug Fixes
+
+* **useform:** fix reset not updating Controller ([321328b](https://github.com/resourge/react-form/commit/321328b29a1015134257fd03fc77d781f05cc043))
+
 # [1.3.0](https://github.com/resourge/react-form/compare/v1.2.0...v1.3.0) (2022-05-04)
 
 
