@@ -272,7 +272,6 @@ export const useForm = <T extends Record<string, any>>(
 		resetOptions?: ResetOptions
 	) => {
 		const options: ResetOptions = {
-			triggerTouched: false,
 			clearTouched: true,
 			...(resetOptions ?? {})
 		}
