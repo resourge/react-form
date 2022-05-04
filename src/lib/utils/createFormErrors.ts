@@ -1,16 +1,14 @@
-import { FormErrors } from '../types';
+/* eslint-disable @typescript-eslint/consistent-type-assertions */
+import { FormErrors } from '../types/types';
 import { OnErrors, ValidationErrors } from '../validators/setDefaultOnError';
 
-import { createNestedObject } from './createNestedObject';
 import { getKeyFromPaths } from './utils';
 
-export const getFormErrorsDefault = () => ({
-	simpleErrors: {},
-	errors: {}
-})
-
-export const formatErrors = <T extends Record<string, any>> (errors: ValidationErrors, defaultErrors: FormErrors<T> = getFormErrorsDefault()) => {
-	return errors
+export const formatErrors = <T extends Record<string, any>> (
+	errors: ValidationErrors, 
+	defaultErrors: FormErrors<T> = {}
+) => {
+	const _simpleErrors = errors
 	.reduce<FormErrors<T>>((obj, value) => {
 		const keys = Array.isArray(value.path) ? value.path : value.path.split('.')
 		.map((key: string) => 
@@ -20,19 +18,24 @@ export const formatErrors = <T extends Record<string, any>> (errors: ValidationE
 		)
 		.flat();
 
-		createNestedObject(obj.errors, [...keys], {
+		/* createNestedObject(obj.errors, [...keys], {
 			errors: value.errors
-		})
+		}) */
 
 		const path = getKeyFromPaths<T>(keys);
 
-		obj.simpleErrors[path] = value.errors;
+		obj[path] = value.errors;
 
 		return obj
-	}, defaultErrors);
+	}, {});
+
+	return {
+		...defaultErrors,
+		..._simpleErrors
+	}
 }
 
 export const createFormErrors = <T extends Record<string, any>>(onError: OnErrors) => 
-	(errors: any, defaultErrors: FormErrors<T> = getFormErrorsDefault()) => {
+	(errors: any, defaultErrors: FormErrors<T> = {}) => {
 		return formatErrors<T>(onError(errors), defaultErrors)
 	}

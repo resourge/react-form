@@ -13,7 +13,11 @@ import type {
 	FieldOptions,
 	ResetOptions,
 	SubmitHandler,
-	ValidateSubmission	
+	ValidateSubmission,
+	FormNestedErrors,
+	GetErrors,
+	GetErrorsOptions,
+	HasErrorOptions
 } from './types';
 
 export {
@@ -29,6 +33,10 @@ export {
 	ResetOptions,
 	SubmitHandler,
 	ValidateSubmission,
+	FormNestedErrors,
+	GetErrors,
+	GetErrorsOptions,
+	HasErrorOptions,
 
 	FormKey
 }

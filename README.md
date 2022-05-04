@@ -276,10 +276,39 @@ const [
 ...
 setError([
   {
-    key: 'name',
-    message: 'Beautiful name'
+    path: 'name',
+    errors: ['Beautiful name']
   }
 ])
+```
+
+#### `hasError`
+
+Returns a boolean for the matched key
+
+```Typescript
+const [
+  ...,
+  {
+    hasError
+  }
+] = useForm(
+  {
+    product: {
+      name: 'Apple',
+      category: {
+        name: 'Food',
+        type: {
+          name: 'Solid',
+          type: 'Vegetal'
+        }
+      }
+    }
+  }
+)
+...
+hasError('product.category') 
+/// Can return (depends on the validation)
 ```
 
 #### `getErrors`
@@ -308,42 +337,6 @@ const [
 )
 ...
 getErrors('product.category') /// [<<Error Messages>>]
-```
-
-#### `getFormErrors`
-
-Returns `FormErrors` for the matched key
-
-```Typescript
-const [
-  ...,
-  {
-    getFormErrors
-  }
-] = useForm(
-  {
-    product: {
-      name: 'Apple',
-      category: {
-        name: 'Food',
-        type: {
-          name: 'Solid',
-          type: 'Vegetal'
-        }
-      }
-    }
-  }
-)
-...
-getFormErrors('product.category') 
-/// Can return (depends on the validation)
-{
-  'category': [<<Error Messages>>],
-  'category.name': [<<Error Messages>>],
-  'category.type': [<<Error Messages>>],
-  'category.type.name': [<<Error Messages>>],
-  'category.type.type': [<<Error Messages>>]
-}
 ```
 
 #### `reset`

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { FormKey } from '../types/FormKey';
 
@@ -75,6 +75,13 @@ export const useTouches = <T extends Record<string, any>> () => {
 			touchesRef.current[key] = true;
 		});
 	}
+
+	/**
+	 * After each render clear current touches to not pollute the next render
+	 */
+	useEffect(() => {
+		clearCurrentTouches();
+	})
 
 	return [
 		{

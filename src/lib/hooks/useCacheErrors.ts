@@ -4,6 +4,11 @@ import { FormErrors } from '../types/types';
 
 export type CacheType = string[] | FormErrors<any> | boolean
 
+export type UseCacheErrors = {
+	setCacheErrors: <ReturnValue extends CacheType>(key: string, cb: () => ReturnValue) => ReturnValue
+	clearCacheErrors: () => void
+}
+
 /**
  * Caches the errors by the deps
  * 
@@ -15,7 +20,7 @@ export type CacheType = string[] | FormErrors<any> | boolean
 export const useCacheErrors = (
 	defaultErrors: { [key: string]: string[] | FormErrors<any> } = {},
 	deps?: React.DependencyList
-) => {
+): UseCacheErrors => {
 	const cacheErrors = useRef<{ [key: string]: CacheType }>(defaultErrors);
 
 	const setCacheErrors = <ReturnValue extends CacheType>(key: string, cb: () => ReturnValue): ReturnValue => {
@@ -38,5 +43,5 @@ export const useCacheErrors = (
 	return {
 		setCacheErrors,
 		clearCacheErrors
-	} as const;
+	};
 }
