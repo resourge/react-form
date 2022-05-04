@@ -1,6 +1,7 @@
 import React, { memo } from 'react';
 
 import { ControllerContext } from '../contexts/ControllerContext';
+import { useField } from '../hooks/useField';
 import { FormKey, FormState } from '../types';
 
 export type ControllerProps<T extends Record<string, any>> = {
@@ -42,17 +43,16 @@ export type ControllerProps<T extends Record<string, any>> = {
 export const Controller = memo(function Controller<T extends Record<string, any>>({ 
 	name, context, children 
 }: ControllerProps<T>) {
-	const field = context[1].field(
+	const field = useField<T, any, any>(
+		context,
 		name
-	);
-
-	// TODO: add errors to the field
+	)
 
 	return (
 		<ControllerContext.Provider
 			value={{
 				field,
-				formState: context
+				formState: context as FormState<any>
 			}}
 		>
 			{ children }

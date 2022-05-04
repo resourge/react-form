@@ -5,26 +5,23 @@ import { OnErrors, setDefaultOnError } from '../validators/setDefaultOnError';
 
 import { FormKey } from './FormKey';
 
-export type FormSimpleErrors<T extends Record<string, any>> = { 
-	[K in FormKey<T>]?: string[]
-}
-
-export type FormNestedErrors<T extends Record<string, any>> = { 
-	[K in keyof T]?: T[K] extends object ? FormNestedErrors<T[K]> & {
+export type FormNestedErrors<T> = (T extends object ? { 
+	[K in keyof T]: T[K] extends object ? FormNestedErrors<T[K]> : {
 		errors: string[]
-	} : {
-		errors: string[]
-	}
-}
+	} 
+} : {
+	errors: string[]
+} ) & {
+	errors: string[]
+} 
 
 export type FormErrors<T extends Record<string, any>> = { 
-	errors: FormNestedErrors<T>
-	simpleErrors: FormSimpleErrors<T>
+	[K in FormKey<T>]?: string[]
 }
 
 export type HasErrorOptions = {
 	/**
-	 * 
+	 * Includes object/array children
 	 */
 	strict?: boolean
 	/**
@@ -35,7 +32,7 @@ export type HasErrorOptions = {
 
 export type GetErrorsOptions = {
 	/**
-	 * 
+	 * Includes object/array children
 	 */
 	strict?: boolean
 	/**
@@ -43,16 +40,17 @@ export type GetErrorsOptions = {
 	 */
 	onlyOnTouch?: boolean
 	/**
-	 * 
+	 * Includes `key` in children paths
 	 */
 	includeKeyInChildErrors?: boolean
 	/**
-	 * 
+	/**
+	 * Includes the children errors on the array
 	 */
 	includeChildsIntoArray?: boolean
 }
 
-export type GetErrorsWithChildren<T extends Record<string, any>> = string[] & FormSimpleErrors<T>
+export type GetErrors<T extends Record<string, any>> = string[] & FormErrors<T>
 
 type IsValid<T extends Record<string, any>> = {
 	/**
@@ -63,7 +61,11 @@ type IsValid<T extends Record<string, any>> = {
 	 * If form is valid
 	 */
 	isValid: boolean
-} & FormErrors<T>
+	/**
+	 * Form nested errors
+	 */
+	errors: FormNestedErrors<T>
+}
 
 export type FormOptions<T extends Record<string, any>> = {
 	/**
@@ -158,11 +160,11 @@ export type FormOptions<T extends Record<string, any>> = {
 	onTouch?: (key: FormKey<T>, value: unknown, previousValue: unknown) => void
 }
 
-export type FieldForm<Value = any> = {
+export type FieldForm<Value = any, Name = string> = {
 	/**
 	 * Attribute `name`
 	 */
-	name: string
+	name: Name
 	/**
 	 * Method to update values
 	 */
@@ -267,9 +269,9 @@ export type FormStateValues<T extends Record<string, any>> = {
 	form: T
 	/**
 	 * Form errors
-	 * * Note: Depends if `useForm` validate is set.
+	 * * Note: Depends on {@link FormOptions#validate}.
 	 */
-	errors: FormNestedErrors<T> | undefined
+	errors: FormNestedErrors<T>
 	/**
 	 * Form state, by default is false if `errors` are undefined or an empty object
 	 */
@@ -318,7 +320,7 @@ export interface FormActions<T extends Record<string, any>> {
 	 * ...
 	 * ```
 	 */
-	field: <Value = any>(key: FormKey<T>, options?: FieldOptions<any>) => FieldForm<Value>
+	field: <Value = any, Name = string>(key: FormKey<T>, options?: FieldOptions<any>) => FieldForm<Value, Name>
 	/**
 	 * Method to make multiple changes in one render
 	 * 
@@ -403,9 +405,10 @@ export interface FormActions<T extends Record<string, any>> {
 	 */
 	setError: (errors: Array<{ path: FormKey<T>, errors: string[] }>) => void
 	/**
-	 * Method to verify if form has errors
+	 * Method to verify if `key` has errors
 	 * 
 	 * @param key - key from `form` state
+	 * @param options - {@link HasErrorOptions}
 	 * @returns `true` for error on form
 	 * @example
 	 * ```Typescript
@@ -431,7 +434,7 @@ export interface FormActions<T extends Record<string, any>> {
 	 * Returns error messages for the matched key
 	 * 
 	 * @param key - key from `form` state
-	 * @param onlyOnTouch - when true only returns if the key was `touched` (@default false)
+	 * @param options - {@link GetErrorsOptions}
 	 * @returns - matched key error messages
 	 * @example
 	 * ```Typescript
@@ -461,7 +464,7 @@ export interface FormActions<T extends Record<string, any>> {
 	 * ///
 	 * ```
 	 */
-	getErrors: <Model extends Record<string, any> = T>(key: FormKey<T>, options?: GetErrorsOptions) => GetErrorsWithChildren<Model>
+	getErrors: <Model extends Record<string, any> = T>(key: FormKey<T>, options?: GetErrorsOptions) => GetErrors<Model>
 	/**
 	 * Resets form state
 	 * 
@@ -656,4 +659,4 @@ export interface FormActions<T extends Record<string, any>> {
 export type FormState<T extends Record<string, any>> = [
 	FormStateValues<T>,
 	FormActions<T>
-]
+] & FormActions<T>
