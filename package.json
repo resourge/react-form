@@ -1,6 +1,6 @@
 {
   "name": "@resourge/react-form",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "main": "./dist/main.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -25,7 +25,7 @@
   "author": "resourge",
   "license": "MIT",
   "scripts": {
-	"commitizen": "git-cz",
+    "commitizen": "git-cz",
     "commit": "git pull && git add . && npm run commitizen",
     "lint": "eslint \"./src/**/*.{ts,tsx}\"",
     "lint:prod": "cross-env NODE_ENV=production npm run lint",
