@@ -6,7 +6,7 @@ import { OnErrors, setDefaultOnError } from '../validators/setDefaultOnError';
 import { FormKey } from './FormKey';
 
 export type FormNestedErrors<T> = (T extends object ? { 
-	[K in keyof T]: T[K] extends object ? FormNestedErrors<T[K]> : {
+	[K in keyof T]-?: T[K] extends object ? FormNestedErrors<T[K]> : {
 		errors: string[]
 	} 
 } : {

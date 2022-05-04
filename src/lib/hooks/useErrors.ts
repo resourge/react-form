@@ -30,7 +30,7 @@ export const useErrors = <T extends Record<string, any>>(
 			onlyOnTouch = false
 		} = options;
 		// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-		const _key: string = `get_errors_${key}_${strict}_${onlyOnTouch}`;
+		const _key: string = `has_errors_${key}_${strict}_${onlyOnTouch}`;
 
 		return setCacheErrors<boolean>(
 			_key, 

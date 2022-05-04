@@ -37,5 +37,5 @@ export const useController = <
 
 	invariant(context, 'useControllerContext can only be used in the context of a <Controller> component.')
 
-	return context as ControllerContextObject<T, Value, Name>
+	return context as unknown as ControllerContextObject<T, Value, Name>
 }
