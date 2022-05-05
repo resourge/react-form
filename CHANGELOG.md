@@ -1,3 +1,11 @@
+## [1.3.2](https://github.com/resourge/react-form/compare/v1.3.1...v1.3.2) (2022-05-05)
+
+
+### Bug Fixes
+
+* **formcontext:** fix type not matching ([7020bcf](https://github.com/resourge/react-form/commit/7020bcfcdf2847615d2bbbf243a1b2b85d38e63c))
+* **useerrors:** fix hasError cache key and fix FormNestedErrors to show optionals ([ba6858e](https://github.com/resourge/react-form/commit/ba6858e1a4bb9ddac6c11b18a3e30961045456b7))
+
 ## [1.3.1](https://github.com/resourge/react-form/compare/v1.3.0...v1.3.1) (2022-05-04)
 
 
