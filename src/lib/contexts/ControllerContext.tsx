@@ -3,7 +3,7 @@ import { createContext, useContext } from 'react'
 import invariant from 'tiny-invariant'
 
 import { FormKey } from '../types'
-import { FormState, FieldForm, FormNestedErrors } from '../types/types'
+import { FormState, FieldForm, FormNestedErrors, FormActions } from '../types/types'
 
 export type ControllerField<
 	T extends Record<string, any>,
@@ -22,7 +22,7 @@ export type ControllerContextObject<
 	Name extends string = FormKey<T>
 > = {
 	field: ControllerField<T, Value, Name>
-	formState: FormState<T>
+	formState: FormState<T> & FormActions<T>
 }
 
 // @ts-expect-error I want the validation on the useController

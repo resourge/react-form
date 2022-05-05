@@ -6,7 +6,7 @@ import invariant from 'tiny-invariant'
 import { FormState } from '../types/types'
 
 // @ts-expect-error I want the validation on the useFormContext
-export const FormContext = createContext<FormState<any>>(null);
+export const FormContext = createContext<FormState<Record<string, any>>>(null);
 
 export const useFormContext = <T extends object>(): FormState<T> => {
 	const context = useContext(FormContext) as unknown as FormState<T>

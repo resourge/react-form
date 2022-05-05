@@ -8,7 +8,7 @@ import { FormKey } from '../types/FormKey';
 import { 
 	OnFunctionChange, ValidateSubmission, 
 	SubmitHandler, FieldForm, FormState, ProduceNewStateOptions, 
-	FieldOptions, ResetOptions, FormOptions, FormErrors
+	FieldOptions, ResetOptions, FormOptions, FormErrors, FormActions
 } from '../types/types'
 import { createFormErrors, formatErrors } from '../utils/createFormErrors';
 import { shallowClone } from '../utils/shallowClone';
@@ -29,7 +29,7 @@ type State<T extends Record<string, any>> = {
 export const useForm = <T extends Record<string, any>>(
 	_defaultValue: T, 
 	options?: FormOptions<T>
-): FormState<T> => {
+): FormState<T> & FormActions<T> => {
 	const _onErrors = options?.onErrors ?? getDefaultOnError();
 
 	invariant(_onErrors, 'Missing declaration `setDefaultOnError` handler on the initialization of your application.')
@@ -458,5 +458,5 @@ export const useForm = <T extends Record<string, any>>(
 
 	getFormRef.current = formState;
 
-	return formState
+	return formState as FormState<T> & FormActions<T>
 }

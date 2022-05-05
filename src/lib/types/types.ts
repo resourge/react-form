@@ -656,6 +656,16 @@ export interface FormActions<T extends Record<string, any>> {
 	triggerManualTouch: <Key extends FormKey<T>>(keys: Key | Key[]) => void
 }
 
+export declare type InViewHookResponse = [
+	(node?: Element | null) => void,
+	boolean,
+	IntersectionObserverEntry | undefined
+] & {
+	ref: (node?: Element | null) => void
+	inView: boolean
+	entry?: IntersectionObserverEntry
+};
+
 export type FormState<T extends Record<string, any>> = [
 	FormStateValues<T>,
 	FormActions<T>

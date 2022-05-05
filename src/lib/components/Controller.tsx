@@ -52,7 +52,7 @@ export const Controller = memo(function Controller<T extends Record<string, any>
 		<ControllerContext.Provider
 			value={{
 				field,
-				formState: context as unknown as FormState<any>
+				formState: context as any
 			}}
 		>
 			{ children }

@@ -3,8 +3,8 @@ import React from 'react';
 import { FormContext } from '../contexts/FormContext';
 import { FormState } from '../types/types';
 
-export type FormProviderProps = React.PropsWithChildren<{
-	context: FormState<any>
+export type FormProviderProps<T extends Record<string, any>> = React.PropsWithChildren<{
+	context: FormState<T>
 }>
 
 /**
@@ -24,8 +24,8 @@ export type FormProviderProps = React.PropsWithChildren<{
  * </FormProvider>
  * ```
  */
-export const FormProvider: React.FC<FormProviderProps> = ({ children, context }: FormProviderProps) => (
-	<FormContext.Provider value={context}>
+export const FormProvider = <T extends Record<string, any>>({ children, context }: FormProviderProps<T>) => (
+	<FormContext.Provider value={context as any}>
 		{ children }
 	</FormContext.Provider>
 );

@@ -1,7 +1,7 @@
 import { ControllerField } from '../contexts/ControllerContext';
 import { useFormContext } from '../contexts/FormContext'
 import { FormKey } from '../types/FormKey';
-import { FieldOptions, FormState } from '../types/types';
+import { FieldOptions, FormState, FormActions } from '../types/types';
 
 import { useField } from './useField';
 
@@ -17,7 +17,7 @@ export const useFormField = <T extends Record<string, any>, Value = any>(
 	options?: FieldOptions
 ): {
 	field: ControllerField<T, Value>
-	formState: FormState<T>
+	formState: FormState<T> & FormActions<T>
 } => {
 	const formState = useFormContext<T>();
 
@@ -29,6 +29,6 @@ export const useFormField = <T extends Record<string, any>, Value = any>(
 
 	return {
 		field,
-		formState
+		formState: formState as FormState<T> & FormActions<T>
 	}
 }
