@@ -9,7 +9,7 @@ import { FormState } from '../types/types'
 export const FormContext = createContext<FormState<any>>(null);
 
 export const useFormContext = <T extends object>(): FormState<T> => {
-	const context = useContext(FormContext) as FormState<T>
+	const context = useContext(FormContext) as unknown as FormState<T>
 
 	invariant(context, 'useFormContext can only be used in the context of a <FormProvider> component.')
 
