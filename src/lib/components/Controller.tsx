@@ -1,12 +1,14 @@
-import React, { memo } from 'react';
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
+import React, { memo, MutableRefObject } from 'react';
 
 import { ControllerContext } from '../contexts/ControllerContext';
+import { FormContextObject } from '../contexts/FormContext';
 import { useField } from '../hooks/useField';
-import { FormKey, FormState } from '../types';
+import { FormKey } from '../types/FormKey';
 
 export type ControllerProps<T extends Record<string, any>> = {
 	name: FormKey<T>
-	context: FormState<T>
+	context: FormContextObject<T>
 	children: React.ReactNode
 }
 
@@ -23,12 +25,10 @@ export type ControllerProps<T extends Record<string, any>> = {
  * @param context - form context value
  * @example
  * ```Typescript
- * const [
- *  	{
- *			context
- *		}
- * ] = useForm({
- * 		name: 'Rimuru'
+ * const {
+ *	 context
+ * } = useForm({
+ *   name: 'Rimuru'
  * })
  * return (
  *		<Controller
@@ -52,20 +52,26 @@ export const Controller = memo(function Controller<T extends Record<string, any>
 		<ControllerContext.Provider
 			value={{
 				field,
-				formState: context as any
+				formContext: context as FormContextObject<T>
 			}}
 		>
 			{ children }
 		</ControllerContext.Provider>
 	);
 }, (prevProps, nextProps) => {
+	// @ts-expect-error // I want this to only be visible to the Controller
+	const changedKeys = nextProps.context._changedKeys as MutableRefObject<Set<FormKey<any>>>
+	
+	const keys = [...changedKeys.current.keys()]
+
+	const key = keys
+	.find((currentTouche) => currentTouche.includes(nextProps.name) || nextProps.name.includes(currentTouche))
+
+	if ( key ) {
+		changedKeys.current.delete(key);
+	}
+
 	return (
-		prevProps.name === nextProps.name && !(
-			(nextProps.context[0].touches.currentTouches[nextProps.name] ?? false) ||
-			nextProps.context[0].touches.currentTouches
-			.some((currentTouche) => currentTouche.includes(nextProps.name) || nextProps.name.includes(currentTouche))
-		) && !(
-			nextProps.context[1].hasError(nextProps.name, { strict: false })
-		)
+		prevProps.name === nextProps.name && !(key)
 	)
 }) as <T extends Record<string, any>>(props: ControllerProps<T>) => JSX.Element

@@ -11,7 +11,7 @@ function isNumeric(value: string | number) {
 	return /^[-]?([1-9]\d*|0)(\.\d+)?$/.test(value)
 }
 
-export const getKeyFromPaths = <T extends object>(paths: string[]): FormKey<T> => {
+export const getKeyFromPaths = <T extends Record<string, any>>(paths: string[]): FormKey<T> => {
 	return paths
 	.map((key) => `${isNumeric(key) ? `[${key}]` : `${key}`}`)
 	.join('.')
