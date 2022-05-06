@@ -39,8 +39,8 @@ import { setDefaultOnError } from '@resourge/react-form'
 
 setDefaultOnError((errors: any) => {
   // Customize errors to fit the model 
-  // { [errors path]: [array of path error messages] }
-  return {}
+  // [{ path, errors }]
+  return []
 });
 ```
 
