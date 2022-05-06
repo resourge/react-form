@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/resourge/react-form/compare/v1.4.0...v1.4.1) (2022-05-06)
+
+
+### Bug Fixes
+
+* **controllercontext:** fix type giving error ([b8824b4](https://github.com/resourge/react-form/commit/b8824b4d145d8ef4e83a3c8185f27ad21ed260c2))
+
 # [1.4.0](https://github.com/resourge/react-form/compare/v1.3.3...v1.4.0) (2022-05-06)
 
 
