@@ -32,8 +32,7 @@ export const ControllerContext = createContext<ControllerContextObject<any, any,
 
 export const useController = <
 	T extends Record<string, any>,
-	// @ts-expect-error
-	Name extends FormKey<T> = FormKey<T>
+	Name extends FormKey<T> = any
 >(): ControllerContextObject<T, T[Name], Name> => {
 	const context = useContext(ControllerContext)
 
