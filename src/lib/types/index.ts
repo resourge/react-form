@@ -6,18 +6,17 @@ import type {
 	FormErrors,
 	FormOptions,
 	FormState,
-	FormActions,
-	FormStateValues,
 	OnFunctionChange,
 	ProduceNewStateOptions,
 	FieldOptions,
 	ResetOptions,
 	SubmitHandler,
 	ValidateSubmission,
-	FormNestedErrors,
 	GetErrors,
 	GetErrorsOptions,
-	HasErrorOptions
+	HasErrorOptions,
+	UseFormReturn,
+	Touches
 } from './types';
 
 export {
@@ -25,18 +24,17 @@ export {
 	FormErrors,
 	FormOptions,
 	FormState,
-	FormActions,
-	FormStateValues,
 	OnFunctionChange,
 	ProduceNewStateOptions,
 	FieldOptions,
 	ResetOptions,
 	SubmitHandler,
 	ValidateSubmission,
-	FormNestedErrors,
 	GetErrors,
 	GetErrorsOptions,
 	HasErrorOptions,
 
-	FormKey
+	FormKey,
+	UseFormReturn,
+	Touches
 }

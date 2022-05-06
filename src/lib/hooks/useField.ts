@@ -1,32 +1,29 @@
+import { FormContextObject } from '../contexts';
 import { ControllerField } from '../contexts/ControllerContext';
 import { FormKey } from '../types/FormKey';
-import { FieldOptions, FormState } from '../types/types';
+import { FieldOptions, FormErrors, Touches, FieldForm } from '../types/types';
 
-import { useProxyError } from './useProxyError';
+import { useProxy } from './useProxy';
 
 export const useField = <
 	T extends Record<string, any>, 
 	Value = any,
 	Name extends string = FormKey<T>
 >(
-	context: FormState<T>,
+	context: FormContextObject<T>,
 	name: FormKey<T>,
 	options?: FieldOptions<Value>
 ): ControllerField<T, Value, Name> => {
-	const field = context.field<Value, Name>(name, options);
+	const field = context.field(name, options) as FieldForm<Value, Name>;
 
-	const _errors = context[1].getErrors(name, { strict: false });
-
-	const errors = useProxyError<Value>(
-		{
-			..._errors,
-			[name]: [..._errors]
-		},
+	const fieldState = useProxy<Value>(
+		context.errors as unknown as FormErrors<Value>,
+		context.touches as unknown as Touches<Value>,
 		name
 	)
 
 	return {
 		...field,
-		errors
+		fieldState
 	}
 }

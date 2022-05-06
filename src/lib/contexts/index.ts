@@ -1,6 +1,7 @@
 import { ControllerContext, useController } from './ControllerContext';
 import type { ControllerContextObject, ControllerField } from './ControllerContext';
 import { FormContext, useFormContext } from './FormContext';
+import type { FormContextObject } from './FormContext';
 
 export {
 	ControllerContext, 
@@ -9,5 +10,6 @@ export {
 	ControllerField,
 
 	FormContext,
-	useFormContext
+	useFormContext,
+	FormContextObject
 }

@@ -1,21 +1,22 @@
-import { FormErrors, FormKey } from '../types';
-import { GetErrorsOptions, GetErrors, HasErrorOptions } from '../types/types';
+import { FormKey } from '../types/FormKey';
+import { 
+	GetErrorsOptions, GetErrors, HasErrorOptions, Touches,
+	FormErrors
+} from '../types/types';
 
 import { UseCacheErrors } from './useCacheErrors';
-import { useProxyError } from './useProxyError';
-import { Touches } from './useTouches';
 
 const checkIfCanCheckError = (
 	key: string,
-	touches: React.MutableRefObject<Touches<any>>,
+	touches: Touches<any>,
 	onlyOnTouch?: boolean
 ) => {
-	return !onlyOnTouch || (onlyOnTouch && touches.current[key])
+	return !onlyOnTouch || (onlyOnTouch && touches[key])
 }
 
 export const useErrors = <T extends Record<string, any>>(
 	errors: FormErrors<T>,
-	touches: React.MutableRefObject<Touches<T>>,
+	touches: Touches<T>,
 	setCacheErrors: UseCacheErrors['setCacheErrors']
 ) => {
 	const hasError = (
@@ -129,11 +130,8 @@ export const useErrors = <T extends Record<string, any>>(
 		)
 	}
 
-	const proxyError = useProxyError(errors)
-
 	return {
 		hasError,
-		getErrors,
-		proxyError
+		getErrors
 	}
 }

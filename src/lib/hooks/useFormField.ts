@@ -1,7 +1,7 @@
 import { ControllerField } from '../contexts/ControllerContext';
-import { useFormContext } from '../contexts/FormContext'
+import { useFormContext, FormContextObject } from '../contexts/FormContext'
 import { FormKey } from '../types/FormKey';
-import { FieldOptions, FormState, FormActions } from '../types/types';
+import { FieldOptions } from '../types/types';
 
 import { useField } from './useField';
 
@@ -10,14 +10,13 @@ import { useField } from './useField';
  * 
  * @param key - key from `form` state 
  * @param options - {@link FieldOptions}
- * @returns 
  */
 export const useFormField = <T extends Record<string, any>, Value = any>(
 	key: FormKey<T>, 
 	options?: FieldOptions
 ): {
 	field: ControllerField<T, Value>
-	formState: FormState<T> & FormActions<T>
+	formContext: FormContextObject<T>
 } => {
 	const formState = useFormContext<T>();
 
@@ -29,6 +28,6 @@ export const useFormField = <T extends Record<string, any>, Value = any>(
 
 	return {
 		field,
-		formState: formState as FormState<T> & FormActions<T>
+		formContext: formState
 	}
 }

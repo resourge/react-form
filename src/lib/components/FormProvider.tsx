@@ -1,21 +1,18 @@
 import React from 'react';
 
-import { FormContext } from '../contexts/FormContext';
-import { FormState } from '../types/types';
+import { FormContext, FormContextObject } from '../contexts/FormContext';
 
 export type FormProviderProps<T extends Record<string, any>> = React.PropsWithChildren<{
-	context: FormState<T>
+	context: FormContextObject<T>
 }>
 
 /**
  * Provider component for deep `form's` 
  * @example
  * ```Typescript
- * const [
- *	 {
- *		 context
- *	 }
- * ] = useForm(
+ * const {
+ *	 context
+ * } = useForm(
  *	 ...
  * )
  * 
@@ -25,7 +22,7 @@ export type FormProviderProps<T extends Record<string, any>> = React.PropsWithCh
  * ```
  */
 export const FormProvider = <T extends Record<string, any>>({ children, context }: FormProviderProps<T>) => (
-	<FormContext.Provider value={context as any}>
+	<FormContext.Provider value={context as FormContextObject<Record<string, any>>}>
 		{ children }
 	</FormContext.Provider>
 );

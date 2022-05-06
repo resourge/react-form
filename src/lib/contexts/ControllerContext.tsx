@@ -3,7 +3,9 @@ import { createContext, useContext } from 'react'
 import invariant from 'tiny-invariant'
 
 import { FormKey } from '../types'
-import { FormState, FieldForm, FormNestedErrors, FormActions } from '../types/types'
+import { FormState, FieldForm } from '../types/types'
+
+import { FormContextObject } from './FormContext'
 
 export type ControllerField<
 	T extends Record<string, any>,
@@ -11,9 +13,9 @@ export type ControllerField<
 	Name extends string = FormKey<T>
 > = FieldForm<Value, Name> & {
 	/**
-	 * 
+	 * Nested object that has information on the `key`
 	 */
-	errors: FormNestedErrors<Value>
+	fieldState: FormState<Value>
 }
 
 export type ControllerContextObject<
@@ -22,20 +24,20 @@ export type ControllerContextObject<
 	Name extends string = FormKey<T>
 > = {
 	field: ControllerField<T, Value, Name>
-	formState: FormState<T> & FormActions<T>
+	formContext: FormContextObject<T>
 }
 
 // @ts-expect-error I want the validation on the useController
 export const ControllerContext = createContext<ControllerContextObject<any, any, any>>(null);
 
 export const useController = <
-	T extends Record<string, any>, 
-	Value = any,
-	Name extends string = FormKey<T>
->(): ControllerContextObject<T, Value, Name> => {
+	T extends Record<string, any>,
+	// @ts-expect-error
+	Name extends FormKey<T> = FormKey<T>
+>(): ControllerContextObject<T, T[Name], Name> => {
 	const context = useContext(ControllerContext)
 
 	invariant(context, 'useControllerContext can only be used in the context of a <Controller> component.')
 
-	return context as unknown as ControllerContextObject<T, Value, Name>
+	return context as unknown as ControllerContextObject<T, T[Name], Name>
 }

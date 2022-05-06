@@ -1,19 +1,17 @@
 /* eslint-disable @typescript-eslint/no-invalid-void-type */
-import { Touches } from '../hooks/useTouches';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { FormContextObject } from '../contexts/FormContext';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { OnErrors, setDefaultOnError } from '../validators/setDefaultOnError';
 
 import { FormKey } from './FormKey';
 
-export type FormNestedErrors<T> = (T extends object ? { 
-	[K in keyof T]-?: T[K] extends object ? FormNestedErrors<T[K]> : {
-		errors: string[]
-	} 
-} : {
-	errors: string[]
-} ) & {
-	errors: string[]
-} 
+export type Touches<T extends Record<string, any>> = {
+	/**
+	 * Paths for the keys touched
+	 */
+	[K in FormKey<T>]?: boolean
+}
 
 export type FormErrors<T extends Record<string, any>> = { 
 	[K in FormKey<T>]?: string[]
@@ -64,7 +62,15 @@ type IsValid<T extends Record<string, any>> = {
 	/**
 	 * Form nested errors
 	 */
-	errors: FormNestedErrors<T>
+	errors: FormErrors<T>
+	/**
+	 * Form touched keys
+	 */
+	touches: Touches<T>
+	/**
+	 * Form touched keys
+	 */
+	formState: FormState<T>
 }
 
 export type FormOptions<T extends Record<string, any>> = {
@@ -262,16 +268,63 @@ export type ValidateSubmission<T extends Record<string, any>> = (
 	error: any
 ) => boolean | Promise<boolean>
 
-export type FormStateValues<T extends Record<string, any>> = {
+export type FormState<T> = (T extends object ? { 
+	[K in keyof T]-?: T[K] extends object ? FormState<T[K]> : {
+		/**
+		 * Error for current key
+		 */
+		errors: string[]
+		/**
+		 * isValid for current key
+		 */
+		isValid: boolean
+		/**
+		 * isTouched for current key
+		 */
+		isTouched: boolean
+	} 
+} : {
+	/**
+	 * Error for current key
+	 */
+	errors: string[]
+	/**
+	 * isValid for current key
+	 */
+	isValid: boolean
+	/**
+	 * isTouched for current key
+	 */
+	isTouched: boolean
+} ) & {
+	/**
+	 * Error for current key
+	 */
+	errors: string[]
+	/**
+	 * isValid for current key
+	 */
+	isValid: boolean
+	/**
+	 * isTouched for current key
+	 */
+	isTouched: boolean
+} 
+
+export type UseFormReturn<T extends Record<string, any>> = {
 	/**
 	 * Form state
 	 */
 	form: T
 	/**
+	 * Context mainly for use in `FormProvider/Controller`, basically returns {@link FormState}
+	 */
+	context: FormContextObject<T>
+	/**
 	 * Form errors
 	 * * Note: Depends on {@link FormOptions#validate}.
 	 */
-	errors: FormNestedErrors<T>
+	errors: FormErrors<T>
 	/**
 	 * Form state, by default is false if `errors` are undefined or an empty object
 	 */
@@ -286,12 +339,10 @@ export type FormStateValues<T extends Record<string, any>> = {
 	 */
 	isTouched: boolean
 	/**
-	 * Context mainly for use in `FormProvider/Controller`, basically returns {@link FormState}
+	 * Nested object that has information on the `key`
 	 */
-	context: FormState<T>
-}
+	formState: FormState<T>
 
-export interface FormActions<T extends Record<string, any>> {
 	/**
 	 * Method to connect the form element to the key, by providing native attributes like `onChange`, `name`, etc
 	 * 
@@ -300,14 +351,9 @@ export interface FormActions<T extends Record<string, any>> {
 	 * @returns - native attributes like `onChange`, `name`, `value`, `readOnly`, etc
 	 * @example
 	 * ```Typescript
-	 * const [
-	 *	 {
-	 *		 ...
-	 *	 },
-	 *	 {
-	 *		 field
-	 *	 }
-	 * ] = useForm(
+	 * const {
+	 *   field
+	 * } = useForm(
 	 *	 {
 	 *		 name: 'Rimuru'
 	 *	 }
@@ -320,7 +366,7 @@ export interface FormActions<T extends Record<string, any>> {
 	 * ...
 	 * ```
 	 */
-	field: <Value = any, Name = string>(key: FormKey<T>, options?: FieldOptions<any>) => FieldForm<Value, Name>
+	field: (key: FormKey<T>, options?: FieldOptions<any>) => FieldForm
 	/**
 	 * Method to make multiple changes in one render
 	 * 
@@ -328,14 +374,9 @@ export interface FormActions<T extends Record<string, any>> {
 	 * @param produceOptions - {@link ProduceNewStateOptions}
 	 * @example
 	 * ```Typescript
-	 * const [
-	 *	 {
-	 *		 ...
-	 *	 },
-	 *	 {
-	 *		 triggerChange
-	 *	 }
-	 * ] = useForm(
+	 * const {
+	 *   triggerChange
+	 * } = useForm(
 	 *	 ...
 	 * )
 	 * ...
@@ -381,14 +422,9 @@ export interface FormActions<T extends Record<string, any>> {
 	 * @param errors - new custom errors 
 	 * @example
 	 * ```Typescript
-	 * const [
-	 *	 {
-	 *		 ...
-	 *	 },
-	 *	 {
-	 *		 setError
-	 *	 }
-	 * ] = useForm(
+	 * const {
+	 *   setError
+	 * } = useForm(
 	 *	 {
 	 * 		name: 'Rimuru'
 	 *	 }
@@ -412,14 +448,9 @@ export interface FormActions<T extends Record<string, any>> {
 	 * @returns `true` for error on form
 	 * @example
 	 * ```Typescript
-	 * const [
-	 *	 {
-	 *		 ...
-	 *	 },
-	 *	 {
-	 *		 hasError
-	 *	 }
-	 * ] = useForm(
+	 * const {
+	 *   hasError
+	 * } = useForm(
 	 *	 {
 	 * 		name: 'Rimuru'
 	 *	 }
@@ -438,14 +469,9 @@ export interface FormActions<T extends Record<string, any>> {
 	 * @returns - matched key error messages
 	 * @example
 	 * ```Typescript
-	 * const [
-	 *	 {
-	 *		 ...
-	 *	 },
-	 *	 {
-	 *		 getErrors
-	 *	 }
-	 * ] = useForm(
+	 * const {
+	 *   getErrors
+	 * } = useForm(
 	 *	 {
 	 * 		product: {
 	 *			name: 'Apple',
@@ -472,14 +498,9 @@ export interface FormActions<T extends Record<string, any>> {
 	 * @param resetOptions - {@link ResetOptions}
 	 * @example 
 	 * ```Typescript
-	 * const [
-	 *	 {
-	 *		 ...
-	 *	 },
-	 *	 {
-	 *		 reset
-	 *	 }
-	 * ] = useForm(
+	 * const {
+	 *   reset
+	 * } = useForm(
 	 *	 {
 	 * 		name: 'Rimuru'
 	 *	 }
@@ -507,14 +528,9 @@ export interface FormActions<T extends Record<string, any>> {
 	 * @param mergedForm - partial form state
 	 * @example 
 	 * ```Typescript
-	 * const [
-	 *	 {
-	 *		 ...
-	 *	 },
-	 *	 {
-	 *		 merge
-	 *	 }
-	 * ] = useForm(
+	 * const {
+	 *   merge
+	 * } = useForm(
 	 *	 {
 	 * 		name: 'Rimuru',
 	 * 		age: '40'
@@ -535,14 +551,9 @@ export interface FormActions<T extends Record<string, any>> {
 	 * @returns - method to receive the new value
 	 * @example 
 	 * ```Typescript
-	 * const [
-	 *	 {
-	 *		 ...
-	 *	 },
-	 *	 {
-	 *		 onChange
-	 *	 }
-	 * ] = useForm(
+	 * const {
+	 *   onChange
+	 * } = useForm(
 	 *	 {
 	 * 		name: 'Rimuru'
 	 *	 }
@@ -564,14 +575,9 @@ export interface FormActions<T extends Record<string, any>> {
 	 * @param produceOptions 
 	 * @example 
 	 * ```Typescript
-	 * const [
-	 *	 {
-	 *		 ...
-	 *	 },
-	 *	 {
-	 *		 changeValue
-	 *	 }
-	 * ] = useForm(
+	 * const {
+	 *   changeValue
+	 * } = useForm(
 	 *	 {
 	 * 		name: 'Rimuru',
 	 * 		age: '40'
@@ -592,14 +598,9 @@ export interface FormActions<T extends Record<string, any>> {
 	 * @returns - value for the param `key`
 	 * @example 
 	 * ```Typescript
-	 * const [
-	 *	 {
-	 *		 ...
-	 *	 },
-	 *	 {
-	 *		 changeValue
-	 *	 }
-	 * ] = useForm(
+	 * const {
+	 *	 changeValue
+	 * } = useForm(
 	 *	 {
 	 * 		name: 'Rimuru'
 	 *	 }
@@ -612,17 +613,11 @@ export interface FormActions<T extends Record<string, any>> {
 	/**
 	 * Clears touch's
 	 * 
-	 * * Note: Will not render the component
 	 * @example 
 	 * ```Typescript
-	 * const [
-	 *	 {
-	 *		 ...
-	 *	 },
-	 *	 {
-	 *		 resetTouch
-	 *	 }
-	 * ] = useForm(
+	 * const {
+	 *	 resetTouch
+	 * } = useForm(
 	 *	 ...
 	 * )
 	 * ...
@@ -633,40 +628,20 @@ export interface FormActions<T extends Record<string, any>> {
 	/**
 	 * Triggers manual touch
 	 * 
-	 * * Note: Will not render the component
 	 * @param key - key from `form` state
+	 * @param touched @default true
 	 * @example 
 	 * ```Typescript
-	 * const [
-	 *	 {
-	 *		 ...
-	 *	 },
-	 *	 {
-	 *		 resetTouch
-	 *	 }
-	 * ] = useForm(
+	 * const {
+	 *	 resetTouch
+	 * } = useForm(
 	 *	 {
 	 * 		name: 'Rimuru'
 	 *	 }
 	 * )
 	 * ...
-	 * triggerManualTouch('name')
+	 * setTouch('name')
 	 * ```
 	 */
-	triggerManualTouch: <Key extends FormKey<T>>(keys: Key | Key[]) => void
+	setTouch: <Key extends FormKey<T>>(keys: Key, touched?: boolean) => void
 }
-
-export declare type InViewHookResponse = [
-	(node?: Element | null) => void,
-	boolean,
-	IntersectionObserverEntry | undefined
-] & {
-	ref: (node?: Element | null) => void
-	inView: boolean
-	entry?: IntersectionObserverEntry
-};
-
-export type FormState<T extends Record<string, any>> = [
-	FormStateValues<T>,
-	FormActions<T>
-] & FormActions<T>

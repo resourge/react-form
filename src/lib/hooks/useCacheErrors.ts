@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 
 import { FormErrors } from '../types/types';
 
@@ -11,17 +11,10 @@ export type UseCacheErrors = {
 
 /**
  * Caches the errors by the deps
- * 
- * @param defaultErrors - default errors
- * @param deps - if present, cache will clear if the values in the list change.
- * @returns 
+ * @returns {@link UseCacheErrors}
  */
-    
-export const useCacheErrors = (
-	defaultErrors: { [key: string]: string[] | FormErrors<any> } = {},
-	deps?: React.DependencyList
-): UseCacheErrors => {
-	const cacheErrors = useRef<{ [key: string]: CacheType }>(defaultErrors);
+export const useCacheErrors = (): UseCacheErrors => {
+	const cacheErrors = useRef<{ [key: string]: CacheType }>({});
 
 	const setCacheErrors = <ReturnValue extends CacheType>(key: string, cb: () => ReturnValue): ReturnValue => {
 		if ( !cacheErrors.current[key] ) {
@@ -34,11 +27,6 @@ export const useCacheErrors = (
 	const clearCacheErrors = () => {
 		cacheErrors.current = {}
 	}
-
-	useEffect(() => {
-		clearCacheErrors()
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, deps);
 
 	return {
 		setCacheErrors,

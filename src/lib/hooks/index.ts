@@ -1,17 +1,12 @@
-import type { CacheType } from './useCacheErrors';
+import type { CacheType, UseCacheErrors } from './useCacheErrors';
 import { useForm } from './useForm';
 import { useFormField } from './useFormField';
-import { useProxyError } from './useProxyError';
-import type { Touches } from './useTouches';
 
 export {
 	CacheType,
+	UseCacheErrors,
 
 	useForm,
 
-	useFormField,
-
-	Touches,
-
-	useProxyError
+	useFormField
 }

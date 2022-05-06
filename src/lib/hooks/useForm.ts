@@ -1,14 +1,17 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 /* eslint-disable @typescript-eslint/no-invalid-void-type */
 import { FormEvent, useRef, MouseEvent, useEffect } from 'react';
 
 import observeChanges from 'on-change';
 import invariant from 'tiny-invariant'
 
+import { FormContextObject } from '../contexts/FormContext';
 import { FormKey } from '../types/FormKey';
 import { 
 	OnFunctionChange, ValidateSubmission, 
-	SubmitHandler, FieldForm, FormState, ProduceNewStateOptions, 
-	FieldOptions, ResetOptions, FormOptions, FormErrors, FormActions
+	SubmitHandler, FieldForm, ProduceNewStateOptions, 
+	FieldOptions, ResetOptions, FormOptions, FormErrors, 
+	UseFormReturn, Touches
 } from '../types/types'
 import { createFormErrors, formatErrors } from '../utils/createFormErrors';
 import { shallowClone } from '../utils/shallowClone';
@@ -19,17 +22,18 @@ import { useCacheErrors } from './useCacheErrors';
 import { useCancelableState } from './useCancelableState';
 import { useErrors } from './useErrors';
 import { useGetterSetter } from './useGetterSetter';
-import { useTouches } from './useTouches';
+import { useProxy } from './useProxy';
 
 type State<T extends Record<string, any>> = {
 	form: T
 	errors: FormErrors<T>
+	touches: Touches<T>
 }
 
 export const useForm = <T extends Record<string, any>>(
 	_defaultValue: T, 
 	options?: FormOptions<T>
-): FormState<T> & FormActions<T> => {
+): UseFormReturn<T> => {
 	const _onErrors = options?.onErrors ?? getDefaultOnError();
 
 	invariant(_onErrors, 'Missing declaration `setDefaultOnError` handler on the initialization of your application.')
@@ -38,45 +42,47 @@ export const useForm = <T extends Record<string, any>>(
 
 	const defaultValue = useRef(_defaultValue).current;
 
-	const onValidRef = useRef<SubmitHandler<T, unknown>>();
-	const onInvalidRef = useRef<ValidateSubmission<T>>();
-
-	const [
-		{
-			isTouched,
-			touches
-		},
-		{
-			resetTouch,
-			setTouch,
-			triggerManualTouch,
-			clearCurrentTouches
-		}
-	] = useTouches<T>();
-
 	const getterSetter = useGetterSetter<T>();
+	const {
+		setCacheErrors,
+		clearCacheErrors
+	} = useCacheErrors();
+
+	const changedKeys = useRef<Set<FormKey<T>>>(new Set());
 
 	const wasInitialValidationPromise = useRef(false);
-	
-	const [state, setFormState] = useCancelableState<State<T>>(() => {
-		const form = shallowClone(defaultValue)
-		let errors: FormErrors<T> = {};
 
-		if ( options?.validateDefault ) {
-			try {
-				const valid = options?.validate && options?.validate(form);
-				wasInitialValidationPromise.current = valid instanceof Promise;
-			}
-			catch ( err ) {
-				errors = onErrors(err);
-			}
-		}
+	const [state, setFormState] = useCancelableState<State<T>>(
+		() => {
+			const form = shallowClone(defaultValue)
+			let errors: FormErrors<T> = {};
 
-		return {
-			errors,
-			form
+			if ( options?.validateDefault ) {
+				try {
+					const valid = options?.validate && options?.validate(form);
+					wasInitialValidationPromise.current = valid instanceof Promise;
+				}
+				catch ( err ) {
+					errors = onErrors(err);
+				}
+			}
+
+			return {
+				errors,
+				form,
+				touches: {}
+			}
+		},
+		(oldState, newState) => {
+			clearCacheErrors();
+
+			Object.keys(newState.errors)
+			.filter((key) => !Object.keys(oldState.errors).includes(key))
+			.forEach((key) => {
+				changedKeys.current.add(key as FormKey<T>)
+			})
 		}
-	});
+	);
 
 	/**
 	 * In case validate `useCancelableState` is not able to validate the errors
@@ -94,42 +100,43 @@ export const useForm = <T extends Record<string, any>>(
 
 	const {
 		form,
-		errors
+		errors,
+		touches
 	} = state
 
-	const {
-		setCacheErrors,
-		clearCacheErrors
-	} = useCacheErrors({}, [errors]);
-
-	const _setFormState = (state: State<T> | ((prevState: State<T>) => void | State<T> | null | undefined)) => {
-		clearCacheErrors();
-		setFormState(state);
-	}
+	const formState = useProxy(
+		errors,
+		touches
+	)
 
 	// #region Submit
 	/**
 	 * Handles the form submit
 	 */
-	async function onSubmit<K = void>(e?: FormEvent<HTMLFormElement> | MouseEvent<any, MouseEvent>): Promise<K | undefined> {
+	async function onSubmit<K = void>(
+		onValid: SubmitHandler<T, K>,
+		onInvalid?: ValidateSubmission<T>,
+		e?: FormEvent<HTMLFormElement> | MouseEvent<any, MouseEvent>
+	): Promise<K | undefined> {
 		if ( e ) {
 			e.preventDefault();
 			e.persist();
 		}
 		try {
-			options?.validate && await (Promise.resolve(options?.validate(state.form)));
+			options?.validate && await (Promise.resolve(options?.validate(form)));
 		}
 		catch ( errors ) {
 			if ( errors ) {
 				const _errors = onErrors(errors);
 
-				_setFormState({
+				setFormState({
 					form,
-					errors: _errors
+					errors: _errors,
+					touches
 				})
 
-				if ( onInvalidRef.current ) {
-					const canGoOn = await Promise.resolve(onInvalidRef.current(_errors, errors));
+				if ( onInvalid ) {
+					const canGoOn = await Promise.resolve(onInvalid(_errors, errors));
 
 					if ( !canGoOn ) {
 						return await Promise.reject(errors)
@@ -141,24 +148,25 @@ export const useForm = <T extends Record<string, any>>(
 			}
 		}
 
-		resetTouch();
-
-		_setFormState({
+		setFormState({
 			form,
-			errors: {}
+			errors: {},
+			touches: {}
 		})
 		
-		// @ts-expect-error
-		return onValidRef.current && onValidRef.current(state.form);
+		return await onValid(state.form);
 	}
 
 	function handleSubmit<K = void>(
 		onValid: SubmitHandler<T, K>,
 		onInvalid?: ValidateSubmission<T>
 	) {
-		onValidRef.current = onValid;
-		onInvalidRef.current = onInvalid;
-		return (e?: FormEvent<HTMLFormElement> | MouseEvent<any, MouseEvent>) => onSubmit<K>(e)
+		return (e?: FormEvent<HTMLFormElement> | MouseEvent<any, MouseEvent>) => 
+			onSubmit<K>(
+				onValid,
+				onInvalid,
+				e
+			)
 	}
 	// #endregion Submit
 
@@ -173,14 +181,16 @@ export const useForm = <T extends Record<string, any>>(
 			options?.validate && await (Promise.resolve(options?.validate(state.form)));
 			return { 
 				form: state.form,
-				errors: {}
+				errors: {},
+				touches: state.touches
 			}
 		}
 		catch ( err ) {
 			const errors = onErrors(err);
 			return { 
 				form: state.form,
-				errors
+				errors,
+				touches: state.touches
 			}
 		}
 	}
@@ -201,12 +211,13 @@ export const useForm = <T extends Record<string, any>>(
 	): State<T> | Promise<State<T>> => {
 		const newState: State<T> = {
 			form: oldState.form,
-			errors: { ...oldState.errors }
+			errors: { ...oldState.errors },
+			touches: { ...oldState.touches }
 		};
 
-		let isOnUpdateTouched = isTouched.current;
+		let isOnUpdateTouched = false;
 
-		clearCurrentTouches();
+		changedKeys.current.clear();
 
 		const proxy = observeChanges(
 			newState.form,
@@ -215,7 +226,7 @@ export const useForm = <T extends Record<string, any>>(
 				value,
 				previousValue
 			) => {
-				// @ts-expect-error
+				// @ts-expect-error // Paths are array, but on-change doesn't see it like that
 				const key = getKeyFromPaths<T>(paths);
 
 				if ( 
@@ -231,17 +242,17 @@ export const useForm = <T extends Record<string, any>>(
 
 					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 					const didTouch = typeof value === 'boolean' ? Boolean(`${previousValue})` !== `${value}`) : previousValue !== value
-					setTouch(key, didTouch);
+
+					newState.touches[key] = ((newState.touches[key] ?? false) || didTouch);
 
 					isOnUpdateTouched = isOnUpdateTouched || didTouch;
+
+					changedKeys.current.add(key);
 				}
-	
-				// getterSetter.set(key, newState.form, value);
 			},
 			{
 				pathAsArray: true,
 				details: true
-				
 			}
 		)
 
@@ -263,7 +274,8 @@ export const useForm = <T extends Record<string, any>>(
 
 		return { 
 			form: newState.form,
-			errors: newState.errors
+			errors: newState.errors,
+			touches: newState.touches
 		}
 	}
 
@@ -298,20 +310,20 @@ export const useForm = <T extends Record<string, any>>(
 		}
 
 		if ( options.clearTouched ) {
-			resetTouch();
+			_newState.touches = {};
 		}
 			
-		_setFormState(_newState);
+		setFormState(_newState);
 	}
 
 	const triggerChange = (cb: OnFunctionChange<T>, produceOptions?: ProduceNewStateOptions) => {
-		_setFormState((state) => {
+		setFormState((state) => {
 			const result = produceNewState(state, cb, produceOptions);
 
 			if ( result instanceof Promise ) {
 				result
 				.then((newState) => {
-					_setFormState(newState)
+					setFormState(newState)
 				})
 				return;
 			}
@@ -328,6 +340,25 @@ export const useForm = <T extends Record<string, any>>(
 					form[key as keyof T] = mergedForm[key as keyof T] as T[keyof T];
 				}
 			})
+		})
+	}
+
+	const resetTouch = () => {
+		setFormState({
+			form,
+			errors,
+			touches: {}
+		})
+	}
+
+	const setTouch = (key: FormKey<T>, touched: boolean = true) => {
+		setFormState({
+			form,
+			errors,
+			touches: {
+				...touches,
+				[key]: touched
+			}
 		})
 	}
 	// #endregion State
@@ -378,7 +409,7 @@ export const useForm = <T extends Record<string, any>>(
 		value: T[FormKey<T>], 
 		produceOptions?: FieldOptions<any>
 	) => {
-		onChange(key as any, produceOptions)(value);
+		onChange(key, produceOptions)(value);
 	}
 	// #endregion Form elements
 
@@ -393,14 +424,14 @@ export const useForm = <T extends Record<string, any>>(
 
 		setFormState({
 			form,
-			errors: _errors
+			errors: _errors,
+			touches
 		})
 	}
 
 	const {
 		hasError,
-		getErrors,
-		proxyError
+		getErrors
 	} = useErrors(
 		errors,
 		touches,
@@ -408,10 +439,36 @@ export const useForm = <T extends Record<string, any>>(
 	)
 
 	// #endregion Errors
+	const getFormRef = useRef<UseFormReturn<T>>()
 
-	const getFormRef = useRef<FormState<T>>()
+	const result: any = {
+		form,
+		get context() {
+			return getFormRef.current as FormContextObject<T>;
+		},
+		errors,
+		get isValid(): boolean {
+			const nativeIsValid = formState.isValid;
 
-	const formActions = {
+			return (
+				options?.isValid && options?.isValid({
+					form, 
+					errors,
+					touches,
+					formState,
+					isValid: nativeIsValid
+				})
+			) ?? nativeIsValid
+		},
+		touches,
+		get isTouched( ) {
+			return formState.isTouched
+		},
+		formState,
+
+		_changedKeys: changedKeys,
+
+		// #region Form actions
 		field,
 		triggerChange,
 		handleSubmit,
@@ -422,41 +479,16 @@ export const useForm = <T extends Record<string, any>>(
 
 		reset,
 		merge,
+		onChange,
 		changeValue,
 		getValue,
-		onChange,
 
 		resetTouch,
-		triggerManualTouch
+		setTouch
+		// #endregion Form actions
 	}
 
-	const formState: FormState<T> = [
-		{
-			form,
-			errors: proxyError,
-			get isValid(): boolean {
-				const nativeIsValid = !errors || Object.keys(errors).length === 0;
+	getFormRef.current = result;
 
-				return (
-					options?.isValid && options?.isValid({
-						form, 
-						errors: proxyError,
-						isValid: nativeIsValid
-					})
-				) ?? nativeIsValid
-			},
-			isTouched: isTouched.current,
-			touches: touches.current,
-			get context() {
-				return getFormRef.current as FormState<T>;
-			}
-		}, 
-		formActions
-	] as unknown as FormState<T>
-
-	Object.assign(formState, formActions)
-
-	getFormRef.current = formState;
-
-	return formState as FormState<T> & FormActions<T>
+	return result;
 }

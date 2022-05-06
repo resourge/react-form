@@ -18,10 +18,6 @@ export const formatErrors = <T extends Record<string, any>> (
 		)
 		.flat();
 
-		/* createNestedObject(obj.errors, [...keys], {
-			errors: value.errors
-		}) */
-
 		const path = getKeyFromPaths<T>(keys);
 
 		obj[path] = value.errors;
