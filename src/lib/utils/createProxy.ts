@@ -23,8 +23,8 @@ export const createProxy = <T extends Record<string, any>>(
 ): FormState<T> => {
 	return new Proxy<FormNestedErrorsProxy>({ } as FormNestedErrorsProxy, {
 		get(target, name: string) {
-			const keys: string[] = (target[KEYS] ?? (baseKey ? [baseKey] : []));
-			
+			const keys: string[] = [...(target[KEYS] ?? (baseKey ? [baseKey] : []))];
+
 			if ( name === 'errors' ) {
 				if ( keys.length === 0 ) {
 					return Object.values(formState.current.errors).flat();
@@ -50,6 +50,7 @@ export const createProxy = <T extends Record<string, any>>(
 				}
 
 				const key = getKeyFromPaths<T>(keys);
+
 				return Object.keys(
 					formState.current.touches
 				)
