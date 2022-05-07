@@ -92,7 +92,9 @@
     "vitest": "^0.9.3"
   },
   "dependencies": {
-    "on-change": "^4.0.0"
+    "on-change": "^4.0.0",
+    "suretype": "^3.0.5",
+    "yup": "^0.32.11"
   },
   "repository": {
     "type": "git",

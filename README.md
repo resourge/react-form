@@ -87,8 +87,8 @@ export default function Form() {
   const
     {
       isValid,
-	  field,
-	  handleSubmit
+      field,
+      handleSubmit
     } = useForm(
     {
       name: 'Rimuru'
@@ -315,6 +315,57 @@ const {
   }
 )
 ...
+getErrors('product.category') /// [<<Error Messages>>]
+```
+
+
+#### `formState`
+
+Returns form state with errors and touches to access directly more easier.
+
+```Typescript
+
+const schema = yup.object().shape({
+	users: yup.array().of(yup.object().shape({
+		name: yup.string().required(),
+		message: yup.string().required()
+	})),
+	meta: yup.object().shape({ parkingSlots: yup.number().min(0).required() }
+	)
+})
+
+const {
+    form,
+    field,
+    formState
+  } = useForm(
+  {
+    users: [ { id: 0, name: 'Jorge', message: ''} , { id: 1, name: 'Jessica', message: ''}],
+    meta: {
+      parkingSlots: 38
+    }
+  },
+  {
+    validate: async (form) => {
+      await schema.validate( form );
+    },
+    validateDefault: true
+  }
+)
+...
+
+return <div>
+			{form.users.map((user, index) => <div key={user.id}>
+				<input {...field(`users[${index}].name`)} onChange={(e) => {
+					field(`users[${index}].name`).onChange(e.target.value)
+				}}/>
+				{!formState.users[index].name.isValid ? <span>{formState.users[index].name.errors[0]}</span> : null }
+				<input {...field(`users[${index}].message`)} onChange={(e) => {
+					field(`users[${index}].message`).onChange(e.target.value)
+				}}/>
+				{!formState.users[index].message.isValid ? <span>{formState.users[index].message.errors[0]}</span> : null }
+			</div>)}
+		</div>)
 getErrors('product.category') /// [<<Error Messages>>]
 ```
 
