@@ -11,7 +11,6 @@
 - Build with typescript.
 - Easy to use in react and react-native.
 
-
 ## Installation
 
 Install using [Yarn](https://yarnpkg.com):
@@ -35,12 +34,12 @@ You only need to setup this on the initialization of the application in this cas
 
 ```jsx
 // In App.tsx
-import { setDefaultOnError } from '@resourge/react-form'
+import { setDefaultOnError } from "@resourge/react-form";
 
 setDefaultOnError((errors: any) => {
-  // Customize errors to fit the model 
+  // Customize errors to fit the model
   // [{ path, errors }]
-  return []
+  return [];
 });
 ```
 
@@ -50,7 +49,7 @@ For yup validation, `setFormYupValidation`
 
 ```jsx
 // In App.tsx
-import { setFormYupValidation } from '@resourge/react-form'
+import { setFormYupValidation } from "@resourge/react-form";
 
 setFormYupValidation();
 ```
@@ -63,9 +62,8 @@ const [
     form, // Form Data
     touches, isTouched, // Form touches
     errors, isValid, // Form validation
-    context // Context
-  },
-  {
+    context, // Context
+    formState, // Form State (errors & touches)
     triggerChange, reset, field,
     changeValue, getErrors, getFormErrors,
     getValue, handleSubmit, merge,
@@ -86,17 +84,14 @@ import React, { useState } from 'react';
 import { useForm } from '@resourge/react-form';
 
 export default function Form() {
-  const [
-    { 
-      isValid 
-	},
-    { 
-	  field, 
-	  handleSubmit 
-    }
-  ] = useForm(
-    { 
-      name: 'Rimuru' 
+  const
+    {
+      isValid,
+	  field,
+	  handleSubmit
+    } = useForm(
+    {
+      name: 'Rimuru'
     }
   )
 
@@ -109,7 +104,7 @@ export default function Form() {
       <input { ...field('name', { onChange: (e) => e.target.value }) }/>
       <span>
       {
-        isValid ? "Valid" : "Invalid" 
+        isValid ? "Valid" : "Invalid"
       } Form
       </span>
       <button type="submit">
@@ -120,7 +115,7 @@ export default function Form() {
 }
 ```
 
-. 
+.
 
 _Note: `<form></form>` the usage of form as wrapper is optional._
 
@@ -130,8 +125,8 @@ Form data is the default form values. Can be a simple object or a class (I made 
 
 Rules:
 
-* Only constrains `Form Data` to an  object. Meaning that it's possible to have elements with `moment`, `dayjs`, `class's`, `luxonas`, etc.
-* Cached on the first render (changes will not affect the form data.)
+- Only constrains `Form Data` to an object. Meaning that it's possible to have elements with `moment`, `dayjs`, `class's`, `luxonas`, etc.
+- Cached on the first render (changes will not affect the form data.)
 
 ```Typescript
 
@@ -142,9 +137,9 @@ const user = {
 }
 
 // usage with an object
-const [
+const {
   ...
-] = useForm(
+} = useForm(
   user
 )
 
@@ -152,45 +147,44 @@ const [
 class User {
   name = 'Rimuru';
   age = 39
-  
+
   get fullName() {
     return `${this.name} Tempest`
   }
 }
 
 // usage with a class
-const [
+const {
   ...
-] = useForm(
+} = useForm(
   new User()
 )
 ```
 
 ### Form Options
 
-| Name | Type | Required | Description |
-| ---- | ---- | -------- | ----------- |
-| **validateDefault** | `boolean` | false | Set's global validation. False by default |
-| **validate** | `(form: T) => void \| Promise<void>` | false | Method to validate form. Usually with some kind of validator. (like yup, zod, joi, etc) |
-| **isValid** | `({ form, isValid, errors }) => boolean` | false |  Method to define if form is valid |
-| **onErrors** | `(errors: any \| any[]) => FormErrors` | false | Local method to treat errors. It's preferable to use [setDefaultOnError](#errors) |
-| **onTouch** | `(key: FormKey<T>, value: unknown, previousValue: unknown) => void` | false | Method called every time a value is changed |
+| Name                | Type                                                                | Required | Description                                                                             |
+| ------------------- | ------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------- |
+| **validateDefault** | `boolean`                                                           | false    | Set's global validation. False by default                                               |
+| **validate**        | `(form: T) => void \| Promise<void>`                                | false    | Method to validate form. Usually with some kind of validator. (like yup, zod, joi, etc) |
+| **isValid**         | `({ form, isValid, errors }) => boolean`                            | false    | Method to define if form is valid                                                       |
+| **onErrors**        | `(errors: any \| any[]) => FormErrors`                              | false    | Local method to treat errors. It's preferable to use [setDefaultOnError](#errors)       |
+| **onTouch**         | `(key: FormKey<T>, value: unknown, previousValue: unknown) => void` | false    | Method called every time a value is changed                                             |
 
 ## Form State and Actions
 
-`useForm` returns an array with `Form State` and `Form Actions` 
+`useForm` returns an array with `Form State` and `Form Actions`
 
 ### Form State
 
-| Name | Type | Default | Description |
-| ---- | ---- | ------- | ----------- |
-| **form** | `object` | [`formData`](#form-data) | Form data |
-| **errors** | `{ [form path]: [path error messages] }` | undefined | Depends if `useForm` `validate` is set. (ex: { 'user.name': ['Name is required'] }) |
-| **isValid** | `boolean` | false | Form state by default is false if `errors` are undefined or an empty object |
-| **touches** | `{ [form path]: boolean }` | {} | Form touches (ex: { 'user.name': true }) |
-| **isTouched** | `boolean` | false | Form touches state by default is false if `touches` are undefined or an empty object |
-| **context** | `object` | [Form State](#form-state) | Context, mainly for use in `FormProvider` |
-
+| Name          | Type                                     | Default                   | Description                                                                          |
+| ------------- | ---------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------ |
+| **form**      | `object`                                 | [`formData`](#form-data)  | Form data                                                                            |
+| **errors**    | `{ [form path]: [path error messages] }` | undefined                 | Depends if `useForm` `validate` is set. (ex: { 'user.name': ['Name is required'] })  |
+| **isValid**   | `boolean`                                | false                     | Form state by default is false if `errors` are undefined or an empty object          |
+| **touches**   | `{ [form path]: boolean }`               | {}                        | Form touches (ex: { 'user.name': true })                                             |
+| **isTouched** | `boolean`                                | false                     | Form touches state by default is false if `touches` are undefined or an empty object |
+| **context**   | `object`                                 | [Form State](#form-state) | Context, mainly for use in `FormProvider`                                            |
 
 ### Form Actions
 
@@ -199,12 +193,9 @@ const [
 Method to connect the form element to the key by providing native attributes like `onChange`, `name`, etc
 
 ```Typescript
-const [
-  ...,
-  {
+const {
     field
-  }
-] = useForm(
+  } = useForm(
   {
     name: 'Rimuru'
   }
@@ -221,12 +212,9 @@ const [
 Method to make multiple changes in one render
 
 ```Typescript
-const [
-  ...,
-  {
+const {
     triggerChange
-  }
-] = useForm(
+  } = useForm(
   ...
 )
 ...
@@ -250,11 +238,11 @@ const onSubmit = handleSubmit((form) => {
 //
 const onSubmit = handleSubmit(
   (form) => {
-    /// Will always be called 
+    /// Will always be called
     /// because the next method returns true
     /// do something with it
   },
-  (errors) => true 
+  (errors) => true
 )
 ```
 
@@ -263,12 +251,9 @@ const onSubmit = handleSubmit(
 Method to set custom errors
 
 ```Typescript
-const [
-  ...,
-  {
+const {
     setError
-  }
-] = useForm(
+  } = useForm(
   {
     name: 'Rimuru'
   }
@@ -287,12 +272,9 @@ setError([
 Returns a boolean for the matched key
 
 ```Typescript
-const [
-  ...,
-  {
+const {
     hasError
-  }
-] = useForm(
+  } = useForm(
   {
     product: {
       name: 'Apple',
@@ -307,7 +289,7 @@ const [
   }
 )
 ...
-hasError('product.category') 
+hasError('product.category')
 /// Can return (depends on the validation)
 ```
 
@@ -316,12 +298,9 @@ hasError('product.category')
 Returns error messages for the matched key
 
 ```Typescript
-const [
-  ...,
-  {
+const {
     getErrors
-  }
-] = useForm(
+  } = useForm(
   {
     product: {
       name: 'Apple',
@@ -344,12 +323,9 @@ getErrors('product.category') /// [<<Error Messages>>]
 Resets form state
 
 ```Typescript
-const [
-  ...,
-  {
+const {
     reset
-  }
-] = useForm(
+  } = useForm(
   {
     name: 'Rimuru'
   }
@@ -375,12 +351,9 @@ reset(
 Unlike reset, `merge` will merge a new partial form to the new form
 
 ```Typescript
-const [
-  ...,
-  {
+const  {
     merge
-  }
-] = useForm(
+  } = useForm(
   {
     name: 'Rimuru',
     age: '40'
@@ -397,12 +370,9 @@ merge({
 Returns a method to change key value
 
 ```Typescript
-const [
-  ...,
-  {
+const {
     onChange
-  }
-] = useForm(
+  } = useForm(
   {
     name: 'Rimuru'
   }
@@ -421,12 +391,9 @@ onChange('name', { validate: true })
 Simplified version of `onChange`, without the return method
 
 ```Typescript
-const [
-  ...,
-  {
+const {
     changeValue
-  }
-] = useForm(
+  } = useForm(
   {
     name: 'Rimuru',
     age: '40'
@@ -444,12 +411,9 @@ changeValue('name', 'Rimuru Tempest', { validate: true })
 Return the value for the matched key
 
 ```Typescript
-const [
-  ...,
-  {
+const {
     changeValue
-  }
-] = useForm(
+  } = useForm(
   {
     name: 'Rimuru'
   }
@@ -465,12 +429,9 @@ Clears touch's
 _Note: Will not render the component_
 
 ```Typescript
-const [
-  ...,
-  {
+const {
     resetTouch
-  }
-] = useForm(
+  } = useForm(
   ...
 )
 ...
@@ -484,12 +445,9 @@ Triggers manual touch
 _Note: Will not render the component_
 
 ```Typescript
-const [
-  ...,
-  {
+const {
     resetTouch
-  }
-] = useForm(
+  } = useForm(
   {
     name: 'Rimuru'
   }
@@ -514,7 +472,7 @@ export function CustomElement() {
     <>
       <span>
       {
-        formState.isValid ? "Valid" : "Invalid" 
+        formState.isValid ? "Valid" : "Invalid"
       } CustomElement
       </span>
       <input {...field} />
@@ -523,11 +481,9 @@ export function CustomElement() {
 }
 
 export function App() {
-  const [
-    {
+  const {
       context
-    }
-  ] = useForm( ... )
+    } = useForm( ... )
 
   return (
     <FormProvider context={context}>
@@ -540,60 +496,49 @@ export function App() {
 
 ## Controller
 
-For more complex and deep forms, where render's can impact performance 
-(like list's with multiple elements) `Controller` serves to minimize 
+For more complex and deep forms, where render's can impact performance
+(like list's with multiple elements) `Controller` serves to minimize
 the impact a render can have on react, by only updating children if key `name`
-is `touched`. 
+is `touched`.
 
 ```jsx
-import React from 'react';
-import { Controller, useFormField, useForm } from '@resourge/react-form'
+import React from "react";
+import { Controller, useFormField, useForm } from "@resourge/react-form";
 
 function CustomElement({ value }: { value: number }) {
-  const { 
-    field
-  } = useController()
+  const { field } = useController();
 
   return (
     <div>
-      { value } <button
+      {value}{" "}
+      <button
         onClick={() => {
-          field.onChange && field.onChange(Math.random())
+          field.onChange && field.onChange(Math.random());
         }}
       >
         Update with random value
       </button>
     </div>
-  )
+  );
 }
 
 export function App() {
-  const [
-    {
-      context,
-      form
-    }
-  ] = useForm({
-    list: Array.from({ length: 1000 }).map((_, index) => index + 1)
-  })
+  const { context, form } = useForm({
+    list: Array.from({ length: 1000 }).map((_, index) => index + 1),
+  });
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
-      {
-        form.list.map((value, index) => (
-          <Controller
-            key={`${index}`}
-            name={`list[${index}]`}
-            context={context}
-          >
-            <CustomElement value={value} />
-          </Controller>
-        ))
-      }
+    <div style={{ display: "flex", flexDirection: "column" }}>
+      {form.list.map((value, index) => (
+        <Controller key={`${index}`} name={`list[${index}]`} context={context}>
+          <CustomElement value={value} />
+        </Controller>
+      ))}
     </div>
-  )
+  );
 }
 ```
+
 ## License
 
 MIT Licensed.
