@@ -129,6 +129,11 @@ export const useForm = <T extends Record<string, any>>(
 			if ( errors ) {
 				const _errors = onErrors(errors);
 
+				Object.keys(_errors)
+				.forEach((key) => {
+					touches[key as keyof Touches<T>] = true;
+				})
+
 				setFormState({
 					form,
 					errors: _errors,
