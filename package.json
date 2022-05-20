@@ -38,9 +38,6 @@
     "coverage": "vitest run --coverage",
     "semantic-release": "semantic-release"
   },
-  "peerDependencies": {
-    "react": "^16.8.0 || ^17 || ^18"
-  },
   "devDependencies": {
     "@babel/core": "^7.17.9",
     "@babel/preset-env": "^7.16.11",
@@ -78,6 +75,7 @@
     "eslint-plugin-react-hooks": "^4.4.0",
     "eslint-plugin-testing-library": "^3.9.0",
     "jsdom": "^19.0.0",
+    "on-change": "^4.0.1",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "rollup": "^2.70.2",
@@ -91,9 +89,6 @@
     "vite-plugin-checker": "^0.4.6",
     "vite-tsconfig-paths": "^3.4.1",
     "vitest": "^0.9.3"
-  },
-  "dependencies": {
-    "on-change": "^4.0.0"
   },
   "repository": {
     "type": "git",
