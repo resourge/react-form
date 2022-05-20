@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-import React, { memo, MutableRefObject } from 'react';
+import React, { memo } from 'react';
 
 import { ControllerContext } from '../contexts/ControllerContext';
 import { FormContextObject } from '../contexts/FormContext';
 import { useField } from '../hooks/useField';
 import { FormKey } from '../types/FormKey';
+import { findByInMap } from '../utils/utils';
 
 export type ControllerProps<T extends Record<string, any>> = {
 	name: FormKey<T>
@@ -59,19 +60,17 @@ export const Controller = memo(function Controller<T extends Record<string, any>
 		</ControllerContext.Provider>
 	);
 }, (prevProps, nextProps) => {
-	// @ts-expect-error // I want this to only be visible to the Controller
-	const changedKeys = nextProps.context._changedKeys as MutableRefObject<Set<FormKey<any>>>
+	const changedKeys = nextProps.context.changedKeys
 	
-	const keys = [...changedKeys.current.keys()]
+	const [key, value] = findByInMap(changedKeys.current, nextProps.name);
 
-	const key = keys
-	.find((currentTouche) => currentTouche.includes(nextProps.name) || nextProps.name.includes(currentTouche))
+	if ( key && value > 0 ) {
+		changedKeys.current.set(key, value - 1);
 
-	if ( key ) {
-		changedKeys.current.delete(key);
+		return false
 	}
 
 	return (
-		prevProps.name === nextProps.name && !(key)
+		prevProps.name === nextProps.name
 	)
 }) as <T extends Record<string, any>>(props: ControllerProps<T>) => JSX.Element

@@ -48,7 +48,11 @@ export const useForm = <T extends Record<string, any>>(
 		clearCacheErrors
 	} = useCacheErrors();
 
-	const changedKeys = useRef<Set<FormKey<T>>>(new Set());
+	const changedKeys = useRef<Map<FormKey<T>, number>>(new Map());
+	const addChangedKey = (key: FormKey<T>, value: any) => {
+		const length = Array.isArray(value) ? value.length : 1;
+		changedKeys.current.set(key, length)
+	}
 
 	const wasInitialValidationPromise = useRef(false);
 
@@ -79,7 +83,9 @@ export const useForm = <T extends Record<string, any>>(
 			Object.keys(newState.errors)
 			.filter((key) => !Object.keys(oldState.errors).includes(key))
 			.forEach((key) => {
-				changedKeys.current.add(key as FormKey<T>)
+				const _key = key as FormKey<T>
+				const value = getterSetter.get(_key, newState.form);
+				addChangedKey(_key as FormKey<T>, value)
 			})
 		}
 	);
@@ -252,7 +258,7 @@ export const useForm = <T extends Record<string, any>>(
 
 					isOnUpdateTouched = isOnUpdateTouched || didTouch;
 
-					changedKeys.current.add(key);
+					addChangedKey(key as FormKey<T>, value)
 				}
 			},
 			{
@@ -471,7 +477,7 @@ export const useForm = <T extends Record<string, any>>(
 		},
 		formState,
 
-		_changedKeys: changedKeys,
+		changedKeys,
 
 		// #region Form actions
 		field,

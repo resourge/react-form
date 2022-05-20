@@ -342,7 +342,10 @@ export type UseFormReturn<T extends Record<string, any>> = {
 	 * Nested object that has information on the `key`
 	 */
 	formState: FormState<T>
-
+	/**
+	 * Current changed keys. It is used in the `Controller` component
+	 */
+	changedKeys: React.MutableRefObject<Map<FormKey<T>, number>>
 	/**
 	 * Method to connect the form element to the key, by providing native attributes like `onChange`, `name`, etc
 	 * 

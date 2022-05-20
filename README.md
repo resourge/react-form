@@ -1,6 +1,7 @@
 # React-Form
 
-`React-Form` is a simple and basic controlled form. Aiming to create forms with minimal effort.
+`react-form` is a simple and basic controlled hook form. Aiming to create forms with minimal effort.
+
 
 ## Features
 

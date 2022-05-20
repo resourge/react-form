@@ -2,7 +2,7 @@ import { babel } from '@rollup/plugin-babel';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
 import dts from 'rollup-plugin-dts';
-import size from 'rollup-plugin-size';
+import filsesize from 'rollup-plugin-filesize';
 import { terser } from 'rollup-plugin-terser';
 
 import { name, author, license } from './package.json';
@@ -68,7 +68,9 @@ const babelPresetEnv = ['@babel/preset-env', {
 }]
 
 const defaultExtPlugin = [
-	size(),
+	filsesize({
+		showBeforeSizes: 'build'
+	}),
 	nodeResolve({
 		extensions: ['.tsx', '.ts']
 	})
@@ -109,7 +111,6 @@ const modules = [
 			banner: banner
 		}],
 		plugins: [
-			size(),
 			dts()
 		]
 	}
@@ -205,7 +206,7 @@ const umdModules = [
 					'@babel/preset-react',
 					'@babel/preset-typescript'
 				],
-				plugins: ['babel-plugin-dev-expression'],
+				plugins: babelPlugins,
 				extensions: ['.ts', '.tsx']
 			}),
 			replace({
@@ -235,7 +236,7 @@ const umdModules = [
 					'@babel/preset-react',
 					'@babel/preset-typescript'
 				],
-				plugins: ['babel-plugin-dev-expression'],
+				plugins: babelPlugins,
 				extensions: ['.ts', '.tsx']
 			}),
 			replace({
@@ -256,7 +257,7 @@ const main = [
 			banner: banner
 		},
 		plugins: [
-			size(),
+			...defaultExtPlugin,
 			replace({
 				preventAssignment: true,
 				devFile: `${UMD_DIR}/${filename}.development.js`.replace(OUTPUT_DIR, '.'),
