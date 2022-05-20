@@ -7,8 +7,8 @@ import { terser } from 'rollup-plugin-terser';
 
 import { name, author, license } from './package.json';
 
-const external = ['react'];
-const globals = { react: 'React' }
+const external = ['react', 'on-change'];
+const globals = { react: 'React', 'on-change': 'OnChange' }
 
 function createBanner(libraryName, version, authorName, license) {
 	return `/**
