@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-plus-operands */
 import React, { useEffect, useState } from 'react';
 
 import { Controller, useForm } from '../lib'
@@ -137,6 +136,15 @@ function App() {
 			}}>
 				Update Alfredo
 			</button>
+			<button onClick={() => {
+				triggerChange((form) => {
+					form.alfredo = Array.from({ length: 1000 }).map(() => ({
+						zordon: Math.random()
+					}))
+				})
+			}}>
+				Reset Alfredo
+			</button>
 			<input { ...field('rafael', { onChange: (e) => e.target.value })} />
 			<table>
 				<tbody>
@@ -175,7 +183,7 @@ function App() {
 					{
 						Object.keys(form)
 						.map((key, index) => (
-							<tr key={key + index}>
+							<tr key={`${key}${index}`}>
 								<td>
 									{key}:
 								</td>

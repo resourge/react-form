@@ -17,15 +17,3 @@ export const getKeyFromPaths = <T extends Record<string, any>>(paths: string[]):
 	.join('.')
 	.replace(/\.\[/g, '[') as FormKey<T>
 }
-
-export const findByInMap = (map: Map<string, number>, keyToFind: string): [string, number] | [null, 0] => {
-	for (const [key, value] of map.entries()) {
-		if (
-			key.includes(keyToFind) || 
-			keyToFind.includes(key)
-		) {
-			return [key, value]
-		}
-	}
-	return [null, 0]
-}

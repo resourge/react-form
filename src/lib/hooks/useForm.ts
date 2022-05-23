@@ -48,12 +48,6 @@ export const useForm = <T extends Record<string, any>>(
 		clearCacheErrors
 	} = useCacheErrors();
 
-	const changedKeys = useRef<Map<FormKey<T>, number>>(new Map());
-	const addChangedKey = (key: FormKey<T>, value: any) => {
-		const length = Array.isArray(value) ? value.length : 1;
-		changedKeys.current.set(key, length)
-	}
-
 	const wasInitialValidationPromise = useRef(false);
 
 	const [state, setFormState] = useCancelableState<State<T>>(
@@ -83,12 +77,19 @@ export const useForm = <T extends Record<string, any>>(
 			Object.keys(newState.errors)
 			.filter((key) => !Object.keys(oldState.errors).includes(key))
 			.forEach((key) => {
-				const _key = key as FormKey<T>
-				const value = getterSetter.get(_key, newState.form);
-				addChangedKey(_key as FormKey<T>, value)
+				addChangedKey(key as FormKey<T>)
 			})
 		}
 	);
+
+	const changedKeys = useRef<Set<FormKey<T>>>(new Set());
+	const addChangedKey = (key: FormKey<T>) => {
+		changedKeys.current.add(key)
+	}
+
+	useEffect(() => {
+		changedKeys.current = new Set();
+	})
 
 	/**
 	 * In case validate `useCancelableState` is not able to validate the errors
@@ -258,7 +259,7 @@ export const useForm = <T extends Record<string, any>>(
 
 					isOnUpdateTouched = isOnUpdateTouched || didTouch;
 
-					addChangedKey(key as FormKey<T>, value)
+					addChangedKey(key as FormKey<T>)
 				}
 			},
 			{
@@ -480,6 +481,7 @@ export const useForm = <T extends Record<string, any>>(
 		changedKeys,
 
 		// #region Form actions
+
 		field,
 		triggerChange,
 		handleSubmit,

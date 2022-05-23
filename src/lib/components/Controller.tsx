@@ -5,7 +5,7 @@ import { ControllerContext } from '../contexts/ControllerContext';
 import { FormContextObject } from '../contexts/FormContext';
 import { useField } from '../hooks/useField';
 import { FormKey } from '../types/FormKey';
-import { findByInMap } from '../utils/utils';
+import { UseFormReturnController } from '../types/types';
 
 export type ControllerProps<T extends Record<string, any>> = {
 	name: FormKey<T>
@@ -60,17 +60,20 @@ export const Controller = memo(function Controller<T extends Record<string, any>
 		</ControllerContext.Provider>
 	);
 }, (prevProps, nextProps) => {
-	const changedKeys = nextProps.context.changedKeys
+	// This is so "changedKeys" will only be visible
+	// with types to the controller 
+	const context = nextProps.context as UseFormReturnController<Record<string, any>>
+	const changedKeys = context.changedKeys
+	const keyToFind = nextProps.name;
 	
-	const [key, value] = findByInMap(changedKeys.current, nextProps.name);
+	const keys = [...changedKeys.current.keys()];
 
-	if ( key && value > 0 ) {
-		changedKeys.current.set(key, value - 1);
-
-		return false
-	}
+	const shouldUpdate = keys.some((key) => (
+		key.includes(keyToFind) || 
+		keyToFind.includes(key)
+	))
 
 	return (
-		prevProps.name === nextProps.name
+		prevProps.name === nextProps.name && !(shouldUpdate)
 	)
 }) as <T extends Record<string, any>>(props: ControllerProps<T>) => JSX.Element

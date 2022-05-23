@@ -343,10 +343,6 @@ export type UseFormReturn<T extends Record<string, any>> = {
 	 */
 	formState: FormState<T>
 	/**
-	 * Current changed keys. It is used in the `Controller` component
-	 */
-	changedKeys: React.MutableRefObject<Map<FormKey<T>, number>>
-	/**
 	 * Method to connect the form element to the key, by providing native attributes like `onChange`, `name`, etc
 	 * 
 	 * @param key - key from `form` state
@@ -647,4 +643,11 @@ export type UseFormReturn<T extends Record<string, any>> = {
 	 * ```
 	 */
 	setTouch: <Key extends FormKey<T>>(keys: Key, touched?: boolean) => void
+}
+
+export type UseFormReturnController<T extends Record<string, any>> = UseFormReturn<T> & {
+	/**
+	 * Current changed keys. It is used in the `Controller` component
+	 */
+	changedKeys: React.MutableRefObject<Set<FormKey<T>>>
 }
