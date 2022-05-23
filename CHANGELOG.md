@@ -1,3 +1,10 @@
+## [1.4.6](https://github.com/resourge/react-form/compare/v1.4.5...v1.4.6) (2022-05-23)
+
+
+### Bug Fixes
+
+* **controller:** update conditions to Controller update ([afa4d23](https://github.com/resourge/react-form/commit/afa4d23a58a2f866f3c64f7994a82047f6db9e1d))
+
 ## [1.4.5](https://github.com/resourge/react-form/compare/v1.4.4...v1.4.5) (2022-05-20)
 
 
