@@ -1,3 +1,10 @@
+## [1.4.7](https://github.com/resourge/react-form/compare/v1.4.6...v1.4.7) (2022-05-25)
+
+
+### Bug Fixes
+
+* **controller:** fix controller not updating in specific situations ([876a050](https://github.com/resourge/react-form/commit/876a0505f16fe405318fcc58c2009f259989f334))
+
 ## [1.4.6](https://github.com/resourge/react-form/compare/v1.4.5...v1.4.6) (2022-05-23)
 
 
