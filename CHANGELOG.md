@@ -1,3 +1,10 @@
+## [1.4.8](https://github.com/resourge/react-form/compare/v1.4.7...v1.4.8) (2022-05-25)
+
+
+### Bug Fixes
+
+* **useerrors:** when includeChildsIntoArray is true strick will automatically be false ([f6d2c47](https://github.com/resourge/react-form/commit/f6d2c473a7c39cd462756ce9481f76d55c599392))
+
 ## [1.4.7](https://github.com/resourge/react-form/compare/v1.4.6...v1.4.7) (2022-05-25)
 
 
