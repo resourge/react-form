@@ -89,7 +89,7 @@ export const useForm = <T extends Record<string, any>>(
 
 	useEffect(() => {
 		changedKeys.current = new Set();
-	})
+	}, [state.touches]);
 
 	/**
 	 * In case validate `useCancelableState` is not able to validate the errors
