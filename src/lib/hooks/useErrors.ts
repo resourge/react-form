@@ -30,6 +30,7 @@ export const useErrors = <T extends Record<string, any>>(
 			strict = true,
 			onlyOnTouch = false
 		} = options;
+		
 		// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 		const _key: string = `has_errors_${key}_${strict}_${onlyOnTouch}`;
 
@@ -75,11 +76,13 @@ export const useErrors = <T extends Record<string, any>>(
 		}
 	): GetErrors<Model> {
 		const {
-			strict = true,
+			strict: _strict = true,
 			onlyOnTouch = false,
 			includeKeyInChildErrors = true,
 			includeChildsIntoArray = false
 		} = options;
+
+		const strict = includeChildsIntoArray ? false : _strict;
 
 		// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 		const _key: string = `get_errors_${key}_${strict}_${onlyOnTouch}_${includeKeyInChildErrors}_${includeChildsIntoArray}`;
