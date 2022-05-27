@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-invalid-void-type */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { FormContextObject } from '../contexts/FormContext';
+import { WatchMethod } from '../hooks/useWatch';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { OnErrors, setDefaultOnError } from '../validators/setDefaultOnError';
 
@@ -30,7 +31,10 @@ export type HasErrorOptions = {
 
 export type GetErrorsOptions = {
 	/**
-	 * Includes object/array children
+	 * Includes children errors as object into array.
+	 * 
+	 * Note: If `includeChildsIntoArray` is true `strict`
+	 * will by default be false
 	 */
 	strict?: boolean
 	/**
@@ -41,7 +45,6 @@ export type GetErrorsOptions = {
 	 * Includes `key` in children paths
 	 */
 	includeKeyInChildErrors?: boolean
-	/**
 	/**
 	 * Includes the children errors on the array
 	 */
@@ -643,6 +646,27 @@ export type UseFormReturn<T extends Record<string, any>> = {
 	 * ```
 	 */
 	setTouch: <Key extends FormKey<T>>(keys: Key, touched?: boolean) => void
+	/**
+	 * Watch key to then execute the method to update other values
+	 * 
+	 * @param key - key from `form` state
+	 * @param method - method that will be executed on key touch
+	 * @example 
+	 * ```Typescript
+	 * const {
+	 *	 watch
+	 * } = useForm(
+	 *	 {
+	 * 		name: 'Rimuru'
+	 *	 }
+	 * )
+	 * ...
+	 * watch('name', (form) => {
+	 * 	form.name = 'Rimuru Tempest'
+	 * })
+	 * ```
+	 */
+	watch: (key: FormKey<T>, method: WatchMethod<T>) => void
 }
 
 export type UseFormReturnController<T extends Record<string, any>> = UseFormReturn<T> & {

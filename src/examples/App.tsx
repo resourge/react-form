@@ -59,7 +59,8 @@ function App() {
 
 		changeValue,
 		triggerChange,
-		field
+		field,
+		watch
 	} = useForm<{
 		rafael: number
 		jose: number[]
@@ -101,6 +102,23 @@ function App() {
 			}
 		}
 	)
+
+	watch('jose', (form) => {
+		console.log('Watch jose')
+		form.alfredo = [{
+			zordon: 10
+		}];
+
+		form.jose = [Math.random()];
+	})
+
+	watch('alfredo', (form) => {
+		console.log('Watch alfredo')
+	})
+
+	watch('alfredo[0].zordon', (form) => {
+		console.log('Watch alfredo[0]')
+	})
 
 	useEffect(() => {
 		setRandomNumber(Math.random())

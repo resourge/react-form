@@ -23,6 +23,7 @@ import { useCancelableState } from './useCancelableState';
 import { useErrors } from './useErrors';
 import { useGetterSetter } from './useGetterSetter';
 import { useProxy } from './useProxy';
+import { useWatch } from './useWatch';
 
 type State<T extends Record<string, any>> = {
 	form: T
@@ -43,6 +44,12 @@ export const useForm = <T extends Record<string, any>>(
 	const defaultValue = useRef(_defaultValue).current;
 
 	const getterSetter = useGetterSetter<T>();
+
+	const {
+		watch,
+		onWatch
+	} = useWatch();
+
 	const {
 		setCacheErrors,
 		clearCacheErrors
@@ -216,11 +223,11 @@ export const useForm = <T extends Record<string, any>>(
 	 * @param produceOptions
 	 * @returns Return the new State(form and errors) or a Promise of the new State
 	 */
-	const produceNewState = (
+	const produceNewState = async (
 		oldState: State<T>, 
 		cb: OnFunctionChange<T>, 
 		produceOptions?: ProduceNewStateOptions
-	): State<T> | Promise<State<T>> => {
+	): Promise<State<T>> => {
 		const newState: State<T> = {
 			form: oldState.form,
 			errors: { ...oldState.errors },
@@ -270,6 +277,8 @@ export const useForm = <T extends Record<string, any>>(
 
 		cb(proxy);
 
+		await onWatch.current(proxy, changedKeys)
+
 		newState.form = observeChanges.unsubscribe(proxy);
 
 		const validate = produceOptions?.validate ?? options?.validateDefault;
@@ -281,7 +290,7 @@ export const useForm = <T extends Record<string, any>>(
 				isOnUpdateTouched
 			)
 		) {
-			return validateState(newState);
+			return await validateState(newState);
 		}
 
 		return { 
@@ -300,7 +309,7 @@ export const useForm = <T extends Record<string, any>>(
 			...(resetOptions ?? {})
 		}
 
-		const newState = produceNewState(
+		const newState = await produceNewState(
 			state, 
 			(form: T) => {
 				(Object.keys(newFrom) as Array<keyof T>)
@@ -310,22 +319,17 @@ export const useForm = <T extends Record<string, any>>(
 				})
 			}, 
 			options
-		) as State<T>
-
-		let _newState = newState;
-		if ( newState instanceof Promise ) {
-			_newState = await newState;
-		}
+		)
 
 		if ( !options.forceValidation ) {
-			_newState.errors = {};
+			newState.errors = {};
 		}
 
 		if ( options.clearTouched ) {
-			_newState.touches = {};
+			newState.touches = {};
 		}
 			
-		setFormState(_newState);
+		setFormState(newState);
 	}
 
 	const triggerChange = (cb: OnFunctionChange<T>, produceOptions?: ProduceNewStateOptions) => {
@@ -497,7 +501,8 @@ export const useForm = <T extends Record<string, any>>(
 		getValue,
 
 		resetTouch,
-		setTouch
+		setTouch,
+		watch
 		// #endregion Form actions
 	}
 
