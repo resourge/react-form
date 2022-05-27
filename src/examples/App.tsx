@@ -103,7 +103,8 @@ function App() {
 		}
 	)
 
-	watch('jose', (form) => {
+	watch('jose', async (form) => {
+		await Promise.resolve();
 		console.log('Watch jose')
 		form.alfredo = [{
 			zordon: 10

@@ -20,14 +20,12 @@ export const useWatch = <T extends Record<string, any>>(): UseWatchReturn<T> => 
 	}
 
 	const onWatch = useRef(async (form: T, changedKeys: React.MutableRefObject<Set<FormKey<T>>>) => {
-		const promises = [];
 		for (const [key, method] of watchedRefs.current) {
 			if ( changedKeys.current.has(key) ) {
-				promises.push(Promise.resolve(method(form)));
+				// eslint-disable-next-line no-await-in-loop
+				await Promise.resolve(method(form));
 			}
 		}
-
-		await Promise.all(promises);
 	});
 
 	return {
