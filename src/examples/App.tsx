@@ -105,7 +105,7 @@ function App() {
 
 	watch('jose', async (form) => {
 		await Promise.resolve();
-		console.log('Watch jose')
+		// console.log('Watch jose')
 		form.alfredo = [{
 			zordon: 10
 		}];
@@ -114,11 +114,11 @@ function App() {
 	})
 
 	watch('alfredo', (form) => {
-		console.log('Watch alfredo')
+		// console.log('Watch alfredo')
 	})
 
 	watch('alfredo[0].zordon', (form) => {
-		console.log('Watch alfredo[0]')
+		// console.log('Watch alfredo[0]')
 	})
 
 	useEffect(() => {
