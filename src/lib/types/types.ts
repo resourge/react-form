@@ -342,7 +342,7 @@ export type UseFormReturn<T extends Record<string, any>> = {
 	 */
 	isTouched: boolean
 	/**
-	 * Nested object that has information on the `key`
+	 * Virtual nested object that has information on the `key` like errors/isTouched/isValid
 	 */
 	formState: FormState<T>
 	/**
@@ -635,7 +635,7 @@ export type UseFormReturn<T extends Record<string, any>> = {
 	 * @example 
 	 * ```Typescript
 	 * const {
-	 *	 resetTouch
+	 *	 setTouch
 	 * } = useForm(
 	 *	 {
 	 * 		name: 'Rimuru'

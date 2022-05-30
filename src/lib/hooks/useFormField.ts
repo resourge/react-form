@@ -18,16 +18,16 @@ export const useFormField = <T extends Record<string, any>, Value = any>(
 	field: ControllerField<T, Value>
 	formContext: FormContextObject<T>
 } => {
-	const formState = useFormContext<T>();
+	const formContext = useFormContext<T>();
 
 	const field = useField<T, Value>(
-		formState,
+		formContext,
 		key,
 		options
 	)
 
 	return {
 		field,
-		formContext: formState
+		formContext
 	}
 }
