@@ -1,3 +1,10 @@
+## [1.5.1](https://github.com/resourge/react-form/compare/v1.5.0...v1.5.1) (2022-05-30)
+
+
+### Bug Fixes
+
+* **package:** remove shallow-clone from peerDependecies ([cff839a](https://github.com/resourge/react-form/commit/cff839a009dd30f49919c7aa6b47f48ddf1bda66))
+
 # [1.5.0](https://github.com/resourge/react-form/compare/v1.4.8...v1.5.0) (2022-05-30)
 
 
