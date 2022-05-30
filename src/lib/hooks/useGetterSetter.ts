@@ -2,8 +2,9 @@
 /* eslint-disable @typescript-eslint/no-implied-eval */
 import { useRef } from 'react';
 
+import { shallowClone } from '@resourge/shallow-clone';
+
 import { FormKey } from '../types/FormKey';
-import { shallowClone } from '../utils/shallowClone';
 import { isObject } from '../utils/utils';
 
 type FormSetValue<T extends object> = (obj: T, val: any) => void

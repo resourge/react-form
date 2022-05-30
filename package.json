@@ -1,6 +1,6 @@
 {
   "name": "@resourge/react-form",
-  "version": "1.5.0",
+  "version": "1.4.8",
   "description": "react-form is a simple and basic controlled hook form. Aiming to create forms with minimal effort.",
   "main": "./dist/main.js",
   "module": "./dist/index.js",
@@ -26,6 +26,7 @@
   "author": "resourge",
   "license": "MIT",
   "scripts": {
+    "preinstall": "git pull",
     "commitizen": "git-cz",
     "commit": "git pull && git add . && npm run commitizen",
     "lint": "eslint \"./src/**/*.{ts,tsx}\"",
@@ -98,5 +99,12 @@
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
+  },
+  "peerDependencies": {
+    "react": "^16.8.0 || ^17 || ^18",
+    "@resourge/shallow-clone": "*"
+  },
+  "dependencies": {
+    "@resourge/shallow-clone": "^1.0.0"
   }
 }

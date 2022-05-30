@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-invalid-void-type */
 import { FormEvent, useRef, MouseEvent, useEffect } from 'react';
 
+import { shallowClone } from '@resourge/shallow-clone';
 import observeChanges from 'on-change';
 import invariant from 'tiny-invariant'
 
@@ -14,7 +15,6 @@ import {
 	UseFormReturn, Touches
 } from '../types/types'
 import { createFormErrors, formatErrors } from '../utils/createFormErrors';
-import { shallowClone } from '../utils/shallowClone';
 import { getKeyFromPaths } from '../utils/utils';
 import { getDefaultOnError } from '../validators/setDefaultOnError';
 
