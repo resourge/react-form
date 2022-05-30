@@ -1,3 +1,11 @@
+# [1.5.0](https://github.com/resourge/react-form/compare/v1.4.8...v1.5.0) (2022-05-30)
+
+
+### Features
+
+* **usewatch:** make each "watch" run synchronous ([5e12c54](https://github.com/resourge/react-form/commit/5e12c543d53c13aeea10e8e63d83e3ef9db28fab))
+* **usewatch:** watch: method to update values when key is touched ([f8e4971](https://github.com/resourge/react-form/commit/f8e4971e144d1eb12d761cf67208669af8d6753e))
+
 ## [1.4.8](https://github.com/resourge/react-form/compare/v1.4.7...v1.4.8) (2022-05-25)
 
 
