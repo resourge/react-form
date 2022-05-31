@@ -1,3 +1,10 @@
+## [1.6.1](https://github.com/resourge/react-form/compare/v1.6.0...v1.6.1) (2022-05-31)
+
+
+### Bug Fixes
+
+* **package.json:** remove preinstall from scripts ([0dd65bc](https://github.com/resourge/react-form/commit/0dd65bce45bb1ce2d863f0af61d824fda4567b6c))
+
 # [1.6.0](https://github.com/resourge/react-form/compare/v1.5.1...v1.6.0) (2022-05-31)
 
 
