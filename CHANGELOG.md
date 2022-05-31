@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/resourge/react-form/compare/v1.5.1...v1.6.0) (2022-05-31)
+
+
+### Features
+
+* **useform:** add updateController method ([09691ac](https://github.com/resourge/react-form/commit/09691ac42e5aeec192893f2f371255a4c54fae73))
+
 ## [1.5.1](https://github.com/resourge/react-form/compare/v1.5.0...v1.5.1) (2022-05-30)
 
 
