@@ -108,7 +108,7 @@ export type FormOptions<T extends Record<string, any>> = {
 	 * )
 	 * ```
 	 */
-	validate?: (form: T) => void | Promise<void>
+	validate?: (form: T, changedKeys: Array<FormKey<T>>) => void | Promise<void>
 	/**
 	 * Method to define if form is valid
 	 * 
@@ -667,6 +667,26 @@ export type UseFormReturn<T extends Record<string, any>> = {
 	 * ```
 	 */
 	watch: (key: FormKey<T>, method: WatchMethod<T>) => void
+	/**
+	 * Manually force Controller component to update.
+	 * 
+	 * Note: It does not render the component alone.
+	 * 
+	 * @param key - key from `form` state
+	 * @example 
+	 * ```Typescript
+	 * const {
+	 *	 updateController
+	 * } = useForm(
+	 *	 {
+	 * 		name: 'Rimuru'
+	 *	 }
+	 * )
+	 * ...
+	 * updateController('name')
+	 * ```
+	 */
+	updateController: (key: FormKey<T>) => void
 }
 
 export type UseFormReturnController<T extends Record<string, any>> = UseFormReturn<T> & {

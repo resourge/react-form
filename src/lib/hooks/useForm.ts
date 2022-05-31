@@ -57,6 +57,11 @@ export const useForm = <T extends Record<string, any>>(
 
 	const wasInitialValidationPromise = useRef(false);
 
+	const changedKeys = useRef<Set<FormKey<T>>>(new Set());
+	const updateController = (key: FormKey<T>) => {
+		changedKeys.current.add(key)
+	}
+
 	const [state, setFormState] = useCancelableState<State<T>>(
 		() => {
 			const form = shallowClone(defaultValue)
@@ -64,7 +69,7 @@ export const useForm = <T extends Record<string, any>>(
 
 			if ( options?.validateDefault ) {
 				try {
-					const valid = options?.validate && options?.validate(form);
+					const valid = options?.validate && options?.validate(form, [...changedKeys.current] as Array<FormKey<T>>);
 					wasInitialValidationPromise.current = valid instanceof Promise;
 				}
 				catch ( err ) {
@@ -84,15 +89,10 @@ export const useForm = <T extends Record<string, any>>(
 			Object.keys(newState.errors)
 			.filter((key) => !Object.keys(oldState.errors).includes(key))
 			.forEach((key) => {
-				addChangedKey(key as FormKey<T>)
+				updateController(key as FormKey<T>)
 			})
 		}
 	);
-
-	const changedKeys = useRef<Set<FormKey<T>>>(new Set());
-	const addChangedKey = (key: FormKey<T>) => {
-		changedKeys.current.add(key)
-	}
 
 	useEffect(() => {
 		changedKeys.current = new Set();
@@ -137,7 +137,7 @@ export const useForm = <T extends Record<string, any>>(
 			e.persist();
 		}
 		try {
-			options?.validate && await (Promise.resolve(options?.validate(form)));
+			options?.validate && await (Promise.resolve(options?.validate(form, [...changedKeys.current] as Array<FormKey<T>>)));
 		}
 		catch ( errors ) {
 			if ( errors ) {
@@ -197,7 +197,7 @@ export const useForm = <T extends Record<string, any>>(
 	 */
 	const validateState = async (state: State<T>): Promise<State<T>> => {
 		try {
-			options?.validate && await (Promise.resolve(options?.validate(state.form)));
+			options?.validate && await (Promise.resolve(options?.validate(state.form, [...changedKeys.current] as Array<FormKey<T>>)));
 			return { 
 				form: state.form,
 				errors: {},
@@ -266,7 +266,7 @@ export const useForm = <T extends Record<string, any>>(
 
 					isOnUpdateTouched = isOnUpdateTouched || didTouch;
 
-					addChangedKey(key as FormKey<T>)
+					updateController(key as FormKey<T>)
 				}
 			},
 			{
@@ -502,7 +502,8 @@ export const useForm = <T extends Record<string, any>>(
 
 		resetTouch,
 		setTouch,
-		watch
+		watch,
+		updateController
 		// #endregion Form actions
 	}
 
