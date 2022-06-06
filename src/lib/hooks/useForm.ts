@@ -69,8 +69,12 @@ export const useForm = <T extends Record<string, any>>(
 
 			if ( options?.validateDefault ) {
 				try {
-					const valid = options?.validate && options?.validate(form, [...changedKeys.current] as Array<FormKey<T>>);
-					wasInitialValidationPromise.current = valid instanceof Promise;
+					const errors = options?.validate && options?.validate(form, [...changedKeys.current] as Array<FormKey<T>>);
+					wasInitialValidationPromise.current = errors instanceof Promise;
+					if ( !(errors instanceof Promise) && errors && errors.length ) {
+						// eslint-disable-next-line @typescript-eslint/no-throw-literal
+						throw errors;
+					}
 				}
 				catch ( err ) {
 					errors = onErrors(err);
@@ -137,7 +141,11 @@ export const useForm = <T extends Record<string, any>>(
 			e.persist();
 		}
 		try {
-			options?.validate && await (Promise.resolve(options?.validate(form, [...changedKeys.current] as Array<FormKey<T>>)));
+			const errors = options?.validate && await (Promise.resolve(options?.validate(form, [...changedKeys.current] as Array<FormKey<T>>)));
+			if ( errors && errors.length ) {
+				// eslint-disable-next-line @typescript-eslint/no-throw-literal
+				throw errors;
+			}
 		}
 		catch ( errors ) {
 			if ( errors ) {
@@ -197,7 +205,11 @@ export const useForm = <T extends Record<string, any>>(
 	 */
 	const validateState = async (state: State<T>): Promise<State<T>> => {
 		try {
-			options?.validate && await (Promise.resolve(options?.validate(state.form, [...changedKeys.current] as Array<FormKey<T>>)));
+			const errors = options?.validate && await (Promise.resolve(options?.validate(state.form, [...changedKeys.current] as Array<FormKey<T>>)));
+			if ( errors && errors.length ) {
+				// eslint-disable-next-line @typescript-eslint/no-throw-literal
+				throw errors;
+			}
 			return { 
 				form: state.form,
 				errors: {},

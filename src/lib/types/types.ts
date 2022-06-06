@@ -3,7 +3,7 @@
 import { FormContextObject } from '../contexts/FormContext';
 import { WatchMethod } from '../hooks/useWatch';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { OnErrors, setDefaultOnError } from '../validators/setDefaultOnError';
+import { OnErrors, setDefaultOnError, ValidationErrors } from '../validators/setDefaultOnError';
 
 import { FormKey } from './FormKey';
 
@@ -108,7 +108,7 @@ export type FormOptions<T extends Record<string, any>> = {
 	 * )
 	 * ```
 	 */
-	validate?: (form: T, changedKeys: Array<FormKey<T>>) => void | Promise<void>
+	validate?: (form: T, changedKeys: Array<FormKey<T>>) => void | Promise<void> | ValidationErrors | Promise<ValidationErrors>
 	/**
 	 * Method to define if form is valid
 	 * 
