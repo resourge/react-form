@@ -1,3 +1,10 @@
+## [1.7.1](https://github.com/resourge/react-form/compare/v1.7.0...v1.7.1) (2022-06-06)
+
+
+### Performance Improvements
+
+* **useform:** add isTouched in isValid method ([2e57507](https://github.com/resourge/react-form/commit/2e5750722103c99c3319531d2a45548ec7011121))
+
 # [1.7.0](https://github.com/resourge/react-form/compare/v1.6.1...v1.7.0) (2022-06-06)
 
 
