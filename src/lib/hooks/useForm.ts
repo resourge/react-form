@@ -484,7 +484,8 @@ export const useForm = <T extends Record<string, any>>(
 					errors,
 					touches,
 					formState,
-					isValid: nativeIsValid
+					isValid: nativeIsValid,
+					isTouched: formState.isTouched
 				})
 			) ?? nativeIsValid
 		},

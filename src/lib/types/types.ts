@@ -63,6 +63,10 @@ type IsValid<T extends Record<string, any>> = {
 	 */
 	isValid: boolean
 	/**
+	 * If form is "touched"
+	 */
+	isTouched: boolean
+	/**
 	 * Form nested errors
 	 */
 	errors: FormErrors<T>
