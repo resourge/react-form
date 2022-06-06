@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/resourge/react-form/compare/v1.6.1...v1.7.0) (2022-06-06)
+
+
+### Features
+
+* **useform:** add direct compatibility with @resourge/schema ([1f693ab](https://github.com/resourge/react-form/commit/1f693ab9c7f33d83e6c914a4f4689f58d74f88d0))
+
 ## [1.6.1](https://github.com/resourge/react-form/compare/v1.6.0...v1.6.1) (2022-05-31)
 
 

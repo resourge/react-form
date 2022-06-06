@@ -1,6 +1,6 @@
 {
   "name": "@resourge/react-form",
-  "version": "1.6.1",
+  "version": "1.7.0",
   "description": "react-form is a simple and basic controlled hook form. Aiming to create forms with minimal effort.",
   "main": "./dist/main.js",
   "module": "./dist/index.js",
