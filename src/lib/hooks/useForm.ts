@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 /* eslint-disable @typescript-eslint/no-invalid-void-type */
-import { FormEvent, useRef, MouseEvent, useEffect } from 'react';
+import { FormEvent, useRef, MouseEvent, useEffect, ChangeEvent } from 'react';
 
 import { shallowClone } from '@resourge/shallow-clone';
 import observeChanges from 'on-change';
@@ -344,20 +344,10 @@ export const useForm = <T extends Record<string, any>>(
 		setFormState(newState);
 	}
 
-	const triggerChange = (cb: OnFunctionChange<T>, produceOptions?: ProduceNewStateOptions) => {
-		setFormState((state) => {
-			const result = produceNewState(state, cb, produceOptions);
+	const triggerChange = async (cb: OnFunctionChange<T>, produceOptions?: ProduceNewStateOptions) => {
+		const result = await produceNewState(state, cb, produceOptions);
 
-			if ( result instanceof Promise ) {
-				result
-				.then((newState) => {
-					setFormState(newState)
-				})
-				return;
-			}
-
-			return result
-		})
+		setFormState(result)
 	}
 
 	const merge = (mergedForm: Partial<T>) => {
@@ -394,14 +384,28 @@ export const useForm = <T extends Record<string, any>>(
 	// #region Form elements
 	const onChange = (
 		key: FormKey<T>, 
-		fieldOptions?: FieldOptions<T[FormKey<T>]>
-	) => (value: T[FormKey<T>]) => {
+		fieldOptions?: FieldOptions<T[FormKey<T>]>,
+		field?: {
+			_instance: HTMLInputElement | null
+			readonly instance: HTMLInputElement | null
+		}
+	) => async (value: T[FormKey<T>]) => {
 		let _value: T[FormKey<T>] = value;
+
+		if ( fieldOptions && fieldOptions.isNativeEvent ) {
+			invariant((field && field.instance), '`isNativeInput` options needs access to the element ref to update the value.' +
+			'\n In case you need to access ref, use the following `field(..., { ..., isNativeInput: true, ref: inputRef })`'
+			)
+			const Value = value as unknown as ChangeEvent<HTMLInputElement>
+
+			_value = Value.currentTarget.value as T[FormKey<T>];
+		}
+
 		if ( fieldOptions && fieldOptions.onChange ) {
 			_value = fieldOptions.onChange(_value);
 		}
 
-		triggerChange(
+		await triggerChange(
 			(form: T) => {
 				getterSetter.set(key, form, _value);
 			}, 
@@ -415,20 +419,49 @@ export const useForm = <T extends Record<string, any>>(
 
 	const field = (
 		key: FormKey<T>, 
-		options?: FieldOptions
+		fieldOptions?: FieldOptions
 	): FieldForm => {
-		if ( !options?.readOnly ) {
+		const value = getValue(key);
+
+		const field: {
+			_instance: HTMLInputElement | null
+			readonly instance: HTMLInputElement | null
+		} = {
+			_instance: null,
+			get instance() {
+				return this._instance
+			}
+		}
+		
+		if ( !fieldOptions?.readOnly ) {
 			return {
+				ref: (instance: HTMLInputElement | null) => {
+					field._instance = instance;
+					if ( fieldOptions ) {
+						if ( fieldOptions.ref ) {
+							if ( typeof fieldOptions.ref === 'function' ) {
+								fieldOptions.ref(instance);
+							}
+							if ( typeof fieldOptions.ref === 'object' ) { 
+								// @ts-expect-error
+								fieldOptions.ref.current = instance;
+							}
+						}
+						if ( instance && fieldOptions.isNativeEvent ) {
+							instance.value = value;
+						}
+					}
+				},
 				name: key,
-				onChange: onChange(key, options),
-				value: getValue(key)
+				onChange: onChange(key, fieldOptions, field),
+				value: fieldOptions?.isNativeEvent ? undefined : value
 			}
 		}
 
 		return {
 			name: key,
 			readOnly: true,
-			value: getValue(key)
+			value
 		}
 	};
 
@@ -509,7 +542,7 @@ export const useForm = <T extends Record<string, any>>(
 
 		reset,
 		merge,
-		onChange,
+		onChange: (key: FormKey<T>, fieldOptions?: FieldOptions<T[FormKey<T>]> | undefined) => onChange(key, fieldOptions),
 		changeValue,
 		getValue,
 

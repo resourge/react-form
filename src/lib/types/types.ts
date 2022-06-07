@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-invalid-void-type */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { LegacyRef } from 'react';
+
 import { FormContextObject } from '../contexts/FormContext';
 import { WatchMethod } from '../hooks/useWatch';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -175,6 +177,10 @@ export type FormOptions<T extends Record<string, any>> = {
 
 export type FieldForm<Value = any, Name = string> = {
 	/**
+	 * Element ref
+	 */
+	ref?: React.LegacyRef<any>
+	/**
 	 * Attribute `name`
 	 */
 	name: Name
@@ -237,6 +243,30 @@ export type ResetOptions = {
 }
 
 export type FieldOptions<Value = any> = {
+	/**
+	 * For native inputs. 
+	 * This tag will also export value from event target.
+	 * @important Only use this tag for native inputs, as this will not inject value.
+	 * @requires ref
+	 * 
+	 * This will prevent the controlled input cursor to jump to end
+	 * @see https://github.com/facebook/react/issues/14904
+	 * 
+	 * @example
+	 * ```Typescript
+	 * <input { ...field('name', { isNativeEvent: true })} />
+	 * ```
+	 * 
+	 * Other solution is to create a component that controls the input
+	 * @see https://github.com/facebook/react/issues/14904#issuecomment-522194299
+	 */
+	isNativeEvent?: boolean
+	/**
+	 * In case component `ref` is needed, set `ref` here instead of in component,
+	 * because when {@link FieldOptions#isNativeEvent} is true {@link UseFormReturn#field} 
+	 * will use `ref` to set value.
+	 */
+	ref?: LegacyRef<any>
 	/**
 	 * Disables `onChange` method
 	 */
