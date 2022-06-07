@@ -164,7 +164,7 @@ function App() {
 			}}>
 				Reset Alfredo
 			</button>
-			<input { ...field('rafael', { onChange: (e) => e.target.value })} />
+			<input { ...field('rafael')} />
 			<table>
 				<tbody>
 					<tr>

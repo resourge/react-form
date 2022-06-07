@@ -23,6 +23,7 @@ import { useCancelableState } from './useCancelableState';
 import { useErrors } from './useErrors';
 import { useGetterSetter } from './useGetterSetter';
 import { useProxy } from './useProxy';
+import { useRunAfterUpdate } from './useRunAfterUpdate';
 import { useWatch } from './useWatch';
 
 type State<T extends Record<string, any>> = {
@@ -42,6 +43,8 @@ export const useForm = <T extends Record<string, any>>(
 	const onErrors = createFormErrors<T>(_onErrors)
 
 	const defaultValue = useRef(_defaultValue).current;
+
+	const runAfterUpdate = useRunAfterUpdate();
 
 	const getterSetter = useGetterSetter<T>();
 
@@ -384,21 +387,19 @@ export const useForm = <T extends Record<string, any>>(
 	// #region Form elements
 	const onChange = (
 		key: FormKey<T>, 
-		fieldOptions?: FieldOptions<T[FormKey<T>]>,
-		field?: {
-			_instance: HTMLInputElement | null
-			readonly instance: HTMLInputElement | null
-		}
-	) => async (value: T[FormKey<T>]) => {
-		let _value: T[FormKey<T>] = value;
+		fieldOptions?: FieldOptions<T[FormKey<T>]>
+	) => async (value: T[FormKey<T>] | ChangeEvent) => {
+		let _value: T[FormKey<T>] = value as T[FormKey<T>];
 
-		if ( fieldOptions && fieldOptions.isNativeEvent ) {
-			invariant((field && field.instance), '`isNativeInput` options needs access to the element ref to update the value.' +
-			'\n In case you need to access ref, use the following `field(..., { ..., isNativeInput: true, ref: inputRef })`'
-			)
-			const Value = value as unknown as ChangeEvent<HTMLInputElement>
-
-			_value = Value.currentTarget.value as T[FormKey<T>];
+		const target = (value as ChangeEvent<HTMLInputElement>).currentTarget;
+		// To preserve cursor position
+		if ( target && (target.tagName.toLocaleUpperCase() === 'INPUT' || target.tagName.toLocaleUpperCase() === 'TEXTAREA') ) {
+			const selectionsStart = target.selectionStart
+			const selectionEnd = target.selectionEnd
+			runAfterUpdate(() => {
+				target.setSelectionRange(selectionsStart, selectionEnd)
+			})
+			_value = target.value as T[FormKey<T>];
 		}
 
 		if ( fieldOptions && fieldOptions.onChange ) {
@@ -422,39 +423,12 @@ export const useForm = <T extends Record<string, any>>(
 		fieldOptions?: FieldOptions
 	): FieldForm => {
 		const value = getValue(key);
-
-		const field: {
-			_instance: HTMLInputElement | null
-			readonly instance: HTMLInputElement | null
-		} = {
-			_instance: null,
-			get instance() {
-				return this._instance
-			}
-		}
 		
 		if ( !fieldOptions?.readOnly ) {
 			return {
-				ref: (instance: HTMLInputElement | null) => {
-					field._instance = instance;
-					if ( fieldOptions ) {
-						if ( fieldOptions.ref ) {
-							if ( typeof fieldOptions.ref === 'function' ) {
-								fieldOptions.ref(instance);
-							}
-							if ( typeof fieldOptions.ref === 'object' ) { 
-								// @ts-expect-error
-								fieldOptions.ref.current = instance;
-							}
-						}
-						if ( instance && fieldOptions.isNativeEvent ) {
-							instance.value = value;
-						}
-					}
-				},
 				name: key,
-				onChange: onChange(key, fieldOptions, field),
-				value: fieldOptions?.isNativeEvent ? undefined : value
+				onChange: onChange(key, fieldOptions),
+				value
 			}
 		}
 

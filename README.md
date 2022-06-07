@@ -100,7 +100,7 @@ export default function Form() {
 
   return (
     <form onSubmit={onSubmit}>
-      <input { ...field('name', { onChange: (e) => e.target.value }) }/>
+      <input { ...field('name') }/>
       <span>
       {
         isValid ? "Valid" : "Invalid" 
@@ -193,24 +193,19 @@ const {
 
 Method to connect the form element to the key by providing native attributes like `onChange`, `name`, etc
 
-[for input cursor jumping to end](#input-cursor-jumping-to-end)
-
 ```Typescript
 const {
   field
 } = useForm(
   {
-    name: 'Rimuru',
-	date: new Date()
+    name: 'Rimuru'
   }
 )
 
-<input {...field('name', { isNativeEvent: true })} /> // For native input `isNativeEvent` is necessary
-
-<DatePicker {...field('date')}/> // For library components
+<input {...field('name')} />
 
 /// For validating when changing the value without triggering the submit to get the error validation
-<input {...field('name', { isNativeEvent: true, validate: true })} />
+<input {...field('name', { validate: true })} />
 ```
 
 #### `triggerChange`
@@ -571,7 +566,6 @@ export function App() {
   )
 }
 ```
-
 # Known Bugs
 
 ## Input cursor jumping to end
@@ -579,11 +573,7 @@ export function App() {
 Exists a bug in react inputs where using async onChange will cause the input cursor to jump to the end.
 [https://github.com/facebook/react/issues/14904](https://github.com/facebook/react/issues/14904).
 
-To prevent the bug from occurring use `isNativeEvent` together with `ref`.
-
-```Typescript
-<input {...field('name', { isNativeEvent: true, /* ref: inputRef // Use this if you need access to the component `ref`, otherwise react-form will not be able to show the value in the screen */ })} />
-```
+To prevent the bug from occurring is required that onChange sends the Event.
 
 Or create a component that controls the input value.
 [See more](https://github.com/facebook/react/issues/14904#issuecomment-522194299) 
