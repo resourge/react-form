@@ -1,3 +1,10 @@
+## [1.7.2](https://github.com/resourge/react-form/compare/v1.7.1...v1.7.2) (2022-06-07)
+
+
+### Bug Fixes
+
+* **useform field:** add way to prevent input cursor jumping to end ([a396c69](https://github.com/resourge/react-form/commit/a396c6987fb4f4c5b13fa804a5ba363f3c5a6015))
+
 ## [1.7.1](https://github.com/resourge/react-form/compare/v1.7.0...v1.7.1) (2022-06-06)
 
 
