@@ -1,3 +1,10 @@
+## [1.7.4](https://github.com/resourge/react-form/compare/v1.7.3...v1.7.4) (2022-06-07)
+
+
+### Performance Improvements
+
+* **useform:** instead of having to use isNativeEvent, useForm will do it automatically ([584f3fe](https://github.com/resourge/react-form/commit/584f3fe4f11ec3385ced8edc48da6c183762854a))
+
 ## [1.7.3](https://github.com/resourge/react-form/compare/v1.7.2...v1.7.3) (2022-06-07)
 
 
