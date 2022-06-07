@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-invalid-void-type */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { LegacyRef } from 'react';
+import { Ref } from 'react';
 
 import { FormContextObject } from '../contexts/FormContext';
 import { WatchMethod } from '../hooks/useWatch';
@@ -179,7 +179,7 @@ export type FieldForm<Value = any, Name = string> = {
 	/**
 	 * Element ref
 	 */
-	ref?: React.LegacyRef<any>
+	ref?: Ref<any>
 	/**
 	 * Attribute `name`
 	 */
@@ -266,7 +266,7 @@ export type FieldOptions<Value = any> = {
 	 * because when {@link FieldOptions#isNativeEvent} is true {@link UseFormReturn#field} 
 	 * will use `ref` to set value.
 	 */
-	ref?: LegacyRef<any>
+	ref?: Ref<any>
 	/**
 	 * Disables `onChange` method
 	 */
