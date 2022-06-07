@@ -1,3 +1,10 @@
+## [1.7.3](https://github.com/resourge/react-form/compare/v1.7.2...v1.7.3) (2022-06-07)
+
+
+### Bug Fixes
+
+* **types.ts:** change from LegacyRef to Ref ([a317d1d](https://github.com/resourge/react-form/commit/a317d1d64355c5380a88c54c623f098b9c43f6ab))
+
 ## [1.7.2](https://github.com/resourge/react-form/compare/v1.7.1...v1.7.2) (2022-06-07)
 
 
