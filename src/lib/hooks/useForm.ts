@@ -21,9 +21,9 @@ import { getDefaultOnError } from '../validators/setDefaultOnError';
 import { useCacheErrors } from './useCacheErrors';
 import { useCancelableState } from './useCancelableState';
 import { useErrors } from './useErrors';
+import { useFixCursorJumpingToEnd } from './useFixCursorJumpingToEnd';
 import { useGetterSetter } from './useGetterSetter';
 import { useProxy } from './useProxy';
-import { useRunAfterUpdate } from './useRunAfterUpdate';
 import { useWatch } from './useWatch';
 
 type State<T extends Record<string, any>> = {
@@ -44,9 +44,8 @@ export const useForm = <T extends Record<string, any>>(
 
 	const defaultValue = useRef(_defaultValue).current;
 
-	const runAfterUpdate = useRunAfterUpdate();
-
 	const getterSetter = useGetterSetter<T>();
+	useFixCursorJumpingToEnd()
 
 	const {
 		watch,
@@ -228,6 +227,7 @@ export const useForm = <T extends Record<string, any>>(
 			}
 		}
 	}
+	console.log('render')
 
 	/**
 	 * Main function that validates form changes.
@@ -347,10 +347,13 @@ export const useForm = <T extends Record<string, any>>(
 		setFormState(newState);
 	}
 
-	const triggerChange = async (cb: OnFunctionChange<T>, produceOptions?: ProduceNewStateOptions) => {
-		const result = await produceNewState(state, cb, produceOptions);
-
-		setFormState(result)
+	const triggerChange = (cb: OnFunctionChange<T>, produceOptions?: ProduceNewStateOptions) => {
+		setFormState((state) => {
+			produceNewState(state, cb, produceOptions)
+			.then((result) => {
+				setFormState(result)
+			});
+		})
 	}
 
 	const merge = (mergedForm: Partial<T>) => {
@@ -388,17 +391,12 @@ export const useForm = <T extends Record<string, any>>(
 	const onChange = (
 		key: FormKey<T>, 
 		fieldOptions?: FieldOptions<T[FormKey<T>]>
-	) => async (value: T[FormKey<T>] | ChangeEvent) => {
+	) => (value: T[FormKey<T>] | ChangeEvent) => {
 		let _value: T[FormKey<T>] = value as T[FormKey<T>];
 
 		const target = (value as ChangeEvent<HTMLInputElement>).currentTarget;
 		// To preserve cursor position
 		if ( target && (target.tagName.toLocaleUpperCase() === 'INPUT' || target.tagName.toLocaleUpperCase() === 'TEXTAREA') ) {
-			const selectionsStart = target.selectionStart
-			const selectionEnd = target.selectionEnd
-			runAfterUpdate(() => {
-				target.setSelectionRange(selectionsStart, selectionEnd)
-			})
 			_value = target.value as T[FormKey<T>];
 		}
 
@@ -406,7 +404,7 @@ export const useForm = <T extends Record<string, any>>(
 			_value = fieldOptions.onChange(_value);
 		}
 
-		await triggerChange(
+		triggerChange(
 			(form: T) => {
 				getterSetter.set(key, form, _value);
 			}, 
@@ -423,7 +421,7 @@ export const useForm = <T extends Record<string, any>>(
 		fieldOptions?: FieldOptions
 	): FieldForm => {
 		const value = getValue(key);
-		
+
 		if ( !fieldOptions?.readOnly ) {
 			return {
 				name: key,
@@ -516,7 +514,7 @@ export const useForm = <T extends Record<string, any>>(
 
 		reset,
 		merge,
-		onChange: (key: FormKey<T>, fieldOptions?: FieldOptions<T[FormKey<T>]> | undefined) => onChange(key, fieldOptions),
+		onChange,
 		changeValue,
 		getValue,
 

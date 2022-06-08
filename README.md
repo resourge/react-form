@@ -573,7 +573,7 @@ export function App() {
 Exists a bug in react inputs where using async onChange will cause the input cursor to jump to the end.
 [https://github.com/facebook/react/issues/14904](https://github.com/facebook/react/issues/14904).
 
-To prevent the bug from occurring is required that onChange sends the Event.
+To prevent the bug from occurring, onChange params needs to be an Event.
 
 Or create a component that controls the input value.
 [See more](https://github.com/facebook/react/issues/14904#issuecomment-522194299) 
