@@ -131,7 +131,6 @@ export const useForm = <T extends Record<string, any>>(
 			}
 			produceNewState((form) => {
 				changes.forEach((cb) => {
-					console.log('cb', cb.toString())
 					cb(form);
 				})
 			}, {
@@ -298,9 +297,6 @@ export const useForm = <T extends Record<string, any>>(
 				const key = getKeyFromPaths<T>(paths);
 
 				changes.push((form: any) => {
-					console.log('key', key)
-					console.log('form', form)
-					console.log('previousValue', previousValue)
 					getterSetter.set(key, form, previousValue)
 				})
 
