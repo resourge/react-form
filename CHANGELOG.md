@@ -1,3 +1,15 @@
+# [1.8.0](https://github.com/resourge/react-form/compare/v1.7.4...v1.8.0) (2022-06-08)
+
+
+### Bug Fixes
+
+* **useform:** fix cursor jumping automatically ([9099581](https://github.com/resourge/react-form/commit/9099581f04ac373cc5e0b19a23370cce9a2d444f))
+
+
+### Features
+
+* **redo and undo:** add redo and undo to help the user to backtrack changes ([91c255e](https://github.com/resourge/react-form/commit/91c255e6acac6014a10377521fc3d7107c02b5c9))
+
 ## [1.7.4](https://github.com/resourge/react-form/compare/v1.7.3...v1.7.4) (2022-06-07)
 
 
