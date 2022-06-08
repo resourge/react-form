@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 /* eslint-disable @typescript-eslint/no-invalid-void-type */
-import { FormEvent, useRef, MouseEvent, useEffect, ChangeEvent } from 'react';
+import { FormEvent, useRef, MouseEvent, useEffect, ChangeEvent, useState } from 'react';
 
 import { shallowClone } from '@resourge/shallow-clone';
 import observeChanges from 'on-change';
@@ -10,20 +10,20 @@ import { FormContextObject } from '../contexts/FormContext';
 import { FormKey } from '../types/FormKey';
 import { 
 	OnFunctionChange, ValidateSubmission, 
-	SubmitHandler, FieldForm, ProduceNewStateOptions, 
+	SubmitHandler, FieldForm, ProduceNewStateOptions,
 	FieldOptions, ResetOptions, FormOptions, FormErrors, 
-	UseFormReturn, Touches
+	UseFormReturn, Touches, ProduceNewStateOptionsHistory
 } from '../types/types'
 import { createFormErrors, formatErrors } from '../utils/createFormErrors';
 import { getKeyFromPaths } from '../utils/utils';
-import { getDefaultOnError } from '../validators/setDefaultOnError';
+import { getDefaultOnError, ValidationErrors } from '../validators/setDefaultOnError';
 
-import { useCacheErrors } from './useCacheErrors';
-import { useCancelableState } from './useCancelableState';
+import { useChangedKeys } from './useChangedKeys';
 import { useErrors } from './useErrors';
 import { useFixCursorJumpingToEnd } from './useFixCursorJumpingToEnd';
 import { useGetterSetter } from './useGetterSetter';
 import { useProxy } from './useProxy';
+import { useUndoRedo } from './useUndoRedo';
 import { useWatch } from './useWatch';
 
 type State<T extends Record<string, any>> = {
@@ -36,16 +36,121 @@ export const useForm = <T extends Record<string, any>>(
 	_defaultValue: T, 
 	options?: FormOptions<T>
 ): UseFormReturn<T> => {
+	// #region errors
 	const _onErrors = options?.onErrors ?? getDefaultOnError();
 
 	invariant(_onErrors, 'Missing declaration `setDefaultOnError` handler on the initialization of your application.')
-
+	useFixCursorJumpingToEnd();
 	const onErrors = createFormErrors<T>(_onErrors)
+	// #endregion errors
 
+	// #region State
 	const defaultValue = useRef(_defaultValue).current;
 
+	const initialValidationPromise = useRef<Promise<void> | Promise<ValidationErrors> | undefined>(undefined);
+
+	const [state, _setFormState] = useState<State<T>>(() => {
+		const form = shallowClone(defaultValue)
+		let errors: FormErrors<T> = {};
+
+		if ( options?.validateDefault ) {
+			try {
+				const errors = options?.validate && options?.validate(form, []);
+				if ( errors instanceof Promise ) {
+					initialValidationPromise.current = errors;
+				}
+				else if ( errors && errors.length ) {
+					// eslint-disable-next-line @typescript-eslint/no-throw-literal
+					throw errors;
+				}
+			}
+			catch ( err ) {
+				errors = onErrors(err);
+			}
+		}
+
+		return {
+			errors,
+			form,
+			touches: {}
+		}
+	});
+	const stateRef = useRef<State<T>>(state);
+	stateRef.current = state;
+
+	const setFormState = (newState: State<T>) => {
+		clearCacheErrors();
+
+		Object.keys(newState.errors)
+		.filter((key) => !Object.keys(stateRef.current.errors).includes(key))
+		.forEach((key) => {
+			updateController(key as FormKey<T>)
+		})
+
+		_setFormState(newState)
+	}
+
+	/**
+	 * In case validate `useState` is not able to validate the errors
+	 * (ex: validate is a promise), this useEffect will
+	 */
+	useEffect(() => {
+		if ( initialValidationPromise.current ) {
+			initialValidationPromise.current
+			.then((err) => {
+				const errors = onErrors(err);
+				setFormState({
+					errors,
+					form: state.form,
+					touches: {}
+				})
+			})
+		}
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
+	// #endregion State
+
 	const getterSetter = useGetterSetter<T>();
-	useFixCursorJumpingToEnd()
+
+	const {
+		addAction,
+		addTouches,
+		undo,
+		redo
+	} = useUndoRedo<T>(
+		(
+			{
+				changes,
+				touches,
+				produceOptions
+			}, type
+		) => {
+			const originalTouches = { ...stateRef.current.touches }
+			if ( touches ) {
+				stateRef.current.touches = touches;
+			}
+			produceNewState((form) => {
+				changes.forEach((cb) => {
+					console.log('cb', cb.toString())
+					cb(form);
+				})
+			}, {
+				...produceOptions,
+				type
+			})
+			.then((result) => {
+				setFormState({
+					...result,
+					touches: touches ?? {}
+				})
+
+				addTouches(originalTouches)
+			});
+		},
+		{
+			maxHistory: options?.maxHistory
+		}
+	)
 
 	const {
 		watch,
@@ -53,153 +158,21 @@ export const useForm = <T extends Record<string, any>>(
 	} = useWatch();
 
 	const {
-		setCacheErrors,
+		hasError,
+		getErrors,
 		clearCacheErrors
-	} = useCacheErrors();
-
-	const wasInitialValidationPromise = useRef(false);
-
-	const changedKeys = useRef<Set<FormKey<T>>>(new Set());
-	const updateController = (key: FormKey<T>) => {
-		changedKeys.current.add(key)
-	}
-
-	const [state, setFormState] = useCancelableState<State<T>>(
-		() => {
-			const form = shallowClone(defaultValue)
-			let errors: FormErrors<T> = {};
-
-			if ( options?.validateDefault ) {
-				try {
-					const errors = options?.validate && options?.validate(form, [...changedKeys.current] as Array<FormKey<T>>);
-					wasInitialValidationPromise.current = errors instanceof Promise;
-					if ( !(errors instanceof Promise) && errors && errors.length ) {
-						// eslint-disable-next-line @typescript-eslint/no-throw-literal
-						throw errors;
-					}
-				}
-				catch ( err ) {
-					errors = onErrors(err);
-				}
-			}
-
-			return {
-				errors,
-				form,
-				touches: {}
-			}
-		},
-		(oldState, newState) => {
-			clearCacheErrors();
-
-			Object.keys(newState.errors)
-			.filter((key) => !Object.keys(oldState.errors).includes(key))
-			.forEach((key) => {
-				updateController(key as FormKey<T>)
-			})
-		}
-	);
-
-	useEffect(() => {
-		changedKeys.current = new Set();
-	}, [state.touches]);
-
-	/**
-	 * In case validate `useCancelableState` is not able to validate the errors
-	 * (ex: validate is a promise), this useEffect will
-	 */
-	useEffect(() => {
-		if ( options?.validateDefault && wasInitialValidationPromise.current === true ) {
-			validateState(state)
-			.then((state) => {
-				setFormState(state)
-			})
-		}
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
-
-	const {
-		form,
-		errors,
-		touches
-	} = state
-
-	const formState = useProxy(
-		errors,
-		touches
+	} = useErrors(
+		state.errors,
+		state.touches
 	)
 
-	// #region Submit
-	/**
-	 * Handles the form submit
-	 */
-	async function onSubmit<K = void>(
-		onValid: SubmitHandler<T, K>,
-		onInvalid?: ValidateSubmission<T>,
-		e?: FormEvent<HTMLFormElement> | MouseEvent<any, MouseEvent>
-	): Promise<K | undefined> {
-		if ( e ) {
-			e.preventDefault();
-			e.persist();
-		}
-		try {
-			const errors = options?.validate && await (Promise.resolve(options?.validate(form, [...changedKeys.current] as Array<FormKey<T>>)));
-			if ( errors && errors.length ) {
-				// eslint-disable-next-line @typescript-eslint/no-throw-literal
-				throw errors;
-			}
-		}
-		catch ( errors ) {
-			if ( errors ) {
-				const _errors = onErrors(errors);
+	const [changedKeys, updateController] = useChangedKeys(state.touches)
 
-				Object.keys(_errors)
-				.forEach((key) => {
-					touches[key as keyof Touches<T>] = true;
-				})
+	const formState = useProxy(
+		state.errors,
+		state.touches
+	)
 
-				setFormState({
-					form,
-					errors: _errors,
-					touches
-				})
-
-				if ( onInvalid ) {
-					const canGoOn = await Promise.resolve(onInvalid(_errors, errors));
-
-					if ( !canGoOn ) {
-						return await Promise.reject(errors)
-					}
-				}
-				else {
-					return await Promise.reject(errors)
-				}
-			}
-		}
-
-		setFormState({
-			form,
-			errors: {},
-			touches: {}
-		})
-		
-		return await onValid(state.form);
-	}
-
-	function handleSubmit<K = void>(
-		onValid: SubmitHandler<T, K>,
-		onInvalid?: ValidateSubmission<T>
-	) {
-		return (e?: FormEvent<HTMLFormElement> | MouseEvent<any, MouseEvent>) => 
-			onSubmit<K>(
-				onValid,
-				onInvalid,
-				e
-			)
-	}
-	// #endregion Submit
-
-	// #region State
 	/**
 	 * Validates the form
 	 * @param state Current State
@@ -227,31 +200,92 @@ export const useForm = <T extends Record<string, any>>(
 			}
 		}
 	}
-	console.log('render')
+
+	// #region Submit
+	/**
+	 * Handles the form submit
+	 */
+	async function onSubmit<K = void>(
+		onValid: SubmitHandler<T, K>,
+		onInvalid?: ValidateSubmission<T>,
+		e?: FormEvent<HTMLFormElement> | MouseEvent<any, MouseEvent>
+	): Promise<K | undefined> {
+		const { form, touches } = stateRef.current
+		if ( e ) {
+			e.preventDefault();
+			e.persist();
+		}
+
+		const {
+			errors
+		} = await validateState(stateRef.current);
+
+		const hasError = Object.keys(errors).length
+
+		setFormState({
+			form,
+			errors: errors,
+			touches: hasError ? touches : {}
+		})
+
+		if ( hasError ) {
+			Object.keys(errors)
+			.forEach((key) => {
+				touches[key as keyof Touches<T>] = true;
+			})
+
+			if ( onInvalid ) {
+				const canGoOn = await Promise.resolve(onInvalid(errors, errors));
+
+				if ( !canGoOn ) {
+					return await Promise.reject(errors)
+				}
+			}
+			else {
+				return await Promise.reject(errors)
+			}
+		}
+		
+		return await onValid(state.form);
+	}
+
+	function handleSubmit<K = void>(
+		onValid: SubmitHandler<T, K>,
+		onInvalid?: ValidateSubmission<T>
+	) {
+		return (e?: FormEvent<HTMLFormElement> | MouseEvent<any, MouseEvent>) => 
+			onSubmit<K>(
+				onValid,
+				onInvalid,
+				e
+			)
+	}
+	// #endregion Submit
+
+	// #region State
 
 	/**
 	 * Main function that validates form changes.
 	 * All changes made on the from will be validated here 
 	 * 
-	 * @param oldState Current state that is going to be validated
 	 * @param cb Function that is going to change the from
 	 * @param produceOptions
 	 * @returns Return the new State(form and errors) or a Promise of the new State
 	 */
 	const produceNewState = async (
-		oldState: State<T>, 
 		cb: OnFunctionChange<T>, 
-		produceOptions?: ProduceNewStateOptions
+		produceOptions?: ProduceNewStateOptionsHistory
 	): Promise<State<T>> => {
+		const oldState = stateRef.current;
 		const newState: State<T> = {
 			form: oldState.form,
 			errors: { ...oldState.errors },
 			touches: { ...oldState.touches }
 		};
 
-		let isOnUpdateTouched = false;
-
 		changedKeys.current.clear();
+
+		const changes: any[] = [];
 
 		const proxy = observeChanges(
 			newState.form,
@@ -262,6 +296,13 @@ export const useForm = <T extends Record<string, any>>(
 			) => {
 				// @ts-expect-error // Paths are array, but on-change doesn't see it like that
 				const key = getKeyFromPaths<T>(paths);
+
+				changes.push((form: any) => {
+					console.log('key', key)
+					console.log('form', form)
+					console.log('previousValue', previousValue)
+					getterSetter.set(key, form, previousValue)
+				})
 
 				if ( 
 					key && 
@@ -276,10 +317,8 @@ export const useForm = <T extends Record<string, any>>(
 
 					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 					const didTouch = typeof value === 'boolean' ? Boolean(`${previousValue})` !== `${value}`) : previousValue !== value
-
+	
 					newState.touches[key] = ((newState.touches[key] ?? false) || didTouch);
-
-					isOnUpdateTouched = isOnUpdateTouched || didTouch;
 
 					updateController(key as FormKey<T>)
 				}
@@ -292,18 +331,25 @@ export const useForm = <T extends Record<string, any>>(
 
 		cb(proxy);
 
-		await onWatch.current(proxy, changedKeys)
+		addAction(
+			{
+				changes,
+				produceOptions,
+				touches: { ...oldState.touches }
+			}, 
+			produceOptions?.type
+		);
+
+		if (!produceOptions?.type) {
+			await onWatch.current(proxy, changedKeys)
+		}
 
 		newState.form = observeChanges.unsubscribe(proxy);
 
 		const validate = produceOptions?.validate ?? options?.validateDefault;
 
 		if ( 
-			Boolean(produceOptions?.forceValidation) || 
-			(
-				validate && 
-				isOnUpdateTouched
-			)
+			Boolean(produceOptions?.forceValidation) || validate
 		) {
 			return await validateState(newState);
 		}
@@ -325,7 +371,6 @@ export const useForm = <T extends Record<string, any>>(
 		}
 
 		const newState = await produceNewState(
-			state, 
 			(form: T) => {
 				(Object.keys(newFrom) as Array<keyof T>)
 				.forEach((key: keyof T) => {
@@ -343,17 +388,14 @@ export const useForm = <T extends Record<string, any>>(
 		if ( options.clearTouched ) {
 			newState.touches = {};
 		}
-			
+
 		setFormState(newState);
 	}
 
-	const triggerChange = (cb: OnFunctionChange<T>, produceOptions?: ProduceNewStateOptions) => {
-		setFormState((state) => {
-			produceNewState(state, cb, produceOptions)
-			.then((result) => {
-				setFormState(result)
-			});
-		})
+	const triggerChange = async (cb: OnFunctionChange<T>, produceOptions?: ProduceNewStateOptions) => {
+		const result = await produceNewState(cb, produceOptions);
+		
+		setFormState(result)
 	}
 
 	const merge = (mergedForm: Partial<T>) => {
@@ -369,20 +411,9 @@ export const useForm = <T extends Record<string, any>>(
 
 	const resetTouch = () => {
 		setFormState({
-			form,
-			errors,
+			form: stateRef.current.form,
+			errors: stateRef.current.errors,
 			touches: {}
-		})
-	}
-
-	const setTouch = (key: FormKey<T>, touched: boolean = true) => {
-		setFormState({
-			form,
-			errors,
-			touches: {
-				...touches,
-				[key]: touched
-			}
 		})
 	}
 	// #endregion State
@@ -395,7 +426,7 @@ export const useForm = <T extends Record<string, any>>(
 		let _value: T[FormKey<T>] = value as T[FormKey<T>];
 
 		const target = (value as ChangeEvent<HTMLInputElement>).currentTarget;
-		// To preserve cursor position
+
 		if ( target && (target.tagName.toLocaleUpperCase() === 'INPUT' || target.tagName.toLocaleUpperCase() === 'TEXTAREA') ) {
 			_value = target.value as T[FormKey<T>];
 		}
@@ -413,7 +444,7 @@ export const useForm = <T extends Record<string, any>>(
 	}
 
 	const getValue = (key: FormKey<T>): any => {
-		return getterSetter.get(key, form);
+		return getterSetter.get(key, stateRef.current.form);
 	}
 
 	const field = (
@@ -453,6 +484,7 @@ export const useForm = <T extends Record<string, any>>(
 			errors: string[]
 		}>
 	) => {
+		const { errors, form, touches } = stateRef.current
 		const _errors = formatErrors(newErrors, errors)
 
 		setFormState({
@@ -462,39 +494,30 @@ export const useForm = <T extends Record<string, any>>(
 		})
 	}
 
-	const {
-		hasError,
-		getErrors
-	} = useErrors(
-		errors,
-		touches,
-		setCacheErrors
-	)
-
 	// #endregion Errors
 	const getFormRef = useRef<UseFormReturn<T>>()
 
 	const result: any = {
-		form,
+		form: state.form,
 		get context() {
 			return getFormRef.current as FormContextObject<T>;
 		},
-		errors,
+		errors: state.errors,
 		get isValid(): boolean {
 			const nativeIsValid = formState.isValid;
 
 			return (
 				options?.isValid && options?.isValid({
-					form, 
-					errors,
-					touches,
+					form: stateRef.current.form, 
+					errors: stateRef.current.errors,
+					touches: stateRef.current.touches,
 					formState,
 					isValid: nativeIsValid,
 					isTouched: formState.isTouched
 				})
 			) ?? nativeIsValid
 		},
-		touches,
+		touches: state.touches,
 		get isTouched( ) {
 			return formState.isTouched
 		},
@@ -519,9 +542,10 @@ export const useForm = <T extends Record<string, any>>(
 		getValue,
 
 		resetTouch,
-		setTouch,
 		watch,
-		updateController
+		updateController,
+		undo,
+		redo
 		// #endregion Form actions
 	}
 

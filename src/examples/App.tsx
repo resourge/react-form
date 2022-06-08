@@ -60,7 +60,8 @@ function App() {
 		changeValue,
 		triggerChange,
 		field,
-		watch
+		watch,
+		reset
 	} = useForm<{
 		rafael: number
 		jose: number[]
@@ -162,8 +163,15 @@ function App() {
 					}))
 				})
 			}}>
-				Reset Alfredo
+				Change Alfredo
 			</button>
+			<button onClick={() => {
+				reset()
+			}}>
+				Reset Rafael
+			</button>
+			<input { ...field('rafael')} />
+			<textarea { ...field('rafael')}/>
 			<input { ...field('rafael')} />
 			<table>
 				<tbody>

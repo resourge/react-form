@@ -67,9 +67,10 @@ const {
   triggerChange, reset, merge,
   handleSubmit, field,
   onChange, getValue, changeValue,changeValue, 
-  resetTouch, setTouch,
+  resetTouch,
   getErrors, setError, hasError, 
-  watch
+  watch,
+  undo, redo
 } = useForm(formData, formOptions)
 ```
 
@@ -458,20 +459,28 @@ const {
 resetTouch()
 ```
 
-#### `setTouch`
+#### `undo`
 
-Triggers manual touch
+Revert last change. (If there is one)
 
 ```Typescript
 const {
-  setTouch
-} = useForm(
-  {
-	name: 'Rimuru'
-  }
-)
+  undo
+} = useForm()
 ...
-setTouch('name')
+undo()
+```
+
+#### `redo`
+
+Forward last undo. (If there is one)
+
+```Typescript
+const {
+  redo
+} = useForm()
+...
+redo()
 ```
 
 ## Form Provider

@@ -1,10 +1,12 @@
+import { useRef } from 'react';
+
 import { FormKey } from '../types/FormKey';
 import { 
 	GetErrorsOptions, GetErrors, HasErrorOptions, Touches,
 	FormErrors
 } from '../types/types';
 
-import { UseCacheErrors } from './useCacheErrors';
+export type CacheType = string[] | FormErrors<any> | boolean
 
 const checkIfCanCheckError = (
 	key: string,
@@ -16,9 +18,22 @@ const checkIfCanCheckError = (
 
 export const useErrors = <T extends Record<string, any>>(
 	errors: FormErrors<T>,
-	touches: Touches<T>,
-	setCacheErrors: UseCacheErrors['setCacheErrors']
+	touches: Touches<T>
 ) => {
+	const cacheErrors = useRef<{ [key: string]: CacheType }>({});
+
+	const setCacheErrors = <ReturnValue extends CacheType>(key: string, cb: () => ReturnValue): ReturnValue => {
+		if ( !cacheErrors.current[key] ) {
+			cacheErrors.current[key] = cb();
+		}
+
+		return cacheErrors.current[key] as ReturnValue
+	}
+
+	const clearCacheErrors = () => {
+		cacheErrors.current = {}
+	}
+
 	const hasError = (
 		key: FormKey<T>, 
 		options: HasErrorOptions = {
@@ -135,6 +150,7 @@ export const useErrors = <T extends Record<string, any>>(
 
 	return {
 		hasError,
-		getErrors
+		getErrors,
+		clearCacheErrors
 	}
 }

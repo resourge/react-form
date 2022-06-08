@@ -102,7 +102,7 @@ export type FormOptions<T extends Record<string, any>> = {
 	 * @param form - form state
 	 * @example 
 	 * ```Typescript
-	 * const [ ... ] = useForm(
+	 * const { ... } = useForm(
 	 *	 {
 	 * 		name: 'Rimuru'
 	 *	 },
@@ -122,7 +122,7 @@ export type FormOptions<T extends Record<string, any>> = {
 	 * @param form {@link IsValid}
 	 * @example 
 	 * ```Typescript
-	 * const [{ isValid }] = useForm(
+	 * const { isValid } = useForm(
 	 *	 {
 	 * 		name: 'Rimuru'
 	 *	 },
@@ -143,7 +143,7 @@ export type FormOptions<T extends Record<string, any>> = {
 	 * @expects - the method to return { [key]: [errors messages] }
 	 * @example 
 	 * ```Typescript
-	 * const [{ isValid }] = useForm(
+	 * const { ... } = useForm(
 	 *	 {
 	 * 		name: 'Rimuru'
 	 *	 },
@@ -162,7 +162,7 @@ export type FormOptions<T extends Record<string, any>> = {
 	 * 
 	 * @example 
 	 * ```Typescript
-	 * const [{ isValid }] = useForm(
+	 * const { ... } = useForm(
 	 *	 {
 	 * 		name: 'Rimuru'
 	 *	 },
@@ -173,6 +173,24 @@ export type FormOptions<T extends Record<string, any>> = {
 	 * ```
 	 */
 	onTouch?: (key: FormKey<T>, value: unknown, previousValue: unknown) => void
+	/**
+	 * Max number of "previous changes" the system will hold.
+	 * After 15 the first changes start to be replaced with the new ones.
+	 * @important In case of huge numbers the system performance may be impacted.
+	 * @default 15
+	 * @example 
+	 * ```Typescript
+	 * const  = useForm(
+	 *	 {
+	 * 		name: 'Rimuru'
+	 *	 },
+	 *   {
+	 * 		maxHistory: 10
+	 * 	 }
+	 * )
+	 * ```
+	 */
+	maxHistory?: number
 }
 
 export type FieldForm<Value = any, Name = string> = {
@@ -211,6 +229,11 @@ export type ProduceNewStateOptions = {
 	 * @default true
 	 */
 	triggerTouched?: boolean
+}
+
+export type ProduceNewStateOptionsHistory = ProduceNewStateOptions & {
+	
+	type?: 'UNDO' | 'REDO'
 }
 
 export type ResetOptions = {
@@ -634,25 +657,6 @@ export type UseFormReturn<T extends Record<string, any>> = {
 	 */
 	resetTouch: () => void
 	/**
-	 * Triggers manual touch
-	 * 
-	 * @param key - key from `form` state
-	 * @param touched @default true
-	 * @example 
-	 * ```Typescript
-	 * const {
-	 *	 setTouch
-	 * } = useForm(
-	 *	 {
-	 * 		name: 'Rimuru'
-	 *	 }
-	 * )
-	 * ...
-	 * setTouch('name')
-	 * ```
-	 */
-	setTouch: <Key extends FormKey<T>>(keys: Key, touched?: boolean) => void
-	/**
 	 * Watch key to then execute the method to update other values
 	 * 
 	 * @param key - key from `form` state
@@ -693,6 +697,30 @@ export type UseFormReturn<T extends Record<string, any>> = {
 	 * ```
 	 */
 	updateController: (key: FormKey<T>) => void
+	/**
+	 * Revert last change. (If there is one)
+	 * @example 
+	 * ```Typescript
+	 * const {
+	 *	 undo
+	 * } = useForm()
+	 * ...
+	 * undo
+	 * ```
+	 */
+	undo: () => void
+	/**
+	 * Forward last undo. (If there is one)
+	 * @example 
+	 * ```Typescript
+	 * const {
+	 *	 redo
+	 * } = useForm()
+	 * ...
+	 * redo('name')
+	 * ```
+	 */
+	redo: () => void	
 }
 
 export type UseFormReturnController<T extends Record<string, any>> = UseFormReturn<T> & {

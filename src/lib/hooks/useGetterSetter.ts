@@ -9,12 +9,12 @@ import { isObject } from '../utils/utils';
 
 type FormSetValue<T extends object> = (obj: T, val: any) => void
 const setValue = <T extends object>(field: string): FormSetValue<T> => {
-	return new Function('obj', 'val', `obj.${field} = val`) as FormSetValue<T>;
+	return new Function('obj', 'val', `obj${field ? `.${field}` : ''} = val`) as FormSetValue<T>;
 }
 
 type FormGetValue<T extends object> = (obj: T) => T[keyof T]
 const getValue = <T extends object>(field: string): FormGetValue<T> => {
-	return new Function('obj', `return obj.${field}`) as FormGetValue<T>;
+	return new Function('obj', `return obj${field ? `.${field}` : ''}`) as FormGetValue<T>;
 }
 
 const createGetterSetter = <T extends object>(field: string) => {
