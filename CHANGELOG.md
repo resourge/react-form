@@ -1,3 +1,10 @@
+## [1.8.1](https://github.com/resourge/react-form/compare/v1.8.0...v1.8.1) (2022-06-09)
+
+
+### Bug Fixes
+
+* **useform:** fix Cannot read properties of null (reading 'currentTarget') ([cbefc9a](https://github.com/resourge/react-form/commit/cbefc9a4450eac9d8e41575bd15dcb6a14f32dd0))
+
 # [1.8.0](https://github.com/resourge/react-form/compare/v1.7.4...v1.8.0) (2022-06-08)
 
 
