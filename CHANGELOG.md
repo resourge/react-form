@@ -1,3 +1,10 @@
+## [1.8.2](https://github.com/resourge/react-form/compare/v1.8.1...v1.8.2) (2022-06-20)
+
+
+### Bug Fixes
+
+* **usefrom:** remove mandatory onErrors ([3c7962a](https://github.com/resourge/react-form/commit/3c7962a87475d282703307d256788555a7cbf835))
+
 ## [1.8.1](https://github.com/resourge/react-form/compare/v1.8.0...v1.8.1) (2022-06-09)
 
 
