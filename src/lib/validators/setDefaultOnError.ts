@@ -11,7 +11,7 @@ export type ValidationErrors = Array<ValidationError | ValidationWithErrors>
 
 export type OnErrors = (errors: any | any[]) => ValidationErrors
 
-export let onErrorFn: undefined | OnErrors
+export let onErrorFn: OnErrors = (errors) => errors
 
 export const getDefaultOnError = () => {
 	return onErrorFn;

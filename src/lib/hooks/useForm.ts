@@ -4,7 +4,6 @@ import { FormEvent, useRef, MouseEvent, useEffect, ChangeEvent, useState } from 
 
 import { shallowClone } from '@resourge/shallow-clone';
 import observeChanges from 'on-change';
-import invariant from 'tiny-invariant'
 
 import { FormContextObject } from '../contexts/FormContext';
 import { FormKey } from '../types/FormKey';
@@ -37,11 +36,9 @@ export const useForm = <T extends Record<string, any>>(
 	options?: FormOptions<T>
 ): UseFormReturn<T> => {
 	// #region errors
-	const _onErrors = options?.onErrors ?? getDefaultOnError();
-
-	invariant(_onErrors, 'Missing declaration `setDefaultOnError` handler on the initialization of your application.')
 	useFixCursorJumpingToEnd();
-	const onErrors = createFormErrors<T>(_onErrors)
+
+	const onErrors = createFormErrors<T>(options?.onErrors ?? getDefaultOnError());
 	// #endregion errors
 
 	// #region State

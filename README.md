@@ -29,7 +29,7 @@ npm install @resourge/react-form --save
 
 ## Setup Errors
 
-To simplify the process of converting errors from validation packages (like joi, yup, zod, ajv, etc) to `useForm` lookalike errors, use `setDefaultOnError`.
+To simplify the process of converting errors from validation packages like joi, yup, zod, ajv, etc to `useForm` lookalike errors, use `setDefaultOnError`.
 You only need to setup this on the initialization of the application in this case App.tsx
 
 `setDefaultOnError` will, by default (unless `onError` from [Form Options](#form-options) is set), customize the errors to fit `useForm` errors
@@ -45,7 +45,7 @@ setDefaultOnError((errors: any) => {
 });
 ```
 
-_Note: We plan to add more default validations in the future (like zod). If you have one and want to share, please do and contribute._
+_Note: We plan to add more default validations in the future. If you have one and want to share, please do and contribute._
 
 For yup validation, `setFormYupValidation`
 
@@ -168,7 +168,7 @@ const {
 | **validateDefault** | `boolean` | false | Set's global validation. False by default |
 | **validate** | `(form: T) => void \| Promise<void>` | false | Method to validate form. Usually with some kind of validator. (like yup, zod, joi, etc) |
 | **isValid** | `({ form, isValid, errors }) => boolean` | false |  Method to define if form is valid |
-| **onErrors** | `(errors: any \| any[]) => FormErrors` | false | Local method to treat errors. It's preferable to use [setDefaultOnError](#errors) |
+| **onErrors** | `(errors: any \| any[]) => FormErrors` | false | Local method to treat errors. |
 | **onTouch** | `(key: FormKey<T>, value: unknown, previousValue: unknown) => void` | false | Method called every time a value is changed |
 
 ## Form State and Actions
