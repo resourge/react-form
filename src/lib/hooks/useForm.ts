@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 /* eslint-disable @typescript-eslint/no-invalid-void-type */
-import { FormEvent, useRef, MouseEvent, useEffect, ChangeEvent, useState } from 'react';
+import { FormEvent, useRef, MouseEvent, ChangeEvent, useState } from 'react';
 
 import { shallowClone } from '@resourge/shallow-clone';
 import observeChanges from 'on-change';
@@ -15,7 +15,7 @@ import {
 } from '../types/types'
 import { createFormErrors, formatErrors } from '../utils/createFormErrors';
 import { getKeyFromPaths } from '../utils/utils';
-import { getDefaultOnError, ValidationErrors } from '../validators/setDefaultOnError';
+import { getDefaultOnError } from '../validators/setDefaultOnError';
 
 import { useChangedKeys } from './useChangedKeys';
 import { useErrors } from './useErrors';
@@ -32,7 +32,7 @@ type State<T extends Record<string, any>> = {
 }
 
 export const useForm = <T extends Record<string, any>>(
-	_defaultValue: T, 
+	defaultValue: T, 
 	options?: FormOptions<T>
 ): UseFormReturn<T> => {
 	// #region errors
@@ -42,36 +42,11 @@ export const useForm = <T extends Record<string, any>>(
 	// #endregion errors
 
 	// #region State
-	const defaultValue = useRef(_defaultValue).current;
-
-	const initialValidationPromise = useRef<Promise<void> | Promise<ValidationErrors> | undefined>(undefined);
-
-	const [state, _setFormState] = useState<State<T>>(() => {
-		const form = shallowClone(defaultValue)
-		let errors: FormErrors<T> = {};
-
-		if ( options?.validateDefault ) {
-			try {
-				const errors = options?.validate && options?.validate(form, []);
-				if ( errors instanceof Promise ) {
-					initialValidationPromise.current = errors;
-				}
-				else if ( errors && errors.length ) {
-					// eslint-disable-next-line @typescript-eslint/no-throw-literal
-					throw errors;
-				}
-			}
-			catch ( err ) {
-				errors = onErrors(err);
-			}
-		}
-
-		return {
-			errors,
-			form,
-			touches: {}
-		}
-	});
+	const [state, _setFormState] = useState<State<T>>(() => ({
+		errors: {},
+		form: shallowClone(defaultValue),
+		touches: {}
+	}));
 	const stateRef = useRef<State<T>>(state);
 	stateRef.current = state;
 
@@ -86,25 +61,6 @@ export const useForm = <T extends Record<string, any>>(
 
 		_setFormState(newState)
 	}
-
-	/**
-	 * In case validate `useState` is not able to validate the errors
-	 * (ex: validate is a promise), this useEffect will
-	 */
-	useEffect(() => {
-		if ( initialValidationPromise.current ) {
-			initialValidationPromise.current
-			.then((err) => {
-				const errors = onErrors(err);
-				setFormState({
-					errors,
-					form: state.form,
-					touches: {}
-				})
-			})
-		}
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
 	// #endregion State
 
 	const getterSetter = useGetterSetter<T>();
@@ -355,7 +311,7 @@ export const useForm = <T extends Record<string, any>>(
 	}
 
 	const reset = async (
-		newFrom: Partial<T> = defaultValue, 
+		newFrom: Partial<T>, 
 		resetOptions?: ResetOptions
 	) => {
 		const options: ResetOptions = {
