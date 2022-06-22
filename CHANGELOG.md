@@ -1,3 +1,10 @@
+## [1.8.3](https://github.com/resourge/react-form/compare/v1.8.2...v1.8.3) (2022-06-22)
+
+
+### Performance Improvements
+
+* **useform:** remove unecessary initial form validation ([1395c1c](https://github.com/resourge/react-form/commit/1395c1c2ac32b5ea962bca1e8615c365f63fb448))
+
 ## [1.8.2](https://github.com/resourge/react-form/compare/v1.8.1...v1.8.2) (2022-06-20)
 
 
