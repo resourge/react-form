@@ -174,18 +174,25 @@ export const useForm = <T extends Record<string, any>>(
 
 		const hasError = Object.keys(errors).length
 
+		let _touches: Touches<T> = {}
+		if ( hasError ) {
+			_touches = {
+				...touches
+			}
+
+			Object.keys(errors)
+			.forEach((key) => {
+				_touches[key as keyof Touches<T>] = true;
+			})
+		}
+
 		setFormState({
 			form,
 			errors: errors,
-			touches: hasError ? touches : {}
+			touches: _touches
 		})
 
 		if ( hasError ) {
-			Object.keys(errors)
-			.forEach((key) => {
-				touches[key as keyof Touches<T>] = true;
-			})
-
 			if ( onInvalid ) {
 				const canGoOn = await Promise.resolve(onInvalid(errors, errors));
 
