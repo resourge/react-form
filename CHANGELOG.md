@@ -1,3 +1,10 @@
+## [1.8.4](https://github.com/resourge/react-form/compare/v1.8.3...v1.8.4) (2022-06-23)
+
+
+### Bug Fixes
+
+* **useform:** fix on submit errors not showing ([39a1af5](https://github.com/resourge/react-form/commit/39a1af55563c774c137f6b71cee213f5c58df8c9))
+
 ## [1.8.3](https://github.com/resourge/react-form/compare/v1.8.2...v1.8.3) (2022-06-22)
 
 
