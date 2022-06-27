@@ -335,6 +335,10 @@ export const useForm = <T extends Record<string, any>>(
 			options
 		)
 
+		if ( !options.forceValidation ) {
+			newState.errors = {};
+		}
+
 		if ( options.clearTouched ) {
 			newState.touches = {};
 		}
