@@ -1,3 +1,10 @@
+## [1.8.5](https://github.com/resourge/react-form/compare/v1.8.4...v1.8.5) (2022-06-27)
+
+
+### Bug Fixes
+
+* **usefixcursorjumpingtoend:** fix a bug where enter and backspace didn't fix the cursor ([1a8f24c](https://github.com/resourge/react-form/commit/1a8f24c8218986153089e014097aadcbef5ac920))
+
 ## [1.8.4](https://github.com/resourge/react-form/compare/v1.8.3...v1.8.4) (2022-06-23)
 
 
