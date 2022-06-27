@@ -176,9 +176,7 @@ export const useForm = <T extends Record<string, any>>(
 
 		let _touches: Touches<T> = {}
 		if ( hasError ) {
-			_touches = {
-				...touches
-			}
+			_touches = { ...touches }
 
 			Object.keys(errors)
 			.forEach((key) => {

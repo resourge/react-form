@@ -23,27 +23,22 @@ export const useFixCursorJumpingToEnd = isBrowser ? () => {
 			const target = (event as ChangeEvent<HTMLInputElement>).target;
 			// To preserve cursor position
 			if ( target.tagName && (target.tagName.toLocaleUpperCase() === 'INPUT' || target.tagName.toLocaleUpperCase() === 'TEXTAREA') ) {
-				// Get pasted data via clipboard API
-				const clipboardData = (event as ClipboardEvent).clipboardData;
-				const pastedData = clipboardData?.getData('Text') ?? '';
-
-				const value: string = String((pastedData || (event as KeyboardEvent).key) || '')
-
-				const selectionsStart = (target.selectionStart ?? 0) + value.length;
-				const selectionEnd = (target.selectionEnd ?? 0) + value.length;
-				
+				const oldLength = target.value.length;
+				const oldIdx = target.selectionStart ?? 0;
+		
 				ref.current.set(target, () => {
-					target.setSelectionRange(selectionsStart, selectionEnd)
+					const newIdx = Math.max(0, target.value.length - oldLength + oldIdx);
+					target.selectionStart = target.selectionEnd = newIdx;
 				});
 			}
 		}
 
-		// window.addEventListener('keydown', onInput)
 		window.addEventListener('keydown', onInput)
 		window.addEventListener('paste', onInput);
 
 		return () => {
 			window.removeEventListener('keydown', onInput)
+			window.removeEventListener('paste', onInput)
 		}
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [fieldsRef.current])
