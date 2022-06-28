@@ -1,3 +1,15 @@
+## [1.8.6](https://github.com/resourge/react-form/compare/v1.8.5...v1.8.6) (2022-06-28)
+
+
+### Bug Fixes
+
+* **useform:** forceValidation will no longer clear errors on reset ([23538af](https://github.com/resourge/react-form/commit/23538af7e706668dffe91caa23b2f017ffcb545e))
+
+
+### Reverts
+
+* **useform:** revert previous change ([3634123](https://github.com/resourge/react-form/commit/36341230ad9eb2905f91ab5dd4c33c84fe1e38a2))
+
 ## [1.8.5](https://github.com/resourge/react-form/compare/v1.8.4...v1.8.5) (2022-06-27)
 
 
