@@ -1,3 +1,10 @@
+# [1.10.0](https://github.com/resourge/react-form/compare/v1.9.0...v1.10.0) (2022-06-29)
+
+
+### Features
+
+* **useform:** add blur option for field ([a599e32](https://github.com/resourge/react-form/commit/a599e3279cbb403df88ea788f80ff8fec5b379f9))
+
 # [1.9.0](https://github.com/resourge/react-form/compare/v1.8.6...v1.9.0) (2022-06-29)
 
 
