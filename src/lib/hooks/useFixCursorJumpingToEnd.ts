@@ -24,7 +24,7 @@ export const useFixCursorJumpingToEnd = isBrowser ? () => {
 			// To preserve cursor position
 			if ( target.tagName && (target.tagName.toLocaleUpperCase() === 'INPUT' || target.tagName.toLocaleUpperCase() === 'TEXTAREA') ) {
 				const oldLength = target.value.length;
-				const oldIdx = target.selectionStart ?? 0;
+				const oldIdx = target.selectionEnd ?? 0;
 		
 				ref.current.set(target, () => {
 					const newIdx = Math.max(0, target.value.length - oldLength + oldIdx);

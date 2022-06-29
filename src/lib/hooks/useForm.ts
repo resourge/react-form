@@ -300,7 +300,7 @@ export const useForm = <T extends Record<string, any>>(
 
 		newState.form = observeChanges.unsubscribe(proxy);
 
-		const validate = produceOptions?.validate ?? options?.validateDefault;
+		const validate = produceOptions?.validate ?? (options?.validateDefault ?? true);
 
 		if ( 
 			Boolean(produceOptions?.forceValidation) || validate

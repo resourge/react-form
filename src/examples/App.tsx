@@ -77,7 +77,6 @@ function App() {
 			}))
 		},
 		{
-			validateDefault: true,
 			validate: () => {
 				throw new Error();
 			},
@@ -166,7 +165,13 @@ function App() {
 				Change Alfredo
 			</button>
 			<button onClick={() => {
-				reset()
+				reset({
+					rafael: 10,
+					jose: [],
+					alfredo: Array.from({ length: 1000 }).map(() => ({
+						zordon: Math.random()
+					}))
+				})
 			}}>
 				Reset Rafael
 			</button>

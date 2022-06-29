@@ -90,7 +90,7 @@ export type FormOptions<T extends Record<string, any>> = {
 	 * or if {@link FieldOptions#validate}/{@link ProduceNewStateOptions#validate} is set `true`.
 	 * 
 	 * * Note: Local {@link FieldOptions#validate} takes priority over global {@link FormOptions#validateDefault}
-	 * @default false
+	 * @default true
 	 */
 	validateDefault?: boolean 
 	/**
@@ -552,7 +552,7 @@ export type UseFormReturn<T extends Record<string, any>> = {
 	 * )
 	 * ```
 	 */
-	reset: (newFrom?: Partial<T>, resetOptions?: ResetOptions | undefined) => Promise<void>
+	reset: (newFrom: Partial<T>, resetOptions?: ResetOptions | undefined) => Promise<void>
 	/**
 	 * Unlike reset, `merge` will merge a new partial form to the new form
 	 * 
