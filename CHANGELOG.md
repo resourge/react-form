@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/resourge/react-form/compare/v1.8.6...v1.9.0) (2022-06-29)
+
+
+### Features
+
+* **useform:** by default validateDefault is true now ([4a7d70a](https://github.com/resourge/react-form/commit/4a7d70aca6086df8f34984233450236913a40bfb))
+
 ## [1.8.6](https://github.com/resourge/react-form/compare/v1.8.5...v1.8.6) (2022-06-28)
 
 
