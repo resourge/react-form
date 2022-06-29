@@ -193,7 +193,41 @@ export type FormOptions<T extends Record<string, any>> = {
 	maxHistory?: number
 }
 
-export type FieldForm<Value = any, Name = string> = {
+export type FieldFormBlur<Value = any, Name = string> = {
+	/**
+	 * Attribute `name`
+	 */
+	name: Name
+	/**
+	 * Method to update values
+	 */
+	onBlur?: (value: Value) => void
+	/**
+	 * When true onChange will not be returned
+	 */
+	readOnly?: boolean
+	/**
+	 * Form value
+	 */
+	defaultValue: Value
+}
+
+export type FieldFormReadonly<Value = any, Name = string> = {
+	/**
+	 * Attribute `name`
+	 */
+	name: Name
+	/**
+	 * When true onChange will not be returned
+	 */
+	readOnly?: boolean
+	/**
+	 * Form value
+	 */
+	value: Value
+}
+
+export type FieldFormChange<Value = any, Name = string> = {
 	/**
 	 * Attribute `name`
 	 */
@@ -211,6 +245,8 @@ export type FieldForm<Value = any, Name = string> = {
 	 */
 	readOnly?: boolean
 }
+
+export type FieldForm<Value = any, Name = string> = FieldFormReadonly<Value, Name> | FieldFormBlur<Value, Name> | FieldFormChange<Value, Name>
 
 export type ProduceNewStateOptions = {
 	/**
@@ -262,6 +298,7 @@ export type ResetOptions = {
 }
 
 export type FieldOptions<Value = any> = {
+	blur?: boolean
 	/**
 	 * Disables `onChange` method
 	 */
@@ -343,7 +380,7 @@ export type FormState<T> = (T extends object ? {
 	isTouched: boolean
 } 
 
-export type UseFormReturn<T extends Record<string, any>> = {
+export interface UseFormReturn<T extends Record<string, any>> {
 	/**
 	 * Form state
 	 */
@@ -397,7 +434,11 @@ export type UseFormReturn<T extends Record<string, any>> = {
 	 * ...
 	 * ```
 	 */
-	field: (key: FormKey<T>, options?: FieldOptions<any>) => FieldForm
+	field: {
+		(key: FormKey<T>, options: FieldOptions<any> & { blur: true }): FieldFormBlur
+		(key: FormKey<T>, options: FieldOptions<any> & { readonly: true }): FieldFormReadonly
+		(key: FormKey<T>, options?: FieldOptions<any>): FieldFormChange
+	}
 	/**
 	 * Method to make multiple changes in one render
 	 * 

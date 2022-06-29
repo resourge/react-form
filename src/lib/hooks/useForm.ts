@@ -403,17 +403,25 @@ export const useForm = <T extends Record<string, any>>(
 	): FieldForm => {
 		const value = getValue(key);
 
-		if ( !fieldOptions?.readOnly ) {
+		if ( fieldOptions?.blur ) {
 			return {
 				name: key,
-				onChange: onChange(key, fieldOptions),
+				onBlur: onChange(key, fieldOptions),
+				defaultValue: value
+			}
+		}
+
+		if ( fieldOptions?.readOnly ) {
+			return {
+				name: key,
+				readOnly: true,
 				value
 			}
 		}
 
 		return {
 			name: key,
-			readOnly: true,
+			onChange: onChange(key, fieldOptions),
 			value
 		}
 	};
