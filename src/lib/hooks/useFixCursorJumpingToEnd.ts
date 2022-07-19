@@ -21,11 +21,14 @@ export const useFixCursorJumpingToEnd = isBrowser ? () => {
 	useEffect(() => {
 		const onInput = (event: any) => {
 			const target = (event as ChangeEvent<HTMLInputElement>).target;
+
 			// To preserve cursor position
-			if ( target.tagName && (target.tagName.toLocaleUpperCase() === 'INPUT' || target.tagName.toLocaleUpperCase() === 'TEXTAREA') ) {
+			if ( (target.tagName && (target.tagName.toLocaleUpperCase() === 'INPUT' || 
+						target.tagName.toLocaleUpperCase() === 'TEXTAREA')) &&
+					target.type.toLocaleUpperCase() !== 'NUMBER') {
 				const oldLength = target.value.length;
 				const oldIdx = target.selectionEnd ?? 0;
-		
+			
 				ref.current.set(target, () => {
 					const newIdx = Math.max(0, target.value.length - oldLength + oldIdx);
 					target.selectionStart = target.selectionEnd = newIdx;
