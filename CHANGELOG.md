@@ -1,3 +1,10 @@
+## [1.10.1](https://github.com/resourge/react-form/compare/v1.10.0...v1.10.1) (2022-07-19)
+
+
+### Bug Fixes
+
+* **usefixcursorjumpoingtoend:** fix input number position cursor ([64e132c](https://github.com/resourge/react-form/commit/64e132c1222391d101842c4fc213cebf93579916))
+
 # [1.10.0](https://github.com/resourge/react-form/compare/v1.9.0...v1.10.0) (2022-06-29)
 
 
