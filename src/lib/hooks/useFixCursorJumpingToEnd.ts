@@ -1,5 +1,9 @@
 import { ChangeEvent, useEffect, useLayoutEffect, useRef } from 'react'
 
+const InputTypeSupportedCursor = [
+	'TEXT'
+]
+
 const isBrowser = Boolean(window.addEventListener);
 
 /**
@@ -23,9 +27,9 @@ export const useFixCursorJumpingToEnd = isBrowser ? () => {
 			const target = (event as ChangeEvent<HTMLInputElement>).target;
 
 			// To preserve cursor position
-			if ( (target.tagName && (target.tagName.toLocaleUpperCase() === 'INPUT' || 
-						target.tagName.toLocaleUpperCase() === 'TEXTAREA')) &&
-					target.type.toLocaleUpperCase() !== 'NUMBER') {
+			if ( 
+				target.tagName && ((target.tagName.toLocaleUpperCase() === 'INPUT' && InputTypeSupportedCursor.includes(target.type.toLocaleUpperCase())) || 
+				target.tagName.toLocaleUpperCase() === 'TEXTAREA')) {
 				const oldLength = target.value.length;
 				const oldIdx = target.selectionEnd ?? 0;
 			
