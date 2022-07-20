@@ -1,3 +1,10 @@
+## [1.10.2](https://github.com/resourge/react-form/compare/v1.10.1...v1.10.2) (2022-07-20)
+
+
+### Bug Fixes
+
+* **userfixcursorjumpingtoend:** whitelist for input types when supported cursor ([88d5a3e](https://github.com/resourge/react-form/commit/88d5a3eb73fa043ce20d98afb70ba82a0cad24f1))
+
 ## [1.10.1](https://github.com/resourge/react-form/compare/v1.10.0...v1.10.1) (2022-07-19)
 
 
