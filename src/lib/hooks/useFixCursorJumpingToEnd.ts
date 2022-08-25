@@ -29,9 +29,14 @@ export const useFixCursorJumpingToEnd = isBrowser ? () => {
 			// To preserve cursor position
 			if ( 
 				target.tagName && ((target.tagName.toLocaleUpperCase() === 'INPUT' && InputTypeSupportedCursor.includes(target.type.toLocaleUpperCase())) || 
-				target.tagName.toLocaleUpperCase() === 'TEXTAREA')) {
+				target.tagName.toLocaleUpperCase() === 'TEXTAREA')
+			) {
 				const oldLength = target.value.length;
-				const oldIdx = target.selectionEnd ?? 0;
+				let oldIdx = target.selectionEnd ?? 0;
+				
+				if ( (event as KeyboardEvent).key.toLocaleLowerCase() === 'delete' ) {
+					oldIdx = oldIdx + 1;
+				}
 			
 				ref.current.set(target, () => {
 					const newIdx = Math.max(0, target.value.length - oldLength + oldIdx);
