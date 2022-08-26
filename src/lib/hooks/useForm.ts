@@ -377,7 +377,7 @@ export const useForm = <T extends Record<string, any>>(
 
 		const target = value && (value as ChangeEvent<HTMLInputElement>).currentTarget;
 
-		if ( target && (target.tagName.toLocaleUpperCase() === 'INPUT' || target.tagName.toLocaleUpperCase() === 'TEXTAREA') ) {
+		if ( target && target.tagName && (target.tagName.toLocaleUpperCase() === 'INPUT' || target.tagName.toLocaleUpperCase() === 'TEXTAREA') ) {
 			_value = target.value as T[FormKey<T>];
 		}
 
