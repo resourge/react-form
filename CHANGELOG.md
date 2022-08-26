@@ -1,3 +1,10 @@
+## [1.10.4](https://github.com/resourge/react-form/compare/v1.10.3...v1.10.4) (2022-08-26)
+
+
+### Bug Fixes
+
+* **useform:** fix onchange when tagName was undefined ([d9e749e](https://github.com/resourge/react-form/commit/d9e749ed35a7e3eba720a6e3693df609179d1372))
+
 ## [1.10.3](https://github.com/resourge/react-form/compare/v1.10.2...v1.10.3) (2022-08-25)
 
 
