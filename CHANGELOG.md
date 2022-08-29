@@ -1,3 +1,10 @@
+## [1.10.5](https://github.com/resourge/react-form/compare/v1.10.4...v1.10.5) (2022-08-29)
+
+
+### Bug Fixes
+
+* **usefixcursorjumpingtoend:** fix bug when copy past text ([58804ae](https://github.com/resourge/react-form/commit/58804ae4e1e71840a4d69739a712a34942f7214a))
+
 ## [1.10.4](https://github.com/resourge/react-form/compare/v1.10.3...v1.10.4) (2022-08-26)
 
 
