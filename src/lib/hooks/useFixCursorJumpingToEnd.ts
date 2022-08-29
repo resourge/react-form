@@ -33,8 +33,10 @@ export const useFixCursorJumpingToEnd = isBrowser ? () => {
 			) {
 				const oldLength = target.value.length;
 				let oldIdx = target.selectionEnd ?? 0;
+
+				const key = (event as KeyboardEvent).key ?? '';
 				
-				if ( (event as KeyboardEvent).key.toLocaleLowerCase() === 'delete' ) {
+				if ( key.toLocaleLowerCase() === 'delete' ) {
 					oldIdx = oldIdx + 1;
 				}
 			
