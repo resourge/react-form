@@ -1,17 +1,31 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 /* eslint-disable @typescript-eslint/no-invalid-void-type */
-import { FormEvent, useRef, MouseEvent, ChangeEvent, useState } from 'react';
+import {
+	FormEvent,
+	useRef,
+	MouseEvent,
+	ChangeEvent,
+	useState
+} from 'react'
 
 import { shallowClone } from '@resourge/shallow-clone';
 import observeChanges from 'on-change';
 
 import { FormContextObject } from '../contexts/FormContext';
 import { FormKey } from '../types/FormKey';
-import { 
-	OnFunctionChange, ValidateSubmission, 
-	SubmitHandler, FieldForm, ProduceNewStateOptions,
-	FieldOptions, ResetOptions, FormOptions, FormErrors, 
-	UseFormReturn, Touches, ProduceNewStateOptionsHistory
+import {
+	OnFunctionChange,
+	ValidateSubmission,
+	SubmitHandler,
+	FieldForm,
+	ProduceNewStateOptions,
+	FieldOptions,
+	ResetOptions,
+	FormOptions,
+	FormErrors,
+	UseFormReturn,
+	Touches,
+	ProduceNewStateOptionsHistory
 } from '../types/types'
 import { createFormErrors, formatErrors } from '../utils/createFormErrors';
 import { getKeyFromPaths } from '../utils/utils';
@@ -26,8 +40,8 @@ import { useUndoRedo } from './useUndoRedo';
 import { useWatch } from './useWatch';
 
 type State<T extends Record<string, any>> = {
-	form: T
 	errors: FormErrors<T>
+	form: T
 	touches: Touches<T>
 }
 
@@ -54,7 +68,8 @@ export const useForm = <T extends Record<string, any>>(
 		clearCacheErrors();
 
 		Object.keys(newState.errors)
-		.filter((key) => !Object.keys(stateRef.current.errors).includes(key))
+		.filter((key) => !Object.keys(stateRef.current.errors)
+		.includes(key))
 		.forEach((key) => {
 			updateController(key as FormKey<T>)
 		})
@@ -78,7 +93,9 @@ export const useForm = <T extends Record<string, any>>(
 				produceOptions
 			}, type
 		) => {
-			const originalTouches = { ...stateRef.current.touches }
+			const originalTouches = {
+				...stateRef.current.touches 
+			}
 			if ( touches ) {
 				stateRef.current.touches = touches;
 			}
@@ -168,15 +185,15 @@ export const useForm = <T extends Record<string, any>>(
 			e.persist();
 		}
 
-		const {
-			errors
-		} = await validateState(stateRef.current);
+		const { errors } = await validateState(stateRef.current);
 
 		const hasError = Object.keys(errors).length
 
 		let _touches: Touches<T> = {}
 		if ( hasError ) {
-			_touches = { ...touches }
+			_touches = {
+				...touches 
+			}
 
 			Object.keys(errors)
 			.forEach((key) => {
@@ -186,7 +203,7 @@ export const useForm = <T extends Record<string, any>>(
 
 		setFormState({
 			form,
-			errors: errors,
+			errors,
 			touches: _touches
 		})
 
@@ -236,8 +253,12 @@ export const useForm = <T extends Record<string, any>>(
 		const oldState = stateRef.current;
 		const newState: State<T> = {
 			form: oldState.form,
-			errors: { ...oldState.errors },
-			touches: { ...oldState.touches }
+			errors: {
+				...oldState.errors 
+			},
+			touches: {
+				...oldState.touches 
+			}
 		};
 
 		changedKeys.current.clear();
@@ -289,7 +310,9 @@ export const useForm = <T extends Record<string, any>>(
 			{
 				changes,
 				produceOptions,
-				touches: { ...oldState.touches }
+				touches: {
+					...oldState.touches 
+				}
 			}, 
 			produceOptions?.type
 		);
@@ -328,8 +351,7 @@ export const useForm = <T extends Record<string, any>>(
 			(form: T) => {
 				(Object.keys(newFrom) as Array<keyof T>)
 				.forEach((key: keyof T) => {
-					// @ts-expect-error
-					form[key] = newFrom[key];
+					form[key as keyof T] = newFrom[key] as T[keyof T];
 				})
 			}, 
 			options
@@ -438,11 +460,13 @@ export const useForm = <T extends Record<string, any>>(
 	// #region Errors
 	const setError = (
 		newErrors: Array<{
-			path: FormKey<T>
 			errors: string[]
+			path: FormKey<T>
 		}>
 	) => {
-		const { errors, form, touches } = stateRef.current
+		const {
+			errors, form, touches 
+		} = stateRef.current
 		const _errors = formatErrors(newErrors, errors)
 
 		setFormState({

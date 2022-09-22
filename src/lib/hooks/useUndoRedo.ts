@@ -7,16 +7,14 @@ type UndoRedoConfig = {
 }
 
 type History<T extends Record<string, any>> = {
+	changes: Array<((form: T) => void)>
 	produceOptions?: ProduceNewStateOptionsHistory
 	touches?: Touches<T>
-	changes: Array<((form: T) => void)>
 }
 
 export const useUndoRedo = <T extends Record<string, any>>(
 	cb: (history: History<T>, type: 'UNDO' | 'REDO') => void,
-	{
-		maxHistory = 15
-	}: UndoRedoConfig
+	{ maxHistory = 15 }: UndoRedoConfig
 ) => {
 	const historyPipeline = useRef<Array<History<T>>>([]);
 	const currentHistory = useRef<number>(-1);

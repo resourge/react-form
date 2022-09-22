@@ -1,4 +1,9 @@
-import { ChangeEvent, useEffect, useLayoutEffect, useRef } from 'react'
+import {
+	ChangeEvent,
+	useEffect,
+	useLayoutEffect,
+	useRef
+} from 'react'
 
 const InputTypeSupportedCursor = [
 	'TEXT'

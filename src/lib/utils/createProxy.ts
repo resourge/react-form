@@ -27,7 +27,8 @@ export const createProxy = <T extends Record<string, any>>(
 
 			if ( name === 'errors' ) {
 				if ( keys.length === 0 ) {
-					return Object.values(formState.current.errors).flat();
+					return Object.values(formState.current.errors)
+					.flat();
 				}
 				const key = getKeyFromPaths<T>(keys);
 
@@ -55,7 +56,8 @@ export const createProxy = <T extends Record<string, any>>(
 					formState.current.touches
 				)
 				.some((touchKey) => {
-					const regex = new RegExp(`^${key.replace('[', '\\[').replace(']', '\\]')}`, 'g')
+					const regex = new RegExp(`^${key.replace('[', '\\[')
+					.replace(']', '\\]')}`, 'g')
 
 					if ( key === touchKey || regex.test(touchKey) ) {
 						return formState.current.touches[touchKey as FormKey<T>]

@@ -8,7 +8,10 @@ import { terser } from 'rollup-plugin-terser';
 import { name, author, license } from './package.json';
 
 const external = ['react', '@resourge/shallow-clone'];
-const globals = { react: 'React', '@resourge/shallow-clone': 'ShallowClone' }
+const globals = {
+	react: 'React',
+	'@resourge/shallow-clone': 'ShallowClone' 
+}
 
 function createBanner(libraryName, version, authorName, license) {
 	return `/**
@@ -23,7 +26,8 @@ function createBanner(libraryName, version, authorName, license) {
  */`;
 }
 function capitalizeFirstLetter(string) {
-	return string.charAt(0).toUpperCase() + string.slice(1);
+	return string.charAt(0)
+	.toUpperCase() + string.slice(1);
 }
 function getName() {
 	const arr = name.split('/');
@@ -51,7 +55,9 @@ const UMD_DIR = `${OUTPUT_DIR}/umd`;
 const filename = PROJECT_NAME;
 const sourcemap = true;
 const banner = createBanner(PROJECT_NAME, VERSION, AUTHOR_NAME, LICENSE);
-const umdName = PROJECT_NAME.split('-').map(capitalizeFirstLetter).join('')
+const umdName = PROJECT_NAME.split('-')
+.map(capitalizeFirstLetter)
+.join('')
 
 const babelPlugins = [
 	'babel-plugin-dev-expression'
@@ -85,7 +91,7 @@ const modules = [
 			file: `${OUTPUT_DIR}/index.js`,
 			format: 'esm',
 			sourcemap,
-			banner: banner
+			banner
 			
 		},
 		external,
@@ -99,9 +105,7 @@ const modules = [
 					['@babel/preset-react', {
 						useBuiltIns: true
 					}],
-					['@babel/preset-typescript', {
-						optimizeConstEnums: true
-					}]
+					'@babel/preset-typescript'
 				],
 				plugins: babelPlugins,
 				extensions: ['.ts', '.tsx']
@@ -113,7 +117,7 @@ const modules = [
 		output: [{
 			file: `${OUTPUT_DIR}/index.d.ts`,
 			format: 'esm',
-			banner: banner
+			banner
 		}],
 		plugins: [
 			dts()
@@ -129,7 +133,7 @@ const cjsModules = [
 			file: `${CJS_DIR}/${filename}.development.js`,
 			format: 'cjs',
 			sourcemap,
-			banner: banner
+			banner
 		},
 		external,
 		plugins: [
@@ -157,7 +161,7 @@ const cjsModules = [
 			file: `${CJS_DIR}/${filename}.production.min.js`,
 			format: 'cjs',
 			sourcemap,
-			banner: banner
+			banner
 		},
 		external,
 		plugins: [
@@ -183,7 +187,10 @@ const cjsModules = [
 				preventAssignment: true,
 				'process.env.NODE_ENV': JSON.stringify('production')
 			}),
-			terser({ ecma: 8, safari10: true })
+			terser({
+				ecma: 8,
+				safari10: true 
+			})
 		]
 	}
 ];
@@ -196,7 +203,7 @@ const umdModules = [
 			file: `${UMD_DIR}/${filename}.development.js`,
 			format: 'umd',
 			sourcemap,
-			banner: banner,
+			banner,
 			globals,
 			name: umdName
 		},
@@ -226,7 +233,7 @@ const umdModules = [
 			file: `${UMD_DIR}/${filename}.production.min.js`,
 			format: 'umd',
 			sourcemap,
-			banner: banner,
+			banner,
 			globals,
 			name: umdName
 		},
@@ -259,7 +266,7 @@ const main = [
 		output: {
 			file: `${OUTPUT_DIR}/main.js`,
 			format: 'cjs',
-			banner: banner
+			banner
 		},
 		plugins: [
 			...defaultExtPlugin,

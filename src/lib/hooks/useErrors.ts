@@ -1,10 +1,13 @@
 import { useRef } from 'react';
 
 import { FormKey } from '../types/FormKey';
-import { 
-	GetErrorsOptions, GetErrors, HasErrorOptions, Touches,
+import {
+	GetErrorsOptions,
+	GetErrors,
+	HasErrorOptions,
+	Touches,
 	FormErrors
-} from '../types/types';
+} from '../types/types'
 
 export type CacheType = string[] | FormErrors<any> | boolean
 
@@ -64,7 +67,8 @@ export const useErrors = <T extends Record<string, any>>(
 				}
 				else {
 					if ( !strict ) {
-						const regex = new RegExp(`^${key.replace('[', '\\[').replace(']', '\\]')}`, 'g')
+						const regex = new RegExp(`^${key.replace('[', '\\[')
+						.replace(']', '\\]')}`, 'g')
 	
 						return Object.keys(_errors)
 						.some((errorKey) => {
@@ -118,7 +122,8 @@ export const useErrors = <T extends Record<string, any>>(
 				const newErrors = getErrors(key);
 
 				if ( !strict ) {
-					const regex = new RegExp(`^${key.replace('[', '\\[').replace(']', '\\]')}`, 'g')
+					const regex = new RegExp(`^${key.replace('[', '\\[')
+					.replace(']', '\\]')}`, 'g')
 
 					Object.keys(_errors)
 					.forEach((errorKey: string) => {

@@ -4,8 +4,8 @@ import { Controller, useForm } from '../lib'
 
 type Props = {
 	errors: string[]
-	isValid: boolean
 	isTouched: boolean
+	isValid: boolean
 }
 
 const Custom: React.FC<Props> = ({ 
@@ -17,7 +17,7 @@ const Custom: React.FC<Props> = ({
 		<>
 			<tr>
 				<td>
-				Errors:
+					Errors:
 				</td>
 				<td>
 					{ JSON.stringify(errors, null, 4) }
@@ -25,7 +25,7 @@ const Custom: React.FC<Props> = ({
 			</tr>
 			<tr>
 				<td>
-				isValid:
+					isValid:
 				</td>
 				<td>
 					{ isValid.toString() }
@@ -33,7 +33,7 @@ const Custom: React.FC<Props> = ({
 			</tr>
 			<tr>
 				<td>
-				isTouched:
+					isTouched:
 				</td>
 				<td>
 					{ isTouched.toString() }
@@ -45,7 +45,10 @@ const Custom: React.FC<Props> = ({
 
 const CustomElement: React.FC = () => {
 	return (
-		<div>{ Math.random() } </div>
+		<div>
+			{ Math.random() }
+			{' '}
+		</div>
 	);
 };
 
@@ -63,16 +66,19 @@ function App() {
 		watch,
 		reset
 	} = useForm<{
-		rafael: number
-		jose: number[]
 		alfredo: Array<{
 			zordon: number
 		}>
+		jose: number[]
+		rafael: number
 	}>(
 		{
 			rafael: 10,
 			jose: [],
-			alfredo: Array.from({ length: 1000 }).map(() => ({
+			alfredo: Array.from({
+				length: 1000 
+			})
+			.map(() => ({
 				zordon: Math.random()
 			}))
 		},
@@ -135,44 +141,56 @@ function App() {
 		<div>
 			<button onClick={() => {
 				setRandomNumber(Math.random())
-			}}>
+			}}
+			>
 				{ randomNumber }
 			</button>
 			<button onClick={() => {
 				changeValue('rafael', Math.random())
-			}}>
+			}}
+			>
 				Update Rafael
 			</button>
 			<button onClick={() => {
 				changeValue('jose', [Math.random() as unknown as any])
-			}}>
+			}}
+			>
 				Update Jose
 			</button>
 			<button onClick={() => {
 				triggerChange((form) => {
 					form.alfredo[0].zordon = Math.random()
 				})
-			}}>
+			}}
+			>
 				Update Alfredo
 			</button>
 			<button onClick={() => {
 				triggerChange((form) => {
-					form.alfredo = Array.from({ length: 1000 }).map(() => ({
+					form.alfredo = Array.from({
+						length: 1000 
+					})
+					.map(() => ({
 						zordon: Math.random()
 					}))
 				})
-			}}>
+			}}
+			>
 				Change Alfredo
 			</button>
 			<button onClick={() => {
 				reset({
 					rafael: 10,
 					jose: [],
-					alfredo: Array.from({ length: 1000 }).map(() => ({
+					alfredo: Array.from({
+						length: 1000 
+					})
+					.map(() => ({
 						zordon: Math.random()
 					}))
 				})
-			}}>
+			}}
+			>
 				Reset Rafael
 			</button>
 			<input { ...field('rafael')} />
@@ -217,15 +235,16 @@ function App() {
 						.map((key, index) => (
 							<tr key={`${key}${index}`}>
 								<td>
-									{key}:
+									{key}
+									:
 								</td>
 								<td>
 									<table>
 										<tbody>
 											<Custom 
 												errors={(formState as any)[key].errors}
-												isValid={(formState as any)[key].isValid}
 												isTouched={(formState as any)[key].isTouched}
+												isValid={(formState as any)[key].isValid}
 											/>
 										</tbody>
 									</table>
@@ -243,9 +262,7 @@ function App() {
 							context={context}
 							name={`alfredo[${index}]`}
 						>
-							<CustomElement 
-						
-							/>
+							<CustomElement />
 						</Controller>
 					))
 				}

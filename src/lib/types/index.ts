@@ -1,6 +1,4 @@
-import type {
-	FormKey
-} from './FormKey';
+import type { FormKey } from './FormKey'
 import type {
 	FieldForm,
 	FormErrors,

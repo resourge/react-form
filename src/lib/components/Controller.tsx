@@ -8,9 +8,9 @@ import { FormKey } from '../types/FormKey';
 import { UseFormReturnController } from '../types/types';
 
 export type ControllerProps<T extends Record<string, any>> = {
-	name: FormKey<T>
-	context: FormContextObject<T>
 	children: React.ReactNode
+	context: FormContextObject<T>
+	name: FormKey<T>
 }
 
 /**

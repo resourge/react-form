@@ -1,7 +1,12 @@
 import { FormContextObject } from '../contexts';
 import { ControllerField } from '../contexts/ControllerContext';
 import { FormKey } from '../types/FormKey';
-import { FieldOptions, FormErrors, Touches, FieldForm } from '../types/types';
+import {
+	FieldOptions,
+	FormErrors,
+	Touches,
+	FieldForm
+} from '../types/types'
 
 import { useProxy } from './useProxy';
 

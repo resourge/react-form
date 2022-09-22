@@ -22,16 +22,28 @@ export type FormErrors<T extends Record<string, any>> = {
 
 export type HasErrorOptions = {
 	/**
+	 * When true only returns if the key was `touched` (@default false)
+	 */
+	onlyOnTouch?: boolean
+	/**
 	 * Includes object/array children
 	 */
 	strict?: boolean
+}
+
+export type GetErrorsOptions = {
+	/**
+	 * Includes the children errors on the array
+	 */
+	includeChildsIntoArray?: boolean
+	/**
+	 * Includes `key` in children paths
+	 */
+	includeKeyInChildErrors?: boolean
 	/**
 	 * When true only returns if the key was `touched` (@default false)
 	 */
 	onlyOnTouch?: boolean
-}
-
-export type GetErrorsOptions = {
 	/**
 	 * Includes children errors as object into array.
 	 * 
@@ -39,82 +51,38 @@ export type GetErrorsOptions = {
 	 * will by default be false
 	 */
 	strict?: boolean
-	/**
-	 * When true only returns if the key was `touched` (@default false)
-	 */
-	onlyOnTouch?: boolean
-	/**
-	 * Includes `key` in children paths
-	 */
-	includeKeyInChildErrors?: boolean
-	/**
-	 * Includes the children errors on the array
-	 */
-	includeChildsIntoArray?: boolean
 }
 
 export type GetErrors<T extends Record<string, any>> = string[] & FormErrors<T>
 
 type IsValid<T extends Record<string, any>> = {
 	/**
+	 * Form nested errors
+	 */
+	errors: FormErrors<T>
+	/**
 	 * Form state
 	 */
 	form: T
 	/**
-	 * If form is valid
+	 * Form touched keys
 	 */
-	isValid: boolean
+	formState: FormState<T>
 	/**
 	 * If form is "touched"
 	 */
 	isTouched: boolean
 	/**
-	 * Form nested errors
+	 * If form is valid
 	 */
-	errors: FormErrors<T>
+	isValid: boolean
 	/**
 	 * Form touched keys
 	 */
 	touches: Touches<T>
-	/**
-	 * Form touched keys
-	 */
-	formState: FormState<T>
 }
 
 export type FormOptions<T extends Record<string, any>> = {
-	/**
-	 * Validate form.
-	 * When `true` every change batch will validate the form
-	 * With `false` will only validate on method {@link FormActions#handleSubmit} 
-	 * or if {@link FieldOptions#validate}/{@link ProduceNewStateOptions#validate} is set `true`.
-	 * 
-	 * * Note: Local {@link FieldOptions#validate} takes priority over global {@link FormOptions#validateDefault}
-	 * @default true
-	 */
-	validateDefault?: boolean 
-	/**
-	 * Method to validate form.
-	 * Usually with some kind of validator.
-	 * 
-	 * @expects - to throw the errors, 
-	 * 	so either `onError` or default method for `onError` {@link setDefaultOnError} can catch then 
-	 * @param form - form state
-	 * @example 
-	 * ```Typescript
-	 * const { ... } = useForm(
-	 *	 {
-	 * 		name: 'Rimuru'
-	 *	 },
-	 *   {
-	 * 		validate: (form) => {
-	 * 			throw new Error()
-	 * 		}
-	 * 	 }
-	 * )
-	 * ```
-	 */
-	validate?: (form: T, changedKeys: Array<FormKey<T>>) => void | Promise<void> | ValidationErrors | Promise<ValidationErrors>
 	/**
 	 * Method to define if form is valid
 	 * 
@@ -135,7 +103,25 @@ export type FormOptions<T extends Record<string, any>> = {
 	 * )
 	 * ```
 	 */
-	isValid?: (value: IsValid<T>) => boolean
+	isValid?: (value: IsValid<T>) => boolean 
+	/**
+	 * Max number of "previous changes" the system will hold.
+	 * After 15 the first changes start to be replaced with the new ones.
+	 * @important In case of huge numbers the system performance may be impacted.
+	 * @default 15
+	 * @example 
+	 * ```Typescript
+	 * const  = useForm(
+	 *	 {
+	 * 		name: 'Rimuru'
+	 *	 },
+	 *   {
+	 * 		maxHistory: 10
+	 * 	 }
+	 * )
+	 * ```
+	 */
+	maxHistory?: number
 	/**
 	 * Local method to treat errors.
 	 * It's preferable to use {@link setDefaultOnError}
@@ -174,26 +160,44 @@ export type FormOptions<T extends Record<string, any>> = {
 	 */
 	onTouch?: (key: FormKey<T>, value: unknown, previousValue: unknown) => void
 	/**
-	 * Max number of "previous changes" the system will hold.
-	 * After 15 the first changes start to be replaced with the new ones.
-	 * @important In case of huge numbers the system performance may be impacted.
-	 * @default 15
+	 * Method to validate form.
+	 * Usually with some kind of validator.
+	 * 
+	 * @expects - to throw the errors, 
+	 * 	so either `onError` or default method for `onError` {@link setDefaultOnError} can catch then 
+	 * @param form - form state
 	 * @example 
 	 * ```Typescript
-	 * const  = useForm(
+	 * const { ... } = useForm(
 	 *	 {
 	 * 		name: 'Rimuru'
 	 *	 },
 	 *   {
-	 * 		maxHistory: 10
+	 * 		validate: (form) => {
+	 * 			throw new Error()
+	 * 		}
 	 * 	 }
 	 * )
 	 * ```
 	 */
-	maxHistory?: number
+	validate?: (form: T, changedKeys: Array<FormKey<T>>) => void | Promise<void> | ValidationErrors | Promise<ValidationErrors>
+	/**
+	 * Validate form.
+	 * When `true` every change batch will validate the form
+	 * With `false` will only validate on method {@link FormActions#handleSubmit} 
+	 * or if {@link FieldOptions#validate}/{@link ProduceNewStateOptions#validate} is set `true`.
+	 * 
+	 * * Note: Local {@link FieldOptions#validate} takes priority over global {@link FormOptions#validateDefault}
+	 * @default true
+	 */
+	validateDefault?: boolean
 }
 
 export type FieldFormBlur<Value = any, Name = string> = {
+	/**
+	 * Form value
+	 */
+	defaultValue: Value
 	/**
 	 * Attribute `name`
 	 */
@@ -206,10 +210,6 @@ export type FieldFormBlur<Value = any, Name = string> = {
 	 * When true onChange will not be returned
 	 */
 	readOnly?: boolean
-	/**
-	 * Form value
-	 */
-	defaultValue: Value
 }
 
 export type FieldFormReadonly<Value = any, Name = string> = {
@@ -218,13 +218,13 @@ export type FieldFormReadonly<Value = any, Name = string> = {
 	 */
 	name: Name
 	/**
-	 * When true onChange will not be returned
-	 */
-	readOnly?: boolean
-	/**
 	 * Form value
 	 */
 	value: Value
+	/**
+	 * When true onChange will not be returned
+	 */
+	readOnly?: boolean
 }
 
 export type FieldFormChange<Value = any, Name = string> = {
@@ -233,13 +233,13 @@ export type FieldFormChange<Value = any, Name = string> = {
 	 */
 	name: Name
 	/**
-	 * Method to update values
-	 */
-	onChange?: (value: Value) => void
-	/**
 	 * Form value
 	 */
 	value: Value
+	/**
+	 * Method to update values
+	 */
+	onChange?: (value: Value) => void
 	/**
 	 * When true onChange will not be returned
 	 */
@@ -250,12 +250,6 @@ export type FieldForm<Value = any, Name = string> = FieldFormReadonly<Value, Nam
 
 export type ProduceNewStateOptions = {
 	/**
-	 * Validates form if new form values are different from previous form values
-	 * 
-	 * @default false
-	 */
-	validate?: boolean
-	/**
 	 * Validates form regardless of conditions
 	 */
 	forceValidation?: boolean
@@ -265,6 +259,12 @@ export type ProduceNewStateOptions = {
 	 * @default true
 	 */
 	triggerTouched?: boolean
+	/**
+	 * Validates form if new form values are different from previous form values
+	 * 
+	 * @default false
+	 */
+	validate?: boolean
 }
 
 export type ProduceNewStateOptionsHistory = ProduceNewStateOptions & {
@@ -274,11 +274,11 @@ export type ProduceNewStateOptionsHistory = ProduceNewStateOptions & {
 
 export type ResetOptions = {
 	/**
-	 * Validates form if new form values are different from previous form values
+	 * On reset `touches` will be cleared
 	 * 
-	 * @default false
+	 * @default true
 	 */
-	validate?: boolean
+	clearTouched?: boolean
 	/**
 	 * Validates form regardless of conditions
 	 */
@@ -290,19 +290,15 @@ export type ResetOptions = {
 	 */
 	triggerTouched?: boolean
 	/**
-	 * On reset `touches` will be cleared
+	 * Validates form if new form values are different from previous form values
 	 * 
-	 * @default true
+	 * @default false
 	 */
-	clearTouched?: boolean
+	validate?: boolean
 }
 
 export type FieldOptions<Value = any> = {
 	blur?: boolean
-	/**
-	 * Disables `onChange` method
-	 */
-	readOnly?: boolean
 	/**
 	 * Changes the value on change.
 	 * 
@@ -320,6 +316,10 @@ export type FieldOptions<Value = any> = {
 	 * ```
 	 */
 	onChange?: (value: Value) => any
+	/**
+	 * Disables `onChange` method
+	 */
+	readOnly?: boolean
 } & ProduceNewStateOptions
 
 export type OnFunctionChange<T extends Record<string, any>, Result = void> = (form: T) => Result
@@ -344,13 +344,13 @@ export type FormState<T> = (T extends object ? {
 		 */
 		errors: string[]
 		/**
-		 * isValid for current key
-		 */
-		isValid: boolean
-		/**
 		 * isTouched for current key
 		 */
 		isTouched: boolean
+		/**
+		 * isValid for current key
+		 */
+		isValid: boolean
 	} 
 } : {
 	/**
@@ -358,33 +358,53 @@ export type FormState<T> = (T extends object ? {
 	 */
 	errors: string[]
 	/**
-	 * isValid for current key
-	 */
-	isValid: boolean
-	/**
 	 * isTouched for current key
 	 */
 	isTouched: boolean
+	/**
+	 * isValid for current key
+	 */
+	isValid: boolean
 } ) & {
 	/**
 	 * Error for current key
 	 */
 	errors: string[]
 	/**
-	 * isValid for current key
-	 */
-	isValid: boolean
-	/**
 	 * isTouched for current key
 	 */
 	isTouched: boolean
+	/**
+	 * isValid for current key
+	 */
+	isValid: boolean
 } 
 
 export interface UseFormReturn<T extends Record<string, any>> {
 	/**
-	 * Form state
+	 * Simplified version of `onChange`, without the return method
+	 * 
+	 * @param key - key from `form` state
+	 * @param value - value for the param `key`
+	 * @param produceOptions 
+	 * @example 
+	 * ```Typescript
+	 * const {
+	 *   changeValue
+	 * } = useForm(
+	 *	 {
+	 * 		name: 'Rimuru',
+	 * 		age: '40'
+	 *	 }
+	 * )
+	 * ...
+	 * changeValue('name', 'Rimuru Tempest')
+	 * 
+	 * /// Validates form on change
+	 * changeValue('name', 'Rimuru Tempest', { validate: true })
+	 * ```
 	 */
-	form: T
+	changeValue: (key: FormKey<T>, value: T[FormKey<T>], produceOptions?: FieldOptions<any> | undefined) => void
 	/**
 	 * Context mainly for use in `FormProvider/Controller`, basically returns {@link FormState}
 	 */
@@ -394,23 +414,6 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * * Note: Depends on {@link FormOptions#validate}.
 	 */
 	errors: FormErrors<T>
-	/**
-	 * Form state, by default is false if `errors` are undefined or an empty object
-	 */
-	isValid: boolean
-	/**
-	 * Form touches // { [form key]: boolean }
-	 * * Note: To be `touched` the system does a shallow comparison (ex: previousValue !== value)
-	 */
-	touches: Touches<T>
-	/**
-	 * Form touches state, by default is false if `touches` are undefined or an empty object
-	 */
-	isTouched: boolean
-	/**
-	 * Virtual nested object that has information on the `key` like errors/isTouched/isValid
-	 */
-	formState: FormState<T>
 	/**
 	 * Method to connect the form element to the key, by providing native attributes like `onChange`, `name`, etc
 	 * 
@@ -440,99 +443,13 @@ export interface UseFormReturn<T extends Record<string, any>> {
 		(key: FormKey<T>, options?: FieldOptions<any>): FieldFormChange
 	}
 	/**
-	 * Method to make multiple changes in one render
-	 * 
-	 * @param cb - method that receives the `form`
-	 * @param produceOptions - {@link ProduceNewStateOptions}
-	 * @example
-	 * ```Typescript
-	 * const {
-	 *   triggerChange
-	 * } = useForm(
-	 *	 ...
-	 * )
-	 * ...
-	 * triggerChange((form) => {
-	 *		form.name = 'Rimuru';
-	 * 		form.age = '39';
-	 * 		form.sex = 'sexless';
-	 * })
-	 * ...
-	 * ```
+	 * Form state
 	 */
-	triggerChange: (cb: OnFunctionChange<T, void>, produceOptions?: ProduceNewStateOptions | undefined) => void
+	form: T
 	/**
-	 * Method to handle form submission
-	 * 
-	 * @param onValid - on a valid `form`, this method will be triggered
-	 * @param onInvalid - method that control's the form submission when the form is invalid.
-	 * 	By default `onValid` will only be called when `form` is valid, with `onInvalid` returning true
-	 *  even if the `form` is invalid, `onValid` will be called
-	 * @returns 
-	 * @example
-	 * ```Typescript
-	 * ...
-	 * const onSubmit = handleSubmit((form) => {
-	 * 		/// On `onSubmit` it will only call when form is valid
-	 * 		/// do something with it
-	 * })
-	 * 
-	 * const onSubmit = handleSubmit(
-	 * 		(form) => {
-	 * 			/// On `onSubmit` will always be called because the next method return true
-	 * 			/// do something with it
-	 * 		},
-	 * 		(errors) => true 
-	 * )
-	 * ...
-	 * ```
+	 * Virtual nested object that has information on the `key` like errors/isTouched/isValid
 	 */
-	handleSubmit: <K = void>(onValid: SubmitHandler<T, K>, onInvalid?: ValidateSubmission<T> | undefined) => () => Promise<K | undefined>
-	/**
-	 * Method to set custom errors
-	 * 
-	 * @param errors - new custom errors 
-	 * @example
-	 * ```Typescript
-	 * const {
-	 *   setError
-	 * } = useForm(
-	 *	 {
-	 * 		name: 'Rimuru'
-	 *	 }
-	 * )
-	 * ...
-	 * setError([
-	 * 		{
-	 * 			key: 'name',
-	 * 			message: 'Beautiful name'
-	 * 		}
-	 * ])
-	 * ///
-	 * ```
-	 */
-	setError: (errors: Array<{ path: FormKey<T>, errors: string[] }>) => void
-	/**
-	 * Method to verify if `key` has errors
-	 * 
-	 * @param key - key from `form` state
-	 * @param options - {@link HasErrorOptions}
-	 * @returns `true` for error on form
-	 * @example
-	 * ```Typescript
-	 * const {
-	 *   hasError
-	 * } = useForm(
-	 *	 {
-	 * 		name: 'Rimuru'
-	 *	 }
-	 * )
-	 * ...
-	 * hasError('name')
-	 * ///
-	 * ```
-	 */
-	hasError: (key: FormKey<T>, options?: HasErrorOptions) => boolean
+	formState: FormState<T>
 	/**
 	 * Returns error messages for the matched key
 	 * 
@@ -564,36 +481,80 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 */
 	getErrors: <Model extends Record<string, any> = T>(key: FormKey<T>, options?: GetErrorsOptions) => GetErrors<Model>
 	/**
-	 * Resets form state
+	 * Return the value for the matched key
 	 * 
-	 * @param newFrom - new form state (@default InitialForm)
-	 * @param resetOptions - {@link ResetOptions}
+	 * @param key - key from `form` state
+	 * @returns - value for the param `key`
 	 * @example 
 	 * ```Typescript
 	 * const {
-	 *   reset
+	 *	 changeValue
 	 * } = useForm(
 	 *	 {
 	 * 		name: 'Rimuru'
 	 *	 }
 	 * )
 	 * ...
-	 * reset({
-	 * 		name: 'Rimuru Tempest'
-	 * })
-	 * 
-	 * /// Validates new date, basically triggers validation
-	 * reset(
-	 * 		{
-	 * 			name: 'Rimuru Tempest'
-	 * 		},
-	 * 		{
-	 * 			validate: true
-	 * 		}
-	 * )
+	 * getValue('name') /// Rimuru
 	 * ```
 	 */
-	reset: (newFrom: Partial<T>, resetOptions?: ResetOptions | undefined) => Promise<void>
+	getValue: (key: FormKey<T>) => any
+	/**
+	 * Method to handle form submission
+	 * 
+	 * @param onValid - on a valid `form`, this method will be triggered
+	 * @param onInvalid - method that control's the form submission when the form is invalid.
+	 * 	By default `onValid` will only be called when `form` is valid, with `onInvalid` returning true
+	 *  even if the `form` is invalid, `onValid` will be called
+	 * @returns 
+	 * @example
+	 * ```Typescript
+	 * ...
+	 * const onSubmit = handleSubmit((form) => {
+	 * 		/// On `onSubmit` it will only call when form is valid
+	 * 		/// do something with it
+	 * })
+	 * 
+	 * const onSubmit = handleSubmit(
+	 * 		(form) => {
+	 * 			/// On `onSubmit` will always be called because the next method return true
+	 * 			/// do something with it
+	 * 		},
+	 * 		(errors) => true 
+	 * )
+	 * ...
+	 * ```
+	 */
+	handleSubmit: <K = void>(onValid: SubmitHandler<T, K>, onInvalid?: ValidateSubmission<T> | undefined) => () => Promise<K | undefined>
+	/**
+	 * Method to verify if `key` has errors
+	 * 
+	 * @param key - key from `form` state
+	 * @param options - {@link HasErrorOptions}
+	 * @returns `true` for error on form
+	 * @example
+	 * ```Typescript
+	 * const {
+	 *   hasError
+	 * } = useForm(
+	 *	 {
+	 * 		name: 'Rimuru'
+	 *	 }
+	 * )
+	 * ...
+	 * hasError('name')
+	 * ///
+	 * ```
+	 */
+	hasError: (key: FormKey<T>, options?: HasErrorOptions) => boolean
+	/**
+	 * Form touches state, by default is false if `touches` are undefined or an empty object
+	 */
+	isTouched: boolean
+	/**
+	 * Form state, by default is false if `errors` are undefined or an empty object
+	 */
+	isValid: boolean
 	/**
 	 * Unlike reset, `merge` will merge a new partial form to the new form
 	 * 
@@ -640,48 +601,48 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 */
 	onChange: (key: FormKey<T>, fieldOptions?: FieldOptions<T[FormKey<T>]> | undefined) => (value: T[FormKey<T>]) => void
 	/**
-	 * Simplified version of `onChange`, without the return method
-	 * 
-	 * @param key - key from `form` state
-	 * @param value - value for the param `key`
-	 * @param produceOptions 
+	 * Forward last undo. (If there is one)
 	 * @example 
 	 * ```Typescript
 	 * const {
-	 *   changeValue
-	 * } = useForm(
-	 *	 {
-	 * 		name: 'Rimuru',
-	 * 		age: '40'
-	 *	 }
-	 * )
+	 *	 redo
+	 * } = useForm()
 	 * ...
-	 * changeValue('name', 'Rimuru Tempest')
-	 * 
-	 * /// Validates form on change
-	 * changeValue('name', 'Rimuru Tempest', { validate: true })
+	 * redo('name')
 	 * ```
 	 */
-	changeValue: (key: FormKey<T>, value: T[FormKey<T>], produceOptions?: FieldOptions<any> | undefined) => void
+	redo: () => void
 	/**
-	 * Return the value for the matched key
+	 * Resets form state
 	 * 
-	 * @param key - key from `form` state
-	 * @returns - value for the param `key`
+	 * @param newFrom - new form state (@default InitialForm)
+	 * @param resetOptions - {@link ResetOptions}
 	 * @example 
 	 * ```Typescript
 	 * const {
-	 *	 changeValue
+	 *   reset
 	 * } = useForm(
 	 *	 {
 	 * 		name: 'Rimuru'
 	 *	 }
 	 * )
 	 * ...
-	 * getValue('name') /// Rimuru
+	 * reset({
+	 * 		name: 'Rimuru Tempest'
+	 * })
+	 * 
+	 * /// Validates new date, basically triggers validation
+	 * reset(
+	 * 		{
+	 * 			name: 'Rimuru Tempest'
+	 * 		},
+	 * 		{
+	 * 			validate: true
+	 * 		}
+	 * )
 	 * ```
 	 */
-	getValue: (key: FormKey<T>) => any
+	reset: (newFrom: Partial<T>, resetOptions?: ResetOptions | undefined) => Promise<void>
 	/**
 	 * Clears touch's
 	 * 
@@ -698,26 +659,68 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 */
 	resetTouch: () => void
 	/**
-	 * Watch key to then execute the method to update other values
+	 * Method to set custom errors
 	 * 
-	 * @param key - key from `form` state
-	 * @param method - method that will be executed on key touch
-	 * @example 
+	 * @param errors - new custom errors 
+	 * @example
 	 * ```Typescript
 	 * const {
-	 *	 watch
+	 *   setError
 	 * } = useForm(
 	 *	 {
 	 * 		name: 'Rimuru'
 	 *	 }
 	 * )
 	 * ...
-	 * watch('name', (form) => {
-	 * 	form.name = 'Rimuru Tempest'
-	 * })
+	 * setError([
+	 * 		{
+	 * 			key: 'name',
+	 * 			message: 'Beautiful name'
+	 * 		}
+	 * ])
+	 * ///
 	 * ```
 	 */
-	watch: (key: FormKey<T>, method: WatchMethod<T>) => void
+	setError: (errors: Array<{ errors: string[], path: FormKey<T> }>) => void
+	/**
+	 * Form touches // { [form key]: boolean }
+	 * * Note: To be `touched` the system does a shallow comparison (ex: previousValue !== value)
+	 */
+	touches: Touches<T>
+	/**
+	 * Method to make multiple changes in one render
+	 * 
+	 * @param cb - method that receives the `form`
+	 * @param produceOptions - {@link ProduceNewStateOptions}
+	 * @example
+	 * ```Typescript
+	 * const {
+	 *   triggerChange
+	 * } = useForm(
+	 *	 ...
+	 * )
+	 * ...
+	 * triggerChange((form) => {
+	 *		form.name = 'Rimuru';
+	 * 		form.age = '39';
+	 * 		form.sex = 'sexless';
+	 * })
+	 * ...
+	 * ```
+	 */
+	triggerChange: (cb: OnFunctionChange<T, void>, produceOptions?: ProduceNewStateOptions | undefined) => void
+	/**
+	 * Revert last change. (If there is one)
+	 * @example 
+	 * ```Typescript
+	 * const {
+	 *	 undo
+	 * } = useForm()
+	 * ...
+	 * undo
+	 * ```
+	 */
+	undo: () => void
 	/**
 	 * Manually force Controller component to update.
 	 * 
@@ -739,29 +742,26 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 */
 	updateController: (key: FormKey<T>) => void
 	/**
-	 * Revert last change. (If there is one)
+	 * Watch key to then execute the method to update other values
+	 * 
+	 * @param key - key from `form` state
+	 * @param method - method that will be executed on key touch
 	 * @example 
 	 * ```Typescript
 	 * const {
-	 *	 undo
-	 * } = useForm()
+	 *	 watch
+	 * } = useForm(
+	 *	 {
+	 * 		name: 'Rimuru'
+	 *	 }
+	 * )
 	 * ...
-	 * undo
+	 * watch('name', (form) => {
+	 * 	form.name = 'Rimuru Tempest'
+	 * })
 	 * ```
 	 */
-	undo: () => void
-	/**
-	 * Forward last undo. (If there is one)
-	 * @example 
-	 * ```Typescript
-	 * const {
-	 *	 redo
-	 * } = useForm()
-	 * ...
-	 * redo('name')
-	 * ```
-	 */
-	redo: () => void	
+	watch: (key: FormKey<T>, method: WatchMethod<T>) => void
 }
 
 export type UseFormReturnController<T extends Record<string, any>> = UseFormReturn<T> & {

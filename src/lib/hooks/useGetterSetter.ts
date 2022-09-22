@@ -26,8 +26,8 @@ const createGetterSetter = <T extends object>(field: string) => {
 
 export type GetterSetter<T extends object> = {
 	[key: string]: {
-		set: FormSetValue<T>
 		get: FormGetValue<T>
+		set: FormSetValue<T>
 	}
 }
 

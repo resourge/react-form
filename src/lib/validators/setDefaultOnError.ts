@@ -1,10 +1,10 @@
 export type ValidationError = {
-	path: string | string[]
 	error: string
+	path: string | string[]
 }
 export type ValidationWithErrors = {
-	path: string | string[]
 	errors: string[]
+	path: string | string[]
 }
 
 export type ValidationErrors = Array<ValidationError | ValidationWithErrors>

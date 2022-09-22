@@ -5,8 +5,8 @@ import { FormKey } from '../types'
 export type WatchMethod<T extends Record<string, any>> = (form: T) => void | Promise<void>
 
 export type UseWatchReturn<T extends Record<string, any>> = {
-	watch: (key: FormKey<T>, method: WatchMethod<T>) => void
 	onWatch: MutableRefObject<(form: T, changedKeys: MutableRefObject<Set<FormKey<T>>>) => Promise<void>>
+	watch: (key: FormKey<T>, method: WatchMethod<T>) => void
 }
 
 /**
