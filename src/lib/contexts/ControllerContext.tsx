@@ -36,7 +36,9 @@ export const useController = <
 >(): ControllerContextObject<T, T[Name], Name> => {
 	const context = useContext(ControllerContext)
 
-	invariant(context, 'useControllerContext can only be used in the context of a <Controller> component.')
+	if ( __DEV__ ) {
+		invariant(context, 'useControllerContext can only be used in the context of a <Controller> component.')
+	}
 
 	return context as unknown as ControllerContextObject<T, T[Name], Name>
 }

@@ -13,7 +13,9 @@ export const FormContext = createContext<FormContextObject<Record<string, any>>>
 export const useFormContext = <T extends object>(): UseFormReturn<T> => {
 	const context = useContext(FormContext) as unknown as UseFormReturn<T>
 
-	invariant(context, 'useFormContext can only be used in the context of a <FormProvider> component.')
+	if ( __DEV__ ) {
+		invariant(context, 'useFormContext can only be used in the context of a <FormProvider> component.')
+	}
 
 	return context
 }
