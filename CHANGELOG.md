@@ -1,3 +1,10 @@
+## [1.10.6](https://github.com/resourge/react-form/compare/v1.10.5...v1.10.6) (2022-10-26)
+
+
+### Bug Fixes
+
+* **createformerrors:** fix only saving last error when for the same camp where provided ([9e4e7b2](https://github.com/resourge/react-form/commit/9e4e7b2f6d3e89ac21c48d8f433bb603b160c81b))
+
 ## [1.10.5](https://github.com/resourge/react-form/compare/v1.10.4...v1.10.5) (2022-08-29)
 
 
