@@ -5,7 +5,8 @@ import {
 	FieldOptions,
 	FormErrors,
 	Touches,
-	FieldForm
+	FieldForm,
+	FormState
 } from '../types/types'
 
 import { useProxy } from './useProxy';
@@ -21,11 +22,11 @@ export const useField = <
 ): ControllerField<T, Value, Name> => {
 	const field = context.field(name, options) as FieldForm<Value, Name>;
 
-	const fieldState = useProxy<Value>(
-		context.errors as unknown as FormErrors<Value>,
-		context.touches as unknown as Touches<Value>,
+	const fieldState = useProxy<T>(
+		context.errors as unknown as FormErrors<T>,
+		context.touches as unknown as Touches<T>,
 		name
-	)
+	) as unknown as FormState<Value>
 
 	return {
 		...field,

@@ -6,22 +6,25 @@ import {
 	GetErrors,
 	HasErrorOptions,
 	Touches,
-	FormErrors
+	FormErrors,
+	FormOptions
 } from '../types/types'
 
 export type CacheType = string[] | FormErrors<any> | boolean
 
-const checkIfCanCheckError = (
+const checkIfCanCheckError = <T extends Record<string, any>>(
 	key: string,
 	touches: Touches<any>,
-	onlyOnTouch?: boolean
+	onlyOnTouch?: boolean,
+	onlyOnTouchKeys: Array<FormKey<T>> = []
 ) => {
-	return !onlyOnTouch || (onlyOnTouch && touches[key])
+	return !onlyOnTouch || (onlyOnTouch && (Boolean(touches[key]) || onlyOnTouchKeys.some((onlyOnTouchKey: any) => Boolean(touches[onlyOnTouchKey]))))
 }
 
 export const useErrors = <T extends Record<string, any>>(
 	errors: FormErrors<T>,
-	touches: Touches<T>
+	touches: Touches<T>,
+	formOptions?: FormOptions<T>
 ) => {
 	const cacheErrors = useRef<{ [key: string]: CacheType }>({});
 
@@ -39,15 +42,11 @@ export const useErrors = <T extends Record<string, any>>(
 
 	const hasError = (
 		key: FormKey<T>, 
-		options: HasErrorOptions = {
-			strict: true,
-			onlyOnTouch: false
-		}
+		options?: HasErrorOptions<T>
 	): boolean => {
-		const {
-			strict = true,
-			onlyOnTouch = false
-		} = options;
+		const strict = options?.strict ?? true;
+		const onlyOnTouch = options?.onlyOnTouch ?? formOptions?.onlyOnTouchDefault ?? true;
+		const onlyOnTouchKeys = options?.onlyOnTouchKeys ?? [];
 		
 		// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 		const _key: string = `has_errors_${key}_${strict}_${onlyOnTouch}`;
@@ -58,7 +57,7 @@ export const useErrors = <T extends Record<string, any>>(
 				const _errors: FormErrors<T> = errors ?? {};
 
 				let hasError = false;
-				if ( checkIfCanCheckError(key, touches, onlyOnTouch) ) {
+				if ( checkIfCanCheckError(key, touches, onlyOnTouch, onlyOnTouchKeys) ) {
 					hasError = Boolean(_errors[key]);
 				}
 
@@ -87,19 +86,19 @@ export const useErrors = <T extends Record<string, any>>(
 
 	function getErrors<Model extends Record<string, any> = T>(
 		key: FormKey<Model>, 
-		options: GetErrorsOptions = {
+		options: GetErrorsOptions<T> = {
 			strict: true,
-			onlyOnTouch: false,
+			onlyOnTouch: formOptions?.onlyOnTouchDefault ?? true,
 			includeKeyInChildErrors: true,
-			includeChildsIntoArray: false
+			includeChildsIntoArray: false,
+			onlyOnTouchKeys: []
 		}
 	): GetErrors<Model> {
-		const {
-			strict: _strict = true,
-			onlyOnTouch = false,
-			includeKeyInChildErrors = true,
-			includeChildsIntoArray = false
-		} = options;
+		const _strict = options?.strict ?? true;
+		const onlyOnTouch = options?.onlyOnTouch ?? formOptions?.onlyOnTouchDefault ?? true;
+		const onlyOnTouchKeys = options?.onlyOnTouchKeys ?? [];
+		const includeKeyInChildErrors = options?.includeKeyInChildErrors ?? true;
+		const includeChildsIntoArray = options?.includeChildsIntoArray ?? false;
 
 		const strict = includeChildsIntoArray ? false : _strict;
 
@@ -111,7 +110,7 @@ export const useErrors = <T extends Record<string, any>>(
 			() => {
 				const _errors: FormErrors<T> = errors ?? {};
 				const getErrors = (key: FormKey<Model>): GetErrors<Model> => {
-					if ( checkIfCanCheckError(key, touches, onlyOnTouch) ) {
+					if ( checkIfCanCheckError(key, touches, onlyOnTouch, onlyOnTouchKeys) ) {
 						// @ts-expect-error // Working with array and object
 						return [..._errors[key] ?? []];
 					}

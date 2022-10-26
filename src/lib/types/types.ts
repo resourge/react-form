@@ -20,18 +20,22 @@ export type FormErrors<T extends Record<string, any>> = {
 	[K in FormKey<T>]?: string[]
 }
 
-export type HasErrorOptions = {
+export type HasErrorOptions<T extends Record<string, any>> = {
 	/**
 	 * When true only returns if the key was `touched` (@default false)
 	 */
 	onlyOnTouch?: boolean
+	/**
+	 * Array containing other keys to also validate on touch
+	 */
+	onlyOnTouchKeys?: Array<FormKey<T>>
 	/**
 	 * Includes object/array children
 	 */
 	strict?: boolean
 }
 
-export type GetErrorsOptions = {
+export type GetErrorsOptions<T extends Record<string, any>> = {
 	/**
 	 * Includes the children errors on the array
 	 */
@@ -44,6 +48,10 @@ export type GetErrorsOptions = {
 	 * When true only returns if the key was `touched` (@default false)
 	 */
 	onlyOnTouch?: boolean
+	/**
+	 * Array containing other keys to also validate on touch
+	 */
+	onlyOnTouchKeys?: Array<FormKey<T>>
 	/**
 	 * Includes children errors as object into array.
 	 * 
@@ -143,6 +151,12 @@ export type FormOptions<T extends Record<string, any>> = {
 	 * ```
 	 */
 	onErrors?: OnErrors
+	/**
+	 * When true only returns errors if the key was `touched` (@default false)
+	 * * Note: Local onlyOnTouch takes priority over global onlyOnTouch
+	 * @default true
+	 */
+	onlyOnTouchDefault?: boolean
 	/**
 	 * Method called every time a value is changed
 	 * 
@@ -479,7 +493,7 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * ///
 	 * ```
 	 */
-	getErrors: <Model extends Record<string, any> = T>(key: FormKey<T>, options?: GetErrorsOptions) => GetErrors<Model>
+	getErrors: <Model extends Record<string, any> = T>(key: FormKey<T>, options?: GetErrorsOptions<T>) => GetErrors<Model>
 	/**
 	 * Return the value for the matched key
 	 * 
@@ -546,7 +560,7 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * ///
 	 * ```
 	 */
-	hasError: (key: FormKey<T>, options?: HasErrorOptions) => boolean
+	hasError: (key: FormKey<T>, options?: HasErrorOptions<T>) => boolean
 	/**
 	 * Form touches state, by default is false if `touches` are undefined or an empty object
 	 */
