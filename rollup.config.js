@@ -7,7 +7,7 @@ import { terser } from 'rollup-plugin-terser';
 
 import { name, author, license } from './package.json';
 
-const external = ['react', '@resourge/shallow-clone'];
+const external = ['react', 'react/jsx-runtime', '@resourge/shallow-clone'];
 const globals = {
 	react: 'React',
 	'@resourge/shallow-clone': 'ShallowClone' 
@@ -103,7 +103,8 @@ const modules = [
 				presets: [
 					babelPresetEnv,
 					['@babel/preset-react', {
-						useBuiltIns: true
+						useBuiltIns: true,
+						runtime: 'automatic'
 					}],
 					'@babel/preset-typescript'
 				],
@@ -143,7 +144,10 @@ const cjsModules = [
 				babelHelpers: 'bundled',
 				presets: [
 					'@babel/preset-typescript',
-					'@babel/preset-react',
+					['@babel/preset-react', {
+						useBuiltIns: true,
+						runtime: 'automatic'
+					}],
 					babelPresetEnv
 				],
 				plugins: babelPlugins,
@@ -171,13 +175,10 @@ const cjsModules = [
 				babelHelpers: 'bundled',
 				presets: [
 					babelPresetEnv,
-					[
-						'@babel/preset-react',
-						{
-							// Compile JSX Spread to Object.assign(), which is reliable in ESM browsers.
-							useBuiltIns: true
-						}
-					],
+					['@babel/preset-react', {
+						useBuiltIns: true,
+						runtime: 'automatic'
+					}],
 					'@babel/preset-typescript'
 				],
 				plugins: babelPlugins,
@@ -215,7 +216,10 @@ const umdModules = [
 				babelHelpers: 'bundled',
 				presets: [
 					babelPresetEnv,
-					'@babel/preset-react',
+					['@babel/preset-react', {
+						useBuiltIns: true,
+						runtime: 'automatic'
+					}],
 					'@babel/preset-typescript'
 				],
 				plugins: babelPlugins,
@@ -245,7 +249,10 @@ const umdModules = [
 				babelHelpers: 'bundled',
 				presets: [
 					babelPresetEnv,
-					'@babel/preset-react',
+					['@babel/preset-react', {
+						useBuiltIns: true,
+						runtime: 'automatic'
+					}],
 					'@babel/preset-typescript'
 				],
 				plugins: babelPlugins,

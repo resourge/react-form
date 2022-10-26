@@ -25,7 +25,12 @@ export const formatErrors = <T extends Record<string, any>> (
 
 		const path = getKeyFromPaths<T>(keys);
 
-		obj[path] = (value as ValidationError).error ? [(value as ValidationError).error] : (value as ValidationWithErrors).errors;
+		if ( !obj[path] ) {
+			obj[path] = []
+		}
+
+		// @ts-expect-error Can't be undefined as it will always be an array because of the previous array
+		obj[path].push(...(value as ValidationError).error ? [(value as ValidationError).error] : (value as ValidationWithErrors).errors);
 
 		return obj
 	}, {});
