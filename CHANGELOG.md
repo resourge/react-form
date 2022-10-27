@@ -1,3 +1,15 @@
+# [1.11.0](https://github.com/resourge/react-form/compare/v1.10.6...v1.11.0) (2022-10-27)
+
+
+### Bug Fixes
+
+* **useerrors:** update checkfIfcanCheckError to not need mandatory onlyOnTouch ([c7de0a4](https://github.com/resourge/react-form/commit/c7de0a4e3977e23b4c223dcaab02a6e464a160f6))
+
+
+### Features
+
+* **useerrors:** add onlyontouchdefault, onlyontouch defaults to true ([da47694](https://github.com/resourge/react-form/commit/da47694394dcb1b2e64a621438ac97ff5dad29b0))
+
 ## [1.10.6](https://github.com/resourge/react-form/compare/v1.10.5...v1.10.6) (2022-10-26)
 
 
