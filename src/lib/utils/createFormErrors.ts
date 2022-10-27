@@ -30,7 +30,7 @@ export const formatErrors = <T extends Record<string, any>> (
 		}
 
 		// @ts-expect-error Can't be undefined as it will always be an array because of the previous array
-		obj[path].push(...(value as ValidationError).error ? [(value as ValidationError).error] : (value as ValidationWithErrors).errors);
+		obj[path].push(...(value as ValidationError).error !== undefined ? [(value as ValidationError).error] : (value as ValidationWithErrors).errors);
 
 		return obj
 	}, {});
