@@ -1,3 +1,10 @@
+## [1.11.1](https://github.com/resourge/react-form/compare/v1.11.0...v1.11.1) (2022-10-27)
+
+
+### Bug Fixes
+
+* **createformerrors:** fix  (intermediate value) when error was an empty string ([8197b9f](https://github.com/resourge/react-form/commit/8197b9f69d65320752161c92e82f1ae469fb0071))
+
 # [1.11.0](https://github.com/resourge/react-form/compare/v1.10.6...v1.11.0) (2022-10-27)
 
 
