@@ -18,7 +18,13 @@ const checkIfCanCheckError = <T extends Record<string, any>>(
 	onlyOnTouch?: boolean,
 	onlyOnTouchKeys: Array<FormKey<T>> = []
 ) => {
-	return !onlyOnTouch || (onlyOnTouch && (Boolean(touches[key]) || onlyOnTouchKeys.some((onlyOnTouchKey: any) => Boolean(touches[onlyOnTouchKey]))))
+	return !onlyOnTouch || 
+		(
+			(onlyOnTouch || onlyOnTouchKeys.length) && (
+				Boolean(touches[key]) || 
+				onlyOnTouchKeys.some((onlyOnTouchKey: any) => Boolean(touches[onlyOnTouchKey]))
+			)
+		)
 }
 
 export const useErrors = <T extends Record<string, any>>(
