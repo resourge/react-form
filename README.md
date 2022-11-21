@@ -157,7 +157,7 @@ class User {
 const {
   ...
 } = useForm(
-  new User()
+  User
 )
 ```
 
@@ -168,7 +168,6 @@ const {
 | **validateDefault** | `boolean` | false | Set's global validation. False by default |
 | **onlyOnTouchDefault** | `boolean` | true | Set's globally to only show errors on camp touch. True by default |
 | **validate** | `(form: T) => void \| Promise<void>` | false | Method to validate form. Usually with some kind of validator. (like yup, zod, joi, etc) |
-| **isValid** | `({ form, isValid, errors }) => boolean` | false |  Method to define if form is valid |
 | **onErrors** | `(errors: any \| any[]) => FormErrors` | false | Local method to treat errors. |
 | **onTouch** | `(key: FormKey<T>, value: unknown, previousValue: unknown) => void` | false | Method called every time a value is changed |
 

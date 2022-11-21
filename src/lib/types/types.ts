@@ -63,55 +63,7 @@ export type GetErrorsOptions<T extends Record<string, any>> = {
 
 export type GetErrors<T extends Record<string, any>> = string[] & FormErrors<T>
 
-type IsValid<T extends Record<string, any>> = {
-	/**
-	 * Form nested errors
-	 */
-	errors: FormErrors<T>
-	/**
-	 * Form state
-	 */
-	form: T
-	/**
-	 * Form touched keys
-	 */
-	formState: FormState<T>
-	/**
-	 * If form is "touched"
-	 */
-	isTouched: boolean
-	/**
-	 * If form is valid
-	 */
-	isValid: boolean
-	/**
-	 * Form touched keys
-	 */
-	touches: Touches<T>
-}
-
 export type FormOptions<T extends Record<string, any>> = {
-	/**
-	 * Method to define if form is valid
-	 * 
-	 * @default isValid - !errors || Object.keys(errors).length === 0
-	 * @param form {@link IsValid}
-	 * @example 
-	 * ```Typescript
-	 * const { isValid } = useForm(
-	 *	 {
-	 * 		name: 'Rimuru'
-	 *	 },
-	 *   {
-	 * 		isValid: ({ form, isValid, errors }) => {
-	 * 			/// This method changes the native `isValid`
-	 * 			return true
-	 * 		}
-	 * 	 }
-	 * )
-	 * ```
-	 */
-	isValid?: (value: IsValid<T>) => boolean 
 	/**
 	 * Max number of "previous changes" the system will hold.
 	 * After 15 the first changes start to be replaced with the new ones.

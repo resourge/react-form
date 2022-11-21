@@ -45,10 +45,18 @@ type State<T extends Record<string, any>> = {
 	touches: Touches<T>
 }
 
-export const useForm = <T extends Record<string, any>>(
+export function useForm<T extends Record<string, any>>(
+	defaultValue: new(...args: any[]) => T, 
+	options?: FormOptions<T>
+): UseFormReturn<T>
+export function useForm<T extends Record<string, any>>(
 	defaultValue: T, 
 	options?: FormOptions<T>
-): UseFormReturn<T> => {
+): UseFormReturn<T>
+export function useForm<T extends Record<string, any>>(
+	defaultValue: T | (new(...args: any[]) => T), 
+	options?: FormOptions<T>
+): UseFormReturn<T> {
 	// #region errors
 	useFixCursorJumpingToEnd();
 
@@ -58,7 +66,8 @@ export const useForm = <T extends Record<string, any>>(
 	// #region State
 	const [state, _setFormState] = useState<State<T>>(() => ({
 		errors: {},
-		form: shallowClone(defaultValue),
+		// eslint-disable-next-line new-cap
+		form: typeof defaultValue === 'function' ? new defaultValue() : shallowClone(defaultValue),
 		touches: {}
 	}));
 	const stateRef = useRef<State<T>>(state);
@@ -486,18 +495,7 @@ export const useForm = <T extends Record<string, any>>(
 		},
 		errors: state.errors,
 		get isValid(): boolean {
-			const nativeIsValid = formState.isValid;
-
-			return (
-				options?.isValid && options?.isValid({
-					form: stateRef.current.form, 
-					errors: stateRef.current.errors,
-					touches: stateRef.current.touches,
-					formState,
-					isValid: nativeIsValid,
-					isTouched: formState.isTouched
-				})
-			) ?? nativeIsValid
+			return formState.isValid;
 		},
 		touches: state.touches,
 		get isTouched( ) {
