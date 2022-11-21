@@ -1,3 +1,10 @@
+# [1.12.0](https://github.com/resourge/react-form/compare/v1.11.1...v1.12.0) (2022-11-21)
+
+
+### Features
+
+* **useform:** simplift useForm creation by being able to directly use a class ([9766264](https://github.com/resourge/react-form/commit/9766264bd91ba03dbddba873d3bb1830db0d5738))
+
 ## [1.11.1](https://github.com/resourge/react-form/compare/v1.11.0...v1.11.1) (2022-10-27)
 
 
