@@ -1,3 +1,10 @@
+## [1.12.1](https://github.com/resourge/react-form/compare/v1.12.0...v1.12.1) (2023-01-02)
+
+
+### Bug Fixes
+
+* **useform:** fix a bug where using class directly instead of a class value would not work ([ebe128a](https://github.com/resourge/react-form/commit/ebe128aac38e12921dd3c4c6beb59fca11afa1a1))
+
 # [1.12.0](https://github.com/resourge/react-form/compare/v1.11.1...v1.12.0) (2022-11-21)
 
 
