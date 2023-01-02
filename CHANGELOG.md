@@ -1,3 +1,10 @@
+# [1.13.0](https://github.com/resourge/react-form/compare/v1.12.1...v1.13.0) (2023-01-02)
+
+
+### Features
+
+* **useform:** make so defaultValue can be set using a method ([a142a17](https://github.com/resourge/react-form/commit/a142a1705324106430a91beb380cf758f8641ea1))
+
 ## [1.12.1](https://github.com/resourge/react-form/compare/v1.12.0...v1.12.1) (2023-01-02)
 
 
