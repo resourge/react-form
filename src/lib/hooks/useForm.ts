@@ -29,7 +29,7 @@ import {
 	ProduceNewStateOptionsHistory
 } from '../types/types'
 import { createFormErrors, formatErrors } from '../utils/createFormErrors';
-import { getKeyFromPaths } from '../utils/utils';
+import { getKeyFromPaths, isClass } from '../utils/utils';
 import { getDefaultOnError } from '../validators/setDefaultOnError';
 
 import { useChangedKeys } from './useChangedKeys';
@@ -47,7 +47,11 @@ type State<T extends Record<string, any>> = {
 }
 
 export function useForm<T extends Record<string, any>>(
-	defaultValue: { new(...args: any[]): T }, 
+	defaultValue: { new(): T }, 
+	options?: FormOptions<T>
+): UseFormReturn<T>
+export function useForm<T extends Record<string, any>>(
+	defaultValue: () => T, 
 	options?: FormOptions<T>
 ): UseFormReturn<T>
 export function useForm<T extends Record<string, any>>(
@@ -55,7 +59,7 @@ export function useForm<T extends Record<string, any>>(
 	options?: FormOptions<T>
 ): UseFormReturn<T>
 export function useForm<T extends Record<string, any>>(
-	defaultValue: T | ({ new(...args: any[]): T }), 
+	defaultValue: T | (() => T) | ({ new(): T }), 
 	options?: FormOptions<T>
 ): UseFormReturn<T> {
 	// #region errors
@@ -68,7 +72,12 @@ export function useForm<T extends Record<string, any>>(
 	const [state, _setFormState] = useState<State<T>>(() => ({
 		errors: {},
 		// eslint-disable-next-line new-cap
-		form: typeof defaultValue === 'function' ? new defaultValue() : shallowClone(defaultValue),
+		form: typeof defaultValue === 'function' 
+			? (
+				isClass(defaultValue) 
+					? new (defaultValue as new () => T)() 
+					: (defaultValue as () => T)()
+			) : shallowClone(defaultValue),
 		touches: {}
 	}));
 	const stateRef = useRef<State<T>>(state);

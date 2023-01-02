@@ -17,3 +17,20 @@ export const getKeyFromPaths = <T extends Record<string, any>>(paths: string[]):
 	.join('.')
 	.replace(/\.\[/g, '[') as FormKey<T>
 }
+
+/**
+ * determines if a variable is a class definition instead of a function
+ */
+export function isClass(x: any) {
+	if ( 
+		typeof x === 'function'
+	) {
+		const prototype = Object.getOwnPropertyDescriptor(x, 'prototype');
+
+		if ( prototype ) { 
+			return !prototype.writable;
+		}
+	}
+
+	return false;
+}
