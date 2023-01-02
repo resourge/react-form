@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/prefer-function-type */
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 /* eslint-disable @typescript-eslint/no-invalid-void-type */
 import {
@@ -46,7 +47,7 @@ type State<T extends Record<string, any>> = {
 }
 
 export function useForm<T extends Record<string, any>>(
-	defaultValue: new(...args: any[]) => T, 
+	defaultValue: { new(...args: any[]): T }, 
 	options?: FormOptions<T>
 ): UseFormReturn<T>
 export function useForm<T extends Record<string, any>>(
@@ -54,7 +55,7 @@ export function useForm<T extends Record<string, any>>(
 	options?: FormOptions<T>
 ): UseFormReturn<T>
 export function useForm<T extends Record<string, any>>(
-	defaultValue: T | (new(...args: any[]) => T), 
+	defaultValue: T | ({ new(...args: any[]): T }), 
 	options?: FormOptions<T>
 ): UseFormReturn<T> {
 	// #region errors
