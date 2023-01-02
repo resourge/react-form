@@ -160,6 +160,11 @@ const {
 } = useForm(
   User
 )
+const {
+  ...
+} = useForm(
+  () => new User()
+)
 ```
 
 ### Form Options
