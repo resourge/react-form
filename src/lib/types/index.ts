@@ -14,7 +14,13 @@ import type {
 	GetErrorsOptions,
 	HasErrorOptions,
 	UseFormReturn,
-	Touches
+	Touches,
+	FieldFormBlur,
+	FieldFormChange,
+	FieldFormReadonly,
+	ProduceNewStateOptionsHistory,
+	ResetMethod,
+	UseFormReturnController
 } from './types';
 
 export {
@@ -34,5 +40,11 @@ export {
 
 	FormKey,
 	UseFormReturn,
-	Touches
+	Touches,
+	FieldFormBlur,
+	FieldFormChange,
+	FieldFormReadonly,
+	ProduceNewStateOptionsHistory,
+	ResetMethod,
+	UseFormReturnController
 }
