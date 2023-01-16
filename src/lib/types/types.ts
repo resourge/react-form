@@ -63,6 +63,8 @@ export type GetErrorsOptions<T extends Record<string, any>> = {
 
 export type GetErrors<T extends Record<string, any>> = string[] & FormErrors<T>
 
+export type ResetMethod<T extends Record<string, any>> = (newFrom: Partial<T>, resetOptions?: ResetOptions | undefined) => Promise<void>
+
 export type FormOptions<T extends Record<string, any>> = {
 	/**
 	 * Max number of "previous changes" the system will hold.
@@ -608,7 +610,7 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * )
 	 * ```
 	 */
-	reset: (newFrom: Partial<T>, resetOptions?: ResetOptions | undefined) => Promise<void>
+	reset: ResetMethod<T>
 	/**
 	 * Clears touch's
 	 * 
