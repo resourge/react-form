@@ -1,3 +1,15 @@
+# [1.14.0](https://github.com/resourge/react-form/compare/v1.13.0...v1.14.0) (2023-01-19)
+
+
+### Bug Fixes
+
+* **types/index:** export all types included in previou commit ([525e03e](https://github.com/resourge/react-form/commit/525e03e798ec533a1a47a8317e1ecba30042806a))
+
+
+### Features
+
+* **types/types:** add resetMethod type ([f883040](https://github.com/resourge/react-form/commit/f883040bceee8c30cb7095611ffe07b5e07c87dc))
+
 # [1.13.0](https://github.com/resourge/react-form/compare/v1.12.1...v1.13.0) (2023-01-02)
 
 
