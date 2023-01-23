@@ -1,3 +1,10 @@
+# [1.15.0](https://github.com/resourge/react-form/compare/v1.14.0...v1.15.0) (2023-01-23)
+
+
+### Features
+
+* **useform:** make triggerChange callback to possible be a promise ([55f0d5c](https://github.com/resourge/react-form/commit/55f0d5c8721cc5d7606492c9651c876073ad1a8d))
+
 # [1.14.0](https://github.com/resourge/react-form/compare/v1.13.0...v1.14.0) (2023-01-19)
 
 
