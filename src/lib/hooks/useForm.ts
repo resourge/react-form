@@ -323,7 +323,11 @@ export function useForm<T extends Record<string, any>>(
 			}
 		)
 
-		cb(proxy);
+		const result = cb(proxy);
+
+		if ( result instanceof Promise ) {
+			await result;
+		}
 
 		addAction(
 			{

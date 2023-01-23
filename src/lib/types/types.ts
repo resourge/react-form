@@ -290,7 +290,7 @@ export type FieldOptions<Value = any> = {
 	readOnly?: boolean
 } & ProduceNewStateOptions
 
-export type OnFunctionChange<T extends Record<string, any>, Result = void> = (form: T) => Result
+export type OnFunctionChange<T extends Record<string, any>, Result = void> = ((form: T) => Result) | ((form: T) => Promise<Result>)
 
 export type SubmitHandler<T extends Record<string, any>, K = void> = (form: T) => K | Promise<K>
 
