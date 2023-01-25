@@ -1,9 +1,8 @@
-import { ControllerField } from '../contexts/ControllerContext';
 import { useFormContext, FormContextObject } from '../contexts/FormContext'
 import { FormKey } from '../types/FormKey';
 import { FieldOptions } from '../types/types';
 
-import { useField } from './useField';
+import { ControllerField, useField } from './useField';
 
 /**
  * Hook to use in components inside `FormContext`
