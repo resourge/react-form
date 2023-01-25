@@ -1,3 +1,10 @@
+# [1.16.0](https://github.com/resourge/react-form/compare/v1.15.0...v1.16.0) (2023-01-25)
+
+
+### Features
+
+* **controller:** upgrade controller to take name array and a deps props to improve performance ([88e0bfa](https://github.com/resourge/react-form/commit/88e0bfa86d81aee45e3964597904200afa04673c))
+
 # [1.15.0](https://github.com/resourge/react-form/compare/v1.14.0...v1.15.0) (2023-01-23)
 
 
