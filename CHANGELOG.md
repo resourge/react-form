@@ -1,3 +1,10 @@
+# [1.17.0](https://github.com/resourge/react-form/compare/v1.16.0...v1.17.0) (2023-01-30)
+
+
+### Features
+
+* **useformsplitter:** remove unnecessary functionalities and add useFromSplitter ([89086ad](https://github.com/resourge/react-form/commit/89086ada22e587b7c7bf2274c5e4e365065d709a))
+
 # [1.16.0](https://github.com/resourge/react-form/compare/v1.15.0...v1.16.0) (2023-01-25)
 
 
