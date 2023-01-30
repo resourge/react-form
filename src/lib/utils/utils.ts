@@ -34,3 +34,11 @@ export function isClass(x: any) {
 
 	return false;
 }
+
+/**
+ * Filter an Object by Key
+ */
+export const filterObjectByKey = <T extends Record<string, any>>(obj: T, filterKey: FormKey<T>): T => Object.fromEntries(
+	Object.entries(obj)
+	.filter(([key]) => key.includes(filterKey))
+) as T

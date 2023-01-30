@@ -6,7 +6,10 @@ import checker from 'vite-plugin-checker';
 import tsconfigPaths from 'vite-tsconfig-paths'
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+	define: {
+		__DEV__: (mode === 'development').toString()
+	},
 	test: {
 		globals: true,
 		environment: 'jsdom',
@@ -23,4 +26,4 @@ export default defineConfig({
 			}
 		})
 	]
-})
+}))

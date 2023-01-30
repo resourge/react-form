@@ -11,10 +11,16 @@ export type ControllerContextObject<
 // @ts-expect-error I want the validation on the useController
 export const ControllerContext = createContext<ControllerContextObject<any, any, any>>(null);
 
+export const useControllerContext = <
+	T extends Record<string, any>
+>(): ControllerContextObject<T> => {
+	return useContext(ControllerContext)
+}
+
 export const useController = <
 	T extends Record<string, any>
 >(): ControllerContextObject<T> => {
-	const context = useContext(ControllerContext)
+	const context = useControllerContext()
 
 	if ( __DEV__ ) {
 		invariant(context, 'useControllerContext can only be used in the context of a <Controller> component.')

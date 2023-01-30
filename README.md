@@ -70,8 +70,7 @@ const {
   onChange, getValue, changeValue,changeValue, 
   resetTouch,
   getErrors, setError, hasError, 
-  watch,
-  undo, redo
+  watch
 } = useForm(formData, formOptions)
 ```
 
@@ -191,7 +190,6 @@ const {
 | **touches** | `{ [form path]: boolean }` | {} | Form touches (ex: { 'user.name': true }) |
 | **isTouched** | `boolean` | false | Form touches state by default is false if `touches` are undefined or an empty object |
 | **context** | `object` | [Form State](#form-state) | Context, mainly for use in `FormProvider` |
-| **formState** | `object` | `object` | Virtual Form Data, that provides a virtual representation of the form data to individually find errors/isTouched/isValid on each key (includes deep keys) |
 
 
 ### Form Actions
@@ -465,30 +463,6 @@ const {
 resetTouch()
 ```
 
-#### `undo`
-
-Revert last change. (If there is one)
-
-```Typescript
-const {
-  undo
-} = useForm()
-...
-undo()
-```
-
-#### `redo`
-
-Forward last undo. (If there is one)
-
-```Typescript
-const {
-  redo
-} = useForm()
-...
-redo()
-```
-
 ## Form Provider
 
 For more complex and deep forms.
@@ -499,16 +473,16 @@ import { FormProvider, useForm } from '@resourge/react-form'
 
 export function CustomElement() {
   // field is the same as doing field('name')
-  const { field, formContext } = useFormField('name')
+  const { field, isValid } = useController()
 
   return (
     <>
       <span>
       {
-        formContext.isValid ? "Valid" : "Invalid" 
+        isValid ? "Valid" : "Invalid" 
       } CustomElement
       </span>
-      <input {...field} />
+      <input {...field('customElement')} />
     </>
   )
 }
@@ -527,6 +501,115 @@ export function App() {
 }
 ```
 
+## useFormSplitter
+
+Hook to create a sub-form. Serves to basically create a sub form for the specific "formFieldKey", where all validations, forms and methods will be specific to the "formFieldKey" selected. (Works basically like a specific useForm for that "formFieldKey")
+
+
+```jsx
+import React from 'react';
+import { Controller, useController, useForm } from '@resourge/react-form'
+
+function CustomElement({ index, value }: { index, value: number }) {
+  const { 
+	form, // Will only be related to the `list[${index}]`
+	errors, // Will only be related to the `list[${index}]`
+	isValid, // Will only be related to the `list[${index}]`
+	isTouched, // Will only be related to the `list[${index}]`
+	handleSubmit // Will only be related to the `list[${index}]`, meaning it will only trigger if `list[${index}]` is valid
+  } = useFormSplitter(`list[${index}]`)
+
+  return (
+    <div>
+	  <table>
+	    <tbody>
+          <tr>
+            <td>
+              Form:
+            </td>
+            <td>
+              { JSON.stringify(form, null, 4) }
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Errors:
+            </td>
+            <td>
+              { JSON.stringify(errors, null, 4) }
+            </td>
+          </tr>
+          <tr>
+            <td>
+              isValid:
+            </td>
+            <td>
+              { isValid.toString() }
+            </td>
+          </tr>
+          <tr>
+            <td>
+              isTouched:
+            </td>
+            <td>
+              { isTouched.toString() }
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Submit:
+            </td>
+            <td>
+              <button 
+                onClick={
+                  handleSubmit((form) => {
+                  // console.log('KeyName, form', KeyName, form)
+                  })
+                }
+              >
+                Submit
+              </button>
+            </td>
+          </tr>
+	    </tbody>
+	  </table>
+      { value } <button
+        onClick={() => {
+          onChange && onChange(Math.random())
+        }}
+      >
+        Update with random value
+      </button>
+    </div>
+  )
+}
+
+export function App() {
+  const {
+    context,
+    form
+  } = useForm({
+    list: Array.from({ length: 1000 }).map((_, index) => index + 1)
+  })
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      {
+        form.list.map((value, index) => (
+          <Controller
+            key={`${index}`}
+            name={`list[${index}]`}
+            context={context}
+          >
+            <CustomElement value={value} />
+          </Controller>
+        ))
+      }
+    </div>
+  )
+}
+```
+
 ## Controller
 
 For more complex and deep forms, where render's can impact performance 
@@ -536,18 +619,18 @@ is `touched`.
 
 ```jsx
 import React from 'react';
-import { Controller, useFormField, useForm } from '@resourge/react-form'
+import { Controller, useController, useForm } from '@resourge/react-form'
 
 function CustomElement({ value }: { value: number }) {
   const { 
-    field
+    onChange
   } = useController()
 
   return (
     <div>
       { value } <button
         onClick={() => {
-          field.onChange && field.onChange(Math.random())
+          onChange && onChange(Math.random())
         }}
       >
         Update with random value

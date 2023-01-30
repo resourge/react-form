@@ -19,7 +19,7 @@ export const useFormContext = <T extends object>(): UseFormReturn<T> => {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const controllerContext = useContext(ControllerContext);
 
-		invariant(controllerContext, 'Don\'t use useFormContext inside a Controller component as it will defeat the purpose of a Controller component.')
+		invariant(!(controllerContext), 'Don\'t use useFormContext inside a Controller component as it will defeat the purpose of a Controller component.')
 
 		invariant(context, 'useFormContext can only be used in the context of a <FormProvider> component.')
 	}

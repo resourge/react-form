@@ -29,15 +29,13 @@ import {
 	ProduceNewStateOptionsHistory
 } from '../types/types'
 import { createFormErrors, formatErrors } from '../utils/createFormErrors';
-import { getKeyFromPaths, isClass } from '../utils/utils';
+import { filterObjectByKey, getKeyFromPaths, isClass } from '../utils/utils';
 import { getDefaultOnError } from '../validators/setDefaultOnError';
 
 import { useChangedKeys } from './useChangedKeys';
 import { useErrors } from './useErrors';
 import { useFixCursorJumpingToEnd } from './useFixCursorJumpingToEnd';
 import { useGetterSetter } from './useGetterSetter';
-import { useProxy } from './useProxy';
-import { useUndoRedo } from './useUndoRedo';
 import { useWatch } from './useWatch';
 
 type State<T extends Record<string, any>> = {
@@ -100,49 +98,9 @@ export function useForm<T extends Record<string, any>>(
 	const getterSetter = useGetterSetter<T>();
 
 	const {
-		addAction,
-		addTouches,
-		undo,
-		redo
-	} = useUndoRedo<T>(
-		(
-			{
-				changes,
-				touches,
-				produceOptions
-			}, type
-		) => {
-			const originalTouches = {
-				...stateRef.current.touches 
-			}
-			if ( touches ) {
-				stateRef.current.touches = touches;
-			}
-			produceNewState((form) => {
-				changes.forEach((cb) => {
-					cb(form);
-				})
-			}, {
-				...produceOptions,
-				type
-			})
-			.then((result) => {
-				setFormState({
-					...result,
-					touches: touches ?? {}
-				})
-
-				addTouches(originalTouches)
-			});
-		},
-		{
-			maxHistory: options?.maxHistory
-		}
-	)
-
-	const {
 		watch,
-		onWatch
+		onWatch,
+		onSubmitWatch
 	} = useWatch();
 
 	const {
@@ -155,11 +113,6 @@ export function useForm<T extends Record<string, any>>(
 	)
 
 	const [changedKeys, updateController] = useChangedKeys(state.touches)
-
-	const formState = useProxy(
-		state.errors,
-		state.touches
-	)
 
 	/**
 	 * Validates the form
@@ -204,6 +157,8 @@ export function useForm<T extends Record<string, any>>(
 			e.persist();
 		}
 
+		const proms = onSubmitWatch.current();
+
 		const { errors } = await validateState(stateRef.current);
 
 		const hasError = Object.keys(errors).length
@@ -239,7 +194,11 @@ export function useForm<T extends Record<string, any>>(
 			}
 		}
 		
-		return await onValid(state.form);
+		const result = await onValid(state.form);
+
+		await proms(state.form);
+
+		return result;
 	}
 
 	function handleSubmit<K = void>(
@@ -328,17 +287,6 @@ export function useForm<T extends Record<string, any>>(
 		if ( result instanceof Promise ) {
 			await result;
 		}
-
-		addAction(
-			{
-				changes,
-				produceOptions,
-				touches: {
-					...oldState.touches 
-				}
-			}, 
-			produceOptions?.type
-		);
 
 		if (!produceOptions?.type) {
 			await onWatch.current(proxy, changedKeys)
@@ -499,6 +447,39 @@ export function useForm<T extends Record<string, any>>(
 		})
 	}
 
+	const _fieldFormReset = (
+		originalErrors: FormErrors<T>,
+		originalTouches: Touches<T>,
+		ignoreKeys: FormKey<T>
+	) => {
+		const {
+			errors, form, touches 
+		} = stateRef.current
+
+		const hasErrors = Object.keys(errors)
+		.some((key) => !key.includes(ignoreKeys)) 
+
+		const originalTouchesKeys = Object.keys(originalTouches)
+		const hasTouches = Object.keys(touches)
+		.some((key) => !originalTouchesKeys.includes(key) && !key.includes(ignoreKeys)) 
+
+		if ( 
+			hasErrors || hasTouches
+		) {
+			setFormState({
+				form,
+				errors: hasErrors ? {
+					...originalErrors,
+					...filterObjectByKey(errors, ignoreKeys as any)
+				} : errors,
+				touches: hasTouches ? {
+					...originalTouches,
+					...filterObjectByKey(touches, ignoreKeys as any) 
+				} : touches
+			})
+		}
+	}
+
 	// #endregion Errors
 	const getFormRef = useRef<UseFormReturn<T>>()
 
@@ -509,13 +490,12 @@ export function useForm<T extends Record<string, any>>(
 		},
 		errors: state.errors,
 		get isValid(): boolean {
-			return formState.isValid;
+			return Object.keys(state.errors).length === 0;
 		},
 		touches: state.touches,
 		get isTouched( ) {
-			return formState.isTouched
+			return Object.keys(state.touches).length !== 0;
 		},
-		formState,
 
 		changedKeys,
 
@@ -538,8 +518,7 @@ export function useForm<T extends Record<string, any>>(
 		resetTouch,
 		watch,
 		updateController,
-		undo,
-		redo
+		_fieldFormReset
 		// #endregion Form actions
 	}
 

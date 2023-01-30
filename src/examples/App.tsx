@@ -1,20 +1,41 @@
+/* eslint-disable react/no-multi-comp */
 import React, { useEffect, useState } from 'react';
 
-import { Controller, useForm } from '../lib'
+import { FormKey, FormProvider, useForm, useFormSplitter } from '../lib'
 
 type Props = {
-	errors: string[]
-	isTouched: boolean
-	isValid: boolean
+	KeyName: FormKey<FinalType>
 }
 
-const Custom: React.FC<Props> = ({ 
-	errors,
-	isValid,
-	isTouched
-}: Props) => {
+type FinalType = {
+	alfredo: Array<{
+		zordon: number
+	}>
+	jose: number[]
+	rafael: number
+	test: {
+		subTest: 1
+	}
+}
+const Custom: React.FC<Props> = ({ KeyName }: Props) => {
+	const {
+		form,
+		errors,
+		isValid,
+		isTouched,
+		handleSubmit
+	} = useFormSplitter<FinalType, typeof KeyName>(KeyName);
+
 	return (
 		<>
+			<tr>
+				<td>
+					Form:
+				</td>
+				<td>
+					{ JSON.stringify(form, null, 4) }
+				</td>
+			</tr>
 			<tr>
 				<td>
 					Errors:
@@ -39,6 +60,25 @@ const Custom: React.FC<Props> = ({
 					{ isTouched.toString() }
 				</td>
 			</tr>
+			<tr>
+				<td>
+					Submit:
+				</td>
+				<td>
+					<button 
+						onClick={
+							(e) => {
+								handleSubmit((form) => {
+								// console.log('KeyName, form', KeyName, form)
+								})(e)
+							}
+							
+						}
+					>
+						Submit
+					</button>
+				</td>
+			</tr>
 		</>
 	);
 };
@@ -57,21 +97,20 @@ function App() {
 	const {
 		form,
 		touches,
-		formState,
+		errors,
+		isTouched,
+		isValid,
 		context,
+		getErrors,
+		hasError,
 
 		changeValue,
 		triggerChange,
 		field,
 		watch,
-		reset
-	} = useForm<{
-		alfredo: Array<{
-			zordon: number
-		}>
-		jose: number[]
-		rafael: number
-	}>(
+		reset,
+		handleSubmit
+	} = useForm<FinalType>(
 		{
 			rafael: 10,
 			jose: [],
@@ -80,11 +119,14 @@ function App() {
 			})
 			.map(() => ({
 				zordon: Math.random()
-			}))
+			})),
+			test: {
+				subTest: 1
+			}
 		},
 		{
 			validate: () => {
-				throw new Error();
+				throw new Error()
 			},
 			onErrors: () => {
 				return [
@@ -109,6 +151,10 @@ function App() {
 		}
 	)
 
+	const submit = handleSubmit((form) => {
+		// console.log('form', form)
+	})
+
 	watch('jose', async (form) => {
 		await Promise.resolve();
 		// console.log('Watch jose')
@@ -127,6 +173,16 @@ function App() {
 		// console.log('Watch alfredo[0]')
 	})
 
+	watch('submit', (form) => {
+		// console.log('Submit 1')
+		// console.log('Watch alfredo[0]')
+	})
+
+	watch('submit', (form) => {
+		// console.log('Submit 2')
+		// console.log('Watch alfredo[0]')
+	})
+
 	useEffect(() => {
 		setRandomNumber(Math.random())
 	// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -138,136 +194,135 @@ function App() {
 	console.log('formState.alfredo[0].zordon.errors', formState.alfredo[0].zordon.errors)
 */
 	return (
-		<div>
-			<button onClick={() => {
-				setRandomNumber(Math.random())
-			}}
-			>
-				{ randomNumber }
-			</button>
-			<button onClick={() => {
-				changeValue('rafael', Math.random())
-			}}
-			>
-				Update Rafael
-			</button>
-			<button onClick={() => {
-				changeValue('jose', [Math.random() as unknown as any])
-			}}
-			>
-				Update Jose
-			</button>
-			<button onClick={() => {
-				triggerChange((form) => {
-					form.alfredo[0].zordon = Math.random()
-				})
-			}}
-			>
-				Update Alfredo
-			</button>
-			<button onClick={() => {
-				triggerChange((form) => {
-					form.alfredo = Array.from({
-						length: 1000 
+		<FormProvider context={context}>
+			<div>
+				<button 
+					onClick={submit}
+				>
+					Submit
+				</button>
+				<button onClick={() => {
+					setRandomNumber(Math.random())
+				}}
+				>
+					{ randomNumber }
+				</button>
+				<button onClick={() => {
+					changeValue('rafael', Math.random())
+				}}
+				>
+					Update Rafael
+				</button>
+				<button onClick={() => {
+					changeValue('jose', [Math.random() as unknown as any])
+				}}
+				>
+					Update Jose
+				</button>
+				<button onClick={() => {
+					triggerChange((form) => {
+						form.alfredo[0].zordon = Math.random()
 					})
-					.map(() => ({
-						zordon: Math.random()
-					}))
-				})
-			}}
-			>
-				Change Alfredo
-			</button>
-			<button onClick={() => {
-				reset({
-					rafael: 10,
-					jose: [],
-					alfredo: Array.from({
-						length: 1000 
+				}}
+				>
+					Update Alfredo
+				</button>
+				<button onClick={() => {
+					triggerChange((form) => {
+						form.alfredo = Array.from({
+							length: 1000 
+						})
+						.map(() => ({
+							zordon: Math.random()
+						}))
 					})
-					.map(() => ({
-						zordon: Math.random()
-					}))
-				})
-			}}
-			>
-				Reset Rafael
-			</button>
-			<input { ...field('rafael')} />
-			<textarea { ...field('rafael')}/>
-			<input { ...field('rafael')} />
-			<table>
-				<tbody>
-					<tr>
-						<td>
-							Touches:
-						</td>
-						<td>
-							{ JSON.stringify(touches, null, 4) }
-						</td>
-					</tr>
-					<tr>
-						<td>
-							Errors:
-						</td>
-						<td>
-							{ JSON.stringify(formState.errors, null, 4) }
-						</td>
-					</tr>
-					<tr>
-						<td>
-							isValid:
-						</td>
-						<td>
-							{ formState.isValid.toString() }
-						</td>
-					</tr>
-					<tr>
-						<td>
-							isTouched:
-						</td>
-						<td>
-							{ formState.isTouched.toString() }
-						</td>
-					</tr>
+				}}
+				>
+					Change Alfredo
+				</button>
+				<button onClick={() => {
+					reset({
+						rafael: 10,
+						jose: [],
+						alfredo: Array.from({
+							length: 1000 
+						})
+						.map(() => ({
+							zordon: Math.random()
+						}))
+					})
+				}}
+				>
+					Reset Rafael
+				</button>
+				<input { ...field('rafael')} />
+				<textarea { ...field('rafael')}/>
+				<input { ...field('rafael')} />
+				<table>
+					<tbody>
+						<tr>
+							<td>
+								Touches:
+							</td>
+							<td>
+								{ JSON.stringify(touches, null, 4) }
+							</td>
+						</tr>
+						<tr>
+							<td>
+								Errors:
+							</td>
+							<td>
+								{ JSON.stringify(errors, null, 4) }
+							</td>
+						</tr>
+						<tr>
+							<td>
+								isValid:
+							</td>
+							<td>
+								{ isValid.toString() }
+							</td>
+						</tr>
+						<tr>
+							<td>
+								isTouched:
+							</td>
+							<td>
+								{ isTouched.toString() }
+							</td>
+						</tr>
+						{
+							Object.keys(form)
+							.map((key, index) => (
+								<tr key={`${key}${index}`}>
+									<td>
+										{key}
+										:
+									</td>
+									<td>
+										<table>
+											<tbody>
+												<Custom 
+													KeyName={key as FormKey<FinalType>}
+												/>
+											</tbody>
+										</table>
+									</td>
+								</tr>
+							))
+						}
+					</tbody>
+				</table>
+				<div>
 					{
-						Object.keys(form)
-						.map((key, index) => (
-							<tr key={`${key}${index}`}>
-								<td>
-									{key}
-									:
-								</td>
-								<td>
-									<table>
-										<tbody>
-											<Custom 
-												errors={(formState as any)[key].errors}
-												isTouched={(formState as any)[key].isTouched}
-												isValid={(formState as any)[key].isValid}
-											/>
-										</tbody>
-									</table>
-								</td>
-							</tr>
+						form.alfredo.map((_, index) => (
+							<CustomElement key={`a_${index}`} />
 						))
 					}
-				</tbody>
-			</table>
-			<div>
-				{
-					form.alfredo.map((_, index) => (
-						<Controller
-							key={`a_${index}`}
-							context={context}
-							name={`alfredo[${index}]`}
-						>
-							<CustomElement />
-						</Controller>
-					))
-				}
+				</div>
 			</div>
-		</div>
+		</FormProvider>
 	)
 }
 

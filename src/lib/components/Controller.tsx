@@ -41,9 +41,7 @@ export type ControllerProps<T extends Record<string, any>> = {
  * )
  * ```
  */
-export const Controller = memo(function Controller<T extends Record<string, any>>({ 
-	name, context, children 
-}: ControllerProps<T>) {
+export const Controller = memo(function Controller<T extends Record<string, any>>({ context, children }: ControllerProps<T>) {
 	return (
 		<ControllerContext.Provider
 			value={context as FormContextObject<T>}

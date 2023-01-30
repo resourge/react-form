@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-invalid-void-type */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { Ref } from 'react';
+import { FormEvent, MouseEvent, Ref } from 'react';
 
 import { FormContextObject } from '../contexts/FormContext';
 import { WatchMethod } from '../hooks/useWatch';
@@ -305,49 +305,6 @@ export type ValidateSubmission<T extends Record<string, any>> = (
 	error: any
 ) => boolean | Promise<boolean>
 
-export type FormState<T> = (T extends object ? { 
-	[K in keyof T]-?: T[K] extends object ? FormState<T[K]> : {
-		/**
-		 * Error for current key
-		 */
-		errors: string[]
-		/**
-		 * isTouched for current key
-		 */
-		isTouched: boolean
-		/**
-		 * isValid for current key
-		 */
-		isValid: boolean
-	} 
-} : {
-	/**
-	 * Error for current key
-	 */
-	errors: string[]
-	/**
-	 * isTouched for current key
-	 */
-	isTouched: boolean
-	/**
-	 * isValid for current key
-	 */
-	isValid: boolean
-} ) & {
-	/**
-	 * Error for current key
-	 */
-	errors: string[]
-	/**
-	 * isTouched for current key
-	 */
-	isTouched: boolean
-	/**
-	 * isValid for current key
-	 */
-	isValid: boolean
-} 
-
 export interface UseFormReturn<T extends Record<string, any>> {
 	/**
 	 * Simplified version of `onChange`, without the return method
@@ -374,7 +331,7 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 */
 	changeValue: (key: FormKey<T>, value: T[FormKey<T>], produceOptions?: FieldOptions<any> | undefined) => void
 	/**
-	 * Context mainly for use in `FormProvider/Controller`, basically returns {@link FormState}
+	 * Context mainly for use in `FormProvider/Controller`, basically returns {@link UseFormReturn}
 	 */
 	context: FormContextObject<T>
 	/**
@@ -414,10 +371,6 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * Form state
 	 */
 	form: T
-	/**
-	 * Virtual nested object that has information on the `key` like errors/isTouched/isValid
-	 */
-	formState: FormState<T>
 	/**
 	 * Returns error messages for the matched key
 	 * 
@@ -493,7 +446,7 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * ...
 	 * ```
 	 */
-	handleSubmit: <K = void>(onValid: SubmitHandler<T, K>, onInvalid?: ValidateSubmission<T> | undefined) => () => Promise<K | undefined>
+	handleSubmit: <K = void>(onValid: SubmitHandler<T, K>, onInvalid?: ValidateSubmission<T> | undefined) => (e?: FormEvent<HTMLFormElement> | MouseEvent) => Promise<K | undefined>
 	/**
 	 * Method to verify if `key` has errors
 	 * 
@@ -568,18 +521,6 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * ```
 	 */
 	onChange: (key: FormKey<T>, fieldOptions?: FieldOptions<T[FormKey<T>]> | undefined) => (value: T[FormKey<T>]) => void
-	/**
-	 * Forward last undo. (If there is one)
-	 * @example 
-	 * ```Typescript
-	 * const {
-	 *	 redo
-	 * } = useForm()
-	 * ...
-	 * redo('name')
-	 * ```
-	 */
-	redo: () => void
 	/**
 	 * Resets form state
 	 * 
@@ -678,18 +619,6 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 */
 	triggerChange: (cb: OnFunctionChange<T, void>, produceOptions?: ProduceNewStateOptions | undefined) => void
 	/**
-	 * Revert last change. (If there is one)
-	 * @example 
-	 * ```Typescript
-	 * const {
-	 *	 undo
-	 * } = useForm()
-	 * ...
-	 * undo
-	 * ```
-	 */
-	undo: () => void
-	/**
 	 * Manually force Controller component to update.
 	 * 
 	 * Note: It does not render the component alone.
@@ -710,7 +639,8 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 */
 	updateController: (key: FormKey<T>) => void
 	/**
-	 * Watch key to then execute the method to update other values
+	 * Watch key to then execute the method to update other values or
+	 * Watch 'submit' to execute when the form is submitted
 	 * 
 	 * @param key - key from `form` state
 	 * @param method - method that will be executed on key touch
@@ -729,7 +659,7 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * })
 	 * ```
 	 */
-	watch: (key: FormKey<T>, method: WatchMethod<T>) => void
+	watch: (key: FormKey<T> | 'submit', method: WatchMethod<T>) => void
 }
 
 export type UseFormReturnController<T extends Record<string, any>> = UseFormReturn<T> & {
