@@ -446,7 +446,10 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * ...
 	 * ```
 	 */
-	handleSubmit: <K = void>(onValid: SubmitHandler<T, K>, onInvalid?: ValidateSubmission<T> | undefined) => (e?: FormEvent<HTMLFormElement> | MouseEvent) => Promise<K | undefined>
+	handleSubmit: <K = void>(
+		onValid: SubmitHandler<T, K>, 
+		onInvalid?: ValidateSubmission<T> | undefined
+	) => (e?: FormEvent<HTMLFormElement> | MouseEvent) => Promise<K | undefined>
 	/**
 	 * Method to verify if `key` has errors
 	 * 
@@ -617,7 +620,7 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * ...
 	 * ```
 	 */
-	triggerChange: (cb: OnFunctionChange<T, void>, produceOptions?: ProduceNewStateOptions | undefined) => void
+	triggerChange: (cb: OnFunctionChange<T, void>, produceOptions?: ProduceNewStateOptions | undefined) => Promise<void>
 	/**
 	 * Manually force Controller component to update.
 	 * 

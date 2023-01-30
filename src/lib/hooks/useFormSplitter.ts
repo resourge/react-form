@@ -1,39 +1,110 @@
+import invariant from 'tiny-invariant'
+
 import { useControllerContext } from '../contexts/ControllerContext';
 import { FormContextObject, useFormContext } from '../contexts/FormContext'
 import { FormKey } from '../types/FormKey';
 import { PathValue } from '../types/PathValue';
-import { FormErrors, Touches, UseFormReturn } from '../types/types'
+import { ProduceNewStateOptions, UseFormReturn } from '../types/types'
 import { filterObjectByKey } from '../utils/utils';
 
+import { useGetterSetter } from './useGetterSetter';
 import { WatchMethod } from './useWatch';
 
 /**
  * Hook to create a splitter form. Serves to create a form for the specific "formFieldKey"
- * 
+ * * Note: useFormSplitter used inside a Controller doesn't need "formFieldKey" otherwise is mandatory
  * @param formFieldKey - key from `form` state 
  */
-export const useFormSplitter = <
+export function useFormSplitter<
+	T extends Record<string, any>,
+	K extends FormKey<T>
+>(): Omit<UseFormReturn<PathValue<T, K>>, 'context' | 'triggerChange'> & Pick<UseFormReturn<T>, 'context'> & {
+	triggerChange: (
+		cb: (
+			(
+				form: PathValue<T, K>, 
+				setParentValue: (value: PathValue<T, K>) => void
+			) => void
+		) | (
+			(
+				form: PathValue<T, K>, 
+				setParentValue: (value: PathValue<T, K>) => void
+			) => Promise<void>
+		), 
+		produceOptions?: ProduceNewStateOptions | undefined
+	) => Promise<void>
+}
+export function useFormSplitter<
+	T extends Record<string, any>,
+	K extends FormKey<T>
+>(formFieldKey: K): Omit<UseFormReturn<PathValue<T, K>>, 'context' | 'triggerChange'> & Pick<UseFormReturn<T>, 'context'> & {
+	triggerChange: (
+		cb: (
+			(
+				form: PathValue<T, K>, 
+				setParentValue: (value: PathValue<T, K>) => void
+			) => void
+		) | (
+			(
+				form: PathValue<T, K>, 
+				setParentValue: (value: PathValue<T, K>) => void
+			) => Promise<void>
+		), 
+		produceOptions?: ProduceNewStateOptions | undefined
+	) => Promise<void>
+}
+export function useFormSplitter<
 	T extends Record<string, any>,
 	K extends FormKey<T>
 >(
-	formFieldKey: K
-): Omit<UseFormReturn<PathValue<T, K>>, 'context'> & Pick<UseFormReturn<T>, 'context'> => {
-	// eslint-disable-next-line react-hooks/rules-of-hooks
-	const context = useControllerContext<any>() ?? useFormContext<any>();
+	formFieldKey?: K
+): Omit<UseFormReturn<PathValue<T, K>>, 'context' | 'triggerChange'> & Pick<UseFormReturn<T>, 'context'> & {
+		triggerChange: (
+			cb: (
+				(
+					form: PathValue<T, K>, 
+					setParentValue: (value: PathValue<T, K>) => void
+				) => void
+			) | (
+				(
+					form: PathValue<T, K>, 
+					setParentValue: (value: PathValue<T, K>) => void
+				) => Promise<void>
+			), 
+			produceOptions?: ProduceNewStateOptions | undefined
+		) => Promise<void>
+	} {
+	const controllerContext = useControllerContext<any>();
+	let context: FormContextObject<any>;
+	let _formFieldKey = formFieldKey as K;
+	if ( controllerContext ) {
+		context = controllerContext.context;
+		_formFieldKey = formFieldKey ?? controllerContext.name as K;
+	}
+	else {
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		context = useFormContext<any>();
+	}
+
+	if ( __DEV__ ) {
+		invariant(_formFieldKey, '\'formFieldKey\' undefined can only used inside a Controller component.');
+	}
 
 	const getKey = (key: FormKey<PathValue<T, K>>): any => {
-		return `${formFieldKey}${key ? `.${key as string}` : ''}` as FormKey<PathValue<T, K>>;
+		return `${_formFieldKey}${key ? `.${key as string}` : ''}` as FormKey<PathValue<T, K>>;
 	}
+
+	const getterSetter = useGetterSetter();
 
 	return {
 		get form() {
-			return context.getValue(formFieldKey)
+			return context.getValue(_formFieldKey)
 		},
 		get errors() {
-			return filterObjectByKey(context.errors, formFieldKey)
+			return filterObjectByKey(context.errors, _formFieldKey)
 		},
 		get touches() {
-			return filterObjectByKey(context.touches, formFieldKey)
+			return filterObjectByKey(context.touches, _formFieldKey)
 		},
 		get isTouched() {
 			return Object.keys(this.touches).length > 0
@@ -45,25 +116,12 @@ export const useFormSplitter = <
 			(
 				onValid, 
 				onInvalid
-			) => async (e) => {
-				const originalErrors = context.errors;
-				const originalTouches = context.touches;
-				try {
-					return await context.handleSubmit(
-						() => onValid(context.getValue(formFieldKey)), 
-						(errors, error) => {
-							return Object.keys(filterObjectByKey(errors, formFieldKey)).length === 0 && (onInvalid ? onInvalid(filterObjectByKey(errors, formFieldKey), error) : true)
-						}
-					)(e);
+			) => context.handleSubmit(
+				() => onValid(context.getValue(_formFieldKey)), 
+				(errors, error) => {
+					return Object.keys(filterObjectByKey(errors, _formFieldKey)).length === 0 && (onInvalid ? onInvalid(filterObjectByKey(errors, _formFieldKey), error) : true)
 				}
-				finally {
-					(context as FormContextObject<any> & { _fieldFormReset: (
-						originalErrors: FormErrors<T>,
-						originalTouches: Touches<T>,
-						ignoreKeys: K
-					) => void })._fieldFormReset(originalErrors, originalTouches, formFieldKey);
-				}
-			}
+			)
 		) as UseFormReturn<PathValue<T, K>>['handleSubmit'],
 		watch: ((key, method) => context.watch(key !== 'submit' ? getKey(key) : key, method as WatchMethod<any>)) as UseFormReturn<PathValue<T, K>>['watch'],
 		field: ((key, options) => context.field(getKey(key), options)) as UseFormReturn<PathValue<T, K>>['field'],
@@ -72,12 +130,33 @@ export const useFormSplitter = <
 		changeValue: ((key, value, options) => context.changeValue(getKey(key), value, options)) as UseFormReturn<PathValue<T, K>>['changeValue'],
 		getValue: ((key) => context.getValue(getKey(key))) as UseFormReturn<PathValue<T, K>>['getValue'],
 		context: context.context,
-		merge: context.merge,
-		onChange: context.onChange,
-		reset: context.reset,
+		merge: (mergedForm) => {
+			getterSetter.set(_formFieldKey, context.form, mergedForm)
+			return context.merge(mergedForm)
+		},
+		onChange: ((key, fieldOptions) => (value) => context.onChange(getKey(key), fieldOptions)(value)) as UseFormReturn<PathValue<T, K>>['onChange'],
+		reset: (newFrom, resetOptions) => {
+			getterSetter.set(_formFieldKey, context.form, newFrom)
+			return context.reset(newFrom, resetOptions)
+		},
 		resetTouch: context.resetTouch,
 		setError: context.setError,
-		triggerChange: context.triggerChange,
-		updateController: context.updateController
+		triggerChange: (
+			cb,
+			produceOptions
+		) => {
+			return context.triggerChange(
+				(form: T) => {
+					return cb(
+						getterSetter.get(_formFieldKey, form), 
+						(targetValue) => {
+							getterSetter.set(_formFieldKey, form, targetValue)
+						}
+					)
+				}, 
+				produceOptions
+			);
+		},
+		updateController: ((key) => context.updateController(getKey(key))) as UseFormReturn<PathValue<T, K>>['updateController']
 	}
 }

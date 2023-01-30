@@ -29,7 +29,7 @@ import {
 	ProduceNewStateOptionsHistory
 } from '../types/types'
 import { createFormErrors, formatErrors } from '../utils/createFormErrors';
-import { filterObjectByKey, getKeyFromPaths, isClass } from '../utils/utils';
+import { getKeyFromPaths, isClass } from '../utils/utils'
 import { getDefaultOnError } from '../validators/setDefaultOnError';
 
 import { useChangedKeys } from './useChangedKeys';
@@ -259,8 +259,8 @@ export function useForm<T extends Record<string, any>>(
 
 				if ( 
 					key && 
-						!(produceOptions?.triggerTouched === false) &&
-						typeof getterSetter.get(key, newState.form) !== 'function'
+					!(produceOptions?.triggerTouched === false) &&
+					typeof getterSetter.get(key, newState.form) !== 'function'
 				) {
 					options?.onTouch && options?.onTouch(
 						key, 
@@ -392,7 +392,7 @@ export function useForm<T extends Record<string, any>>(
 
 	const field = (
 		key: FormKey<T>, 
-		fieldOptions?: FieldOptions
+		fieldOptions?: FieldOptions<T>
 	): FieldForm => {
 		const value = getValue(key);
 
@@ -447,39 +447,6 @@ export function useForm<T extends Record<string, any>>(
 		})
 	}
 
-	const _fieldFormReset = (
-		originalErrors: FormErrors<T>,
-		originalTouches: Touches<T>,
-		ignoreKeys: FormKey<T>
-	) => {
-		const {
-			errors, form, touches 
-		} = stateRef.current
-
-		const hasErrors = Object.keys(errors)
-		.some((key) => !key.includes(ignoreKeys)) 
-
-		const originalTouchesKeys = Object.keys(originalTouches)
-		const hasTouches = Object.keys(touches)
-		.some((key) => !originalTouchesKeys.includes(key) && !key.includes(ignoreKeys)) 
-
-		if ( 
-			hasErrors || hasTouches
-		) {
-			setFormState({
-				form,
-				errors: hasErrors ? {
-					...originalErrors,
-					...filterObjectByKey(errors, ignoreKeys as any)
-				} : errors,
-				touches: hasTouches ? {
-					...originalTouches,
-					...filterObjectByKey(touches, ignoreKeys as any) 
-				} : touches
-			})
-		}
-	}
-
 	// #endregion Errors
 	const getFormRef = useRef<UseFormReturn<T>>()
 
@@ -517,8 +484,7 @@ export function useForm<T extends Record<string, any>>(
 
 		resetTouch,
 		watch,
-		updateController,
-		_fieldFormReset
+		updateController
 		// #endregion Form actions
 	}
 

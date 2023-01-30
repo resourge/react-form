@@ -6,7 +6,10 @@ import { FormContextObject } from './FormContext'
 
 export type ControllerContextObject<
 	T extends Record<string, any>,
-> = FormContextObject<T>
+> = {
+	context: FormContextObject<T>
+	name: string
+}
 
 // @ts-expect-error I want the validation on the useController
 export const ControllerContext = createContext<ControllerContextObject<any, any, any>>(null);
@@ -17,7 +20,7 @@ export const useControllerContext = <
 	return useContext(ControllerContext)
 }
 
-export const useController = <
+const useControllerBase = <
 	T extends Record<string, any>
 >(): ControllerContextObject<T> => {
 	const context = useControllerContext()
@@ -27,4 +30,16 @@ export const useController = <
 	}
 
 	return context as unknown as ControllerContextObject<T>
+}
+
+export const useControllerName = <
+	T extends Record<string, any>
+>(): string => {
+	return useControllerBase<T>().name
+}
+
+export const useController = <
+	T extends Record<string, any>
+>(): FormContextObject<T> => {
+	return useControllerBase<T>().context
 }

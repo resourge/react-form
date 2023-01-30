@@ -9,7 +9,7 @@ import { UseFormReturnController } from '../types/types';
 export type ControllerProps<T extends Record<string, any>> = {
 	children: React.ReactNode
 	context: FormContextObject<T>
-	name: FormKey<T> | Array<FormKey<T>>
+	name: FormKey<T>
 	deps?: any[]
 }
 
@@ -41,10 +41,15 @@ export type ControllerProps<T extends Record<string, any>> = {
  * )
  * ```
  */
-export const Controller = memo(function Controller<T extends Record<string, any>>({ context, children }: ControllerProps<T>) {
+export const Controller = memo(function Controller<T extends Record<string, any>>({
+	name, context, children 
+}: ControllerProps<T>) {
 	return (
 		<ControllerContext.Provider
-			value={context as FormContextObject<T>}
+			value={{
+				name,
+				context: context as FormContextObject<T>
+			}}
 		>
 			{ children }
 		</ControllerContext.Provider>
@@ -55,23 +60,10 @@ export const Controller = memo(function Controller<T extends Record<string, any>
 	const context = nextProps.context as UseFormReturnController<Record<string, any>>
 	const changedKeys = context.changedKeys
 	const keyToFind = nextProps.name;
-	const isArray = Array.isArray(keyToFind);
 	const keys = [...changedKeys.current.keys()];
 
 	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 	const isSameDeps = Boolean(nextProps.deps && prevProps.deps && nextProps.deps.some((dep, index) => dep === prevProps.deps![index]))
-
-	if ( isArray ) {
-		const shouldUpdate = keys.some((key) => (
-			keyToFind.some((keyF) => key.includes(keyF) || keyF.includes(key))
-		))
-		
-		return (
-			(prevProps.name as string[]).some((pName) => (
-				(nextProps.name as string[]).includes(pName)
-			)) && !(shouldUpdate) && isSameDeps
-		);
-	}
 
 	const shouldUpdate = keys.some((key) => (
 		key.includes(keyToFind) || 
