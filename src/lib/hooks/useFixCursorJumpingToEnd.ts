@@ -9,7 +9,7 @@ const InputTypeSupportedCursor = [
 	'TEXT'
 ]
 
-const isBrowser = Boolean(window.addEventListener);
+const isBrowser = Boolean(typeof document !== 'undefined');
 
 /**
  * This serves to fix a bug where async onChange resets cursor position to end
