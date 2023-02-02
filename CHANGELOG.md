@@ -1,3 +1,10 @@
+## [1.18.1](https://github.com/resourge/react-form/compare/v1.18.0...v1.18.1) (2023-02-02)
+
+
+### Bug Fixes
+
+* **classdecorators:** fix type not working in every class ([1133f44](https://github.com/resourge/react-form/commit/1133f44f23c6e20a33dd91bbb0f2762401a17837))
+
 # [1.18.0](https://github.com/resourge/react-form/compare/v1.17.0...v1.18.0) (2023-02-02)
 
 
