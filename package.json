@@ -99,7 +99,7 @@
   },
   "dependencies": {
     "@resourge/shallow-clone": "^1.0.0",
-    "deepmerge-ts": "^4.2.2",
-    "localforage": "^1.10.0"
+    "deepmerge-ts": ">=4.2.2",
+    "localforage": ">=1.10.0"
   }
 }
