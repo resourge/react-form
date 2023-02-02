@@ -1,3 +1,10 @@
+## [1.18.4](https://github.com/resourge/react-form/compare/v1.18.3...v1.18.4) (2023-02-02)
+
+
+### Bug Fixes
+
+* **package.json:** fix serialijse patch-package ([9f3b441](https://github.com/resourge/react-form/commit/9f3b441331525e3429faad7f091dc8928413bb74))
+
 ## [1.18.3](https://github.com/resourge/react-form/compare/v1.18.2...v1.18.3) (2023-02-02)
 
 
