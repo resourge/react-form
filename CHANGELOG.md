@@ -1,3 +1,10 @@
+## [1.18.3](https://github.com/resourge/react-form/compare/v1.18.2...v1.18.3) (2023-02-02)
+
+
+### Bug Fixes
+
+* **useformstorage:** fix converting json to class ([cb612a9](https://github.com/resourge/react-form/commit/cb612a98e9357eb3b54e1f3c660d5d22c9f1c7e6))
+
 ## [1.18.2](https://github.com/resourge/react-form/compare/v1.18.1...v1.18.2) (2023-02-02)
 
 

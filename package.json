@@ -1,6 +1,6 @@
 {
   "name": "@resourge/react-form",
-  "version": "1.18.1",
+  "version": "1.18.3",
   "description": "react-form is a simple and basic controlled hook form. Aiming to create forms with minimal effort.",
   "main": "./dist/main.js",
   "module": "./dist/index.js",
@@ -26,7 +26,7 @@
   "author": "resourge",
   "license": "MIT",
   "scripts": {
-	"postinstall": "patch-package",
+    "postinstall": "patch-package",
     "commitizen": "git-cz",
     "commit": "git pull && git add . && npm run commitizen",
     "lint": "eslint \"./src/**/*.{ts,tsx}\"",
