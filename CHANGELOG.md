@@ -1,3 +1,16 @@
+# [1.18.0](https://github.com/resourge/react-form/compare/v1.17.0...v1.18.0) (2023-02-02)
+
+
+### Bug Fixes
+
+* **useformsplitter:** fix return type not working in nested keys ([83208a4](https://github.com/resourge/react-form/commit/83208a42758e6983b2b1a161b14557342b2fdf15))
+
+
+### Features
+
+* **useformsplitter:** improve useformsplitter to work together with Controller component ([bd251ec](https://github.com/resourge/react-form/commit/bd251ec5883d722cadfdac47508b38f5cdbbf2c4))
+* **useformstorage:** add useformstorage to create form that are saved in local storage ([428f6ea](https://github.com/resourge/react-form/commit/428f6eabfa92474a3d8561aa695bab3c28f13f79))
+
 # [1.17.0](https://github.com/resourge/react-form/compare/v1.16.0...v1.17.0) (2023-01-30)
 
 
