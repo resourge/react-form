@@ -120,9 +120,6 @@ export function useForm<T extends Record<string, any>>(
 				// eslint-disable-next-line @typescript-eslint/no-throw-literal
 				throw errors;
 			}
-			if ( options?.onSubmit ) {
-				options?.onSubmit(state);
-			}
 			return { 
 				form: state.form,
 				errors: {},
@@ -177,6 +174,14 @@ export function useForm<T extends Record<string, any>>(
 			errors,
 			touches: _touches
 		})
+
+		if ( options?.onSubmit ) {
+			options?.onSubmit({
+				form,
+				errors,
+				touches: _touches
+			});
+		}
 
 		if ( hasError ) {
 			if ( onInvalid ) {
