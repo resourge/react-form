@@ -610,6 +610,82 @@ export function App() {
 }
 ```
 
+
+## useFormStorage
+
+Hook to create a form. Works the same as useForm but when changes are done it will also saves the data in a local storage (using localForage).
+_Note that when changes are done to form data, it's always better to change/update the version so local storage data is cleared._
+_Note: By default it will clear the form from local storage when submitted with success._
+
+```jsx
+import React from 'react';
+import { Controller, useController, useFormStorage } from '@resourge/react-form'
+
+export function App() {
+  const {
+    isValid,
+    field, 
+    handleSubmit 
+  } = useFormStorage(
+	{
+		list: Array.from({ length: 1000 }).map((_, index) => index + 1)
+	},
+	{
+		uniqueId: 'unique form id' // Mandatory so you can save multiple forms
+		// autoSyncWithLocalStorage (optional) When true, will automatically sync the form data with local storage one (default true)
+		// shouldClearAfterSubmit (optional) When true, will clear local storage after submit (default true)
+		// version (optional) Local storage version (to clear when changes are done to the form)
+	}
+  )
+
+  const onSubmit = handleSubmit((form) => {
+    ....
+  })
+
+  return (
+    <form onSubmit={onSubmit}>
+      <input { ...field('name') }/>
+      <span>
+      {
+        isValid ? "Valid" : "Invalid" 
+      } Form
+      </span>
+      <button type="submit">
+        Save
+      </button>
+    </form>
+  )
+}
+```
+### Class vs JSON
+
+When using `useFormStorage` all data will be converted to JSON (localStorage, indexDB, etc only work with pure JSON) that means Class's prototype will be removed. To prevent this from occurring some class decorators are provided.
+
+#### PreserveArrayClass and PreserveClass
+
+```Typescript
+class Test {
+	public doSomething() {
+
+	}
+}
+
+class AppTest {
+	public test = {
+		subTest: 1
+	};
+
+	@PreserveClass(Test)
+	public classTest1 = new Test();
+
+	@PreserveArrayClass(Test)
+	public classArrayTest = []
+
+	@PreserveClass(Test)
+	public classTest2?: Test;
+}
+```
+
 ## Controller
 
 For more complex and deep forms, where render's can impact performance 

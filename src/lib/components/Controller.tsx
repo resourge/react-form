@@ -63,7 +63,7 @@ export const Controller = memo(function Controller<T extends Record<string, any>
 	const keys = [...changedKeys.current.keys()];
 
 	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-	const isSameDeps = Boolean(nextProps.deps && prevProps.deps && nextProps.deps.some((dep, index) => dep === prevProps.deps![index]))
+	const isSameDeps = !nextProps.deps || (nextProps.deps && nextProps.deps.length === 0) || Boolean(nextProps.deps && prevProps.deps && nextProps.deps.some((dep, index) => dep === prevProps.deps![index]))
 
 	const shouldUpdate = keys.some((key) => (
 		key.includes(keyToFind) || 

@@ -23,10 +23,10 @@ import {
 	FieldOptions,
 	ResetOptions,
 	FormOptions,
-	FormErrors,
 	UseFormReturn,
 	Touches,
-	ProduceNewStateOptionsHistory
+	ProduceNewStateOptionsHistory,
+	State
 } from '../types/types'
 import { createFormErrors, formatErrors } from '../utils/createFormErrors';
 import { getKeyFromPaths, isClass } from '../utils/utils'
@@ -37,12 +37,6 @@ import { useErrors } from './useErrors';
 import { useFixCursorJumpingToEnd } from './useFixCursorJumpingToEnd';
 import { useGetterSetter } from './useGetterSetter';
 import { useWatch } from './useWatch';
-
-type State<T extends Record<string, any>> = {
-	errors: FormErrors<T>
-	form: T
-	touches: Touches<T>
-}
 
 export function useForm<T extends Record<string, any>>(
 	defaultValue: { new(): T }, 
@@ -125,6 +119,9 @@ export function useForm<T extends Record<string, any>>(
 			if ( errors && errors.length ) {
 				// eslint-disable-next-line @typescript-eslint/no-throw-literal
 				throw errors;
+			}
+			if ( options?.onSubmit ) {
+				options?.onSubmit(state);
 			}
 			return { 
 				form: state.form,
@@ -229,7 +226,7 @@ export function useForm<T extends Record<string, any>>(
 		produceOptions?: ProduceNewStateOptionsHistory
 	): Promise<State<T>> => {
 		const oldState = stateRef.current;
-		const newState: State<T> = {
+		let newState: State<T> = {
 			form: oldState.form,
 			errors: {
 				...oldState.errors 
@@ -299,14 +296,14 @@ export function useForm<T extends Record<string, any>>(
 		if ( 
 			Boolean(produceOptions?.forceValidation) || validate
 		) {
-			return await validateState(newState);
+			newState = await validateState(newState);
 		}
 
-		return { 
-			form: newState.form,
-			errors: newState.errors,
-			touches: newState.touches
+		if ( options?.onChange ) {
+			await options.onChange(newState)
 		}
+
+		return newState
 	}
 
 	const reset = async (
@@ -484,7 +481,8 @@ export function useForm<T extends Record<string, any>>(
 
 		resetTouch,
 		watch,
-		updateController
+		updateController,
+		_setFormState
 		// #endregion Form actions
 	}
 

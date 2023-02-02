@@ -16,7 +16,13 @@ export default defineConfig(({ mode }) => ({
 		setupFiles: './src/setupTests.ts'
 	},
 	plugins: [
-		react(),
+		react({
+			babel: {
+				parserOpts: {
+					plugins: ['decorators-legacy', 'classProperties']
+				}
+			}
+		}),
 		tsconfigPaths(),
 		checker({ 
 			typescript: true,

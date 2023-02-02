@@ -65,6 +65,12 @@ export type GetErrors<T extends Record<string, any>> = string[] & FormErrors<T>
 
 export type ResetMethod<T extends Record<string, any>> = (newFrom: Partial<T>, resetOptions?: ResetOptions | undefined) => Promise<void>
 
+export type State<T extends Record<string, any>> = {
+	errors: FormErrors<T>
+	form: T
+	touches: Touches<T>
+}
+
 export type FormOptions<T extends Record<string, any>> = {
 	/**
 	 * Max number of "previous changes" the system will hold.
@@ -84,6 +90,10 @@ export type FormOptions<T extends Record<string, any>> = {
 	 * ```
 	 */
 	maxHistory?: number
+	/**
+	 * Triggers when form is changed
+	 */
+	onChange?: (state: State<T>) => Promise<void> | void
 	/**
 	 * Local method to treat errors.
 	 * It's preferable to use {@link setDefaultOnError}
@@ -111,6 +121,10 @@ export type FormOptions<T extends Record<string, any>> = {
 	 * @default true
 	 */
 	onlyOnTouchDefault?: boolean
+	/**
+	 * Triggers when form is submitted
+	 */
+	onSubmit?: (state: State<T>) => Promise<void> | void
 	/**
 	 * Method called every time a value is changed
 	 * 
@@ -149,6 +163,7 @@ export type FormOptions<T extends Record<string, any>> = {
 	 * ```
 	 */
 	validate?: (form: T, changedKeys: Array<FormKey<T>>) => void | Promise<void> | ValidationErrors | Promise<ValidationErrors>
+
 	/**
 	 * Validate form.
 	 * When `true` every change batch will validate the form

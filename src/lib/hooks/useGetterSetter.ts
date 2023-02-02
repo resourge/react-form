@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable no-new-func */
 /* eslint-disable @typescript-eslint/no-implied-eval */
 import { useRef } from 'react';
@@ -8,28 +9,28 @@ import { FormKey } from '../types/FormKey';
 import { isObject } from '../utils/utils';
 
 type FormSetValue<T extends object> = (obj: T, val: any) => void
-const setValue = <T extends object>(field: string): FormSetValue<T> => {
+export const setValue = <T extends object>(field: string): FormSetValue<T> => {
 	return new Function('obj', 'val', `obj${field ? `.${field}` : ''} = val`) as FormSetValue<T>;
 }
 
 type FormGetValue<T extends object> = (obj: T) => T[keyof T]
-const getValue = <T extends object>(field: string): FormGetValue<T> => {
+export const getValue = <T extends object>(field: string): FormGetValue<T> => {
 	return new Function('obj', `return obj${field ? `.${field}` : ''}`) as FormGetValue<T>;
 }
 
-const createGetterSetter = <T extends object>(field: string) => {
+export const createGetterSetter = <T extends object>(field: string) => {
 	return {
 		set: setValue<T>(field),
 		get: getValue<T>(field)
 	}
 }
 
-export type GetterSetter<T extends object> = {
-	[key: string]: {
-		get: FormGetValue<T>
-		set: FormSetValue<T>
-	}
-}
+export type GetterSetter<T extends object> = Map<string, {
+	get: FormGetValue<T>
+	set: FormSetValue<T>
+}>
+
+const maxLimitOfGetterSetter = 10000;
 
 /**
  * To get and set form values
@@ -37,25 +38,34 @@ export type GetterSetter<T extends object> = {
  * @returns - `set` and `get` methods
  */
 export const useGetterSetter = <T extends Record<string, any>>() => {
-	const getterSetter = useRef<GetterSetter<T>>({ });
+	const getterSetter = useRef<GetterSetter<T>>(new Map());
+
+	const checkGetterSetter = (key: FormKey<T>) => {
+		if ( !getterSetter.current.has(key) ) {
+			if ( getterSetter.current.size > maxLimitOfGetterSetter ) {
+				const firstElementKey = getterSetter.current.keys()
+				.next().value;
+				if ( firstElementKey ) {
+					getterSetter.current.delete(firstElementKey)
+				}
+			}
+			getterSetter.current.set(key, createGetterSetter(key));
+		}
+	}
 
 	const set = (key: FormKey<T>, form: T, value: any) => {
-		if ( !getterSetter.current[key] ) {
-			getterSetter.current[key] = createGetterSetter(key);
-		}
+		checkGetterSetter(key);
 		if ( isObject(value) || Array.isArray(value) ) {
-			getterSetter.current[key].set(form, shallowClone(value));
+			getterSetter.current.get(key)!.set(form, shallowClone(value));
 		}
 		else {
-			getterSetter.current[key].set(form, value);
+			getterSetter.current.get(key)!.set(form, value);
 		}
 	}
 
 	const get = (key: FormKey<T>, form: T) => {
-		if ( !getterSetter.current[key as string] ) {
-			getterSetter.current[key as string] = createGetterSetter(key)
-		}
-		return getterSetter.current[key as string].get(form);
+		checkGetterSetter(key);
+		return getterSetter.current.get(key)!.get(form);
 	}
 
 	return {
