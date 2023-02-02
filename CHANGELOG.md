@@ -1,3 +1,10 @@
+## [1.18.2](https://github.com/resourge/react-form/compare/v1.18.1...v1.18.2) (2023-02-02)
+
+
+### Bug Fixes
+
+* **useform:** fix onSubmit being in validation instead of onsubmit ([be324b7](https://github.com/resourge/react-form/commit/be324b74c19064abb2d8e56ce17bd2fd4b70504a))
+
 ## [1.18.1](https://github.com/resourge/react-form/compare/v1.18.0...v1.18.1) (2023-02-02)
 
 
