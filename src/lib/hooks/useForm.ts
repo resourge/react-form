@@ -106,7 +106,7 @@ export function useForm<T extends Record<string, any>>(
 		state.touches
 	)
 
-	const [changedKeys, updateController] = useChangedKeys(state.touches)
+	const [changedKeys, updateController] = useChangedKeys<T>(state.touches)
 
 	/**
 	 * Validates the form

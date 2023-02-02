@@ -7,7 +7,6 @@ import {
 	FormProvider,
 	useFormSplitter,
 	useFormStorage,
-	PreserveArrayClass,
 	PreserveClass
 } from '../lib'
 
@@ -115,14 +114,8 @@ const ControllerFormSplitterExample: React.FC<Props> = ({ KeyName }: Props) => {
 	);
 };
 
-class ArrTest32 {
-	public ArrTest32() {
-
-	}
-}
-
+@PreserveClass
 class Test32 {
-	@PreserveArrayClass(ArrTest32)
 	public arrTest32 = [];
 
 	public Test32() {
@@ -130,8 +123,8 @@ class Test32 {
 	}
 }
 
+@PreserveClass
 class Test {
-	@PreserveClass(Test32)
 	public test100 = new Test32();
 
 	public test10 = '10'
@@ -141,6 +134,7 @@ class Test {
 	}
 }
 
+@PreserveClass
 class AppTest {
 	public rafael: number = 10;
 	public jose: number[] = [];
@@ -155,13 +149,10 @@ class AppTest {
 		subTest: 1
 	};
 
-	@PreserveClass(Test)
 	public test1 = new Test();
 
-	@PreserveArrayClass(Test)
 	public classArrayTest = []
 
-	@PreserveClass(Test)
 	public test2?: Test;
 }
 
@@ -211,6 +202,8 @@ function App() {
 			}
 		}
 	)
+
+	console.log('form', form)
 
 	const submit = handleSubmit((form) => {
 		// console.log('form', form)

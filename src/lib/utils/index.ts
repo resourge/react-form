@@ -1,3 +1,3 @@
-import { PreserveArrayClass, PreserveClass } from './classDecorators'
+import { PreserveClass, addClassToPreserve } from './preserveClass'
 
-export { PreserveArrayClass, PreserveClass }
+export { PreserveClass, addClassToPreserve }

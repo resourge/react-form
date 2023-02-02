@@ -1,13 +1,11 @@
 /* eslint-disable @typescript-eslint/prefer-function-type */
 import { useEffect, useRef } from 'react'
 
-import { shallowClone } from '@resourge/shallow-clone'
 import localForage from 'localforage'
+import * as serialijse from 'serialijse';
 
-import { FormOptions, UseFormReturn } from '../types'
+import { FormKey, FormOptions, UseFormReturn } from '../types'
 import { State } from '../types/types'
-import { formLocalToFormData } from '../utils/fromLocalToFormData'
-import { isClass } from '../utils/utils'
 
 import { useForm } from './useForm'
 
@@ -50,6 +48,7 @@ type UseFormStorageReturn<T extends Record<string, any>> = UseFormReturn<T> & {
 }
 
 type LocalStorageState<T extends Record<string, any>> = {
+	serializedState: string
 	state: State<T>
 	version: string
 }
@@ -100,7 +99,8 @@ export function useFormStorage<T extends Record<string, any>>(
 					options.uniqueId, 
 					{
 						version,
-						state
+						state,
+						serializedState: serialijse.serialize(state)
 					}
 				)
 				.catch((e) => onStorageError(e))
@@ -121,24 +121,17 @@ export function useFormStorage<T extends Record<string, any>>(
 		const localStorageState = await localForage.getItem<LocalStorageState<T>>(options.uniqueId)
 
 		if ( localStorageState ) {
-			const { state, version: localStorageVersion } = localStorageState;
+			const { version: localStorageVersion, serializedState } = localStorageState;
+			const state = serialijse.deserialize<State<T>>(serializedState);
+			
 			if ( localStorageVersion === version ) {
-				let newForm = typeof defaultValue === 'function' 
-					? (
-						isClass(defaultValue) 
-							? new (defaultValue as new () => T)() 
-							: (defaultValue as () => T)()
-					) : shallowClone(defaultValue)
-
-				// Set object's that used to be class's to class's
-				newForm = formLocalToFormData(newForm, state);
+				Object.keys(state.form)
+				.forEach((key) => {
+					formResult.updateController(key as FormKey<T>);
+				});
 
 				(formResult as UseFormReturn<T> & { _setFormState: (state: State<T>) => void })
-				._setFormState({
-					errors: state.errors,
-					touches: state.touches,
-					form: newForm
-				})
+				._setFormState(state)
 			}
 			else {
 				localForage.removeItem(options.uniqueId)

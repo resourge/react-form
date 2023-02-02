@@ -1,6 +1,6 @@
 {
   "name": "@resourge/react-form",
-  "version": "1.18.2",
+  "version": "1.18.1",
   "description": "react-form is a simple and basic controlled hook form. Aiming to create forms with minimal effort.",
   "main": "./dist/main.js",
   "module": "./dist/index.js",
@@ -26,6 +26,7 @@
   "author": "resourge",
   "license": "MIT",
   "scripts": {
+	"postinstall": "patch-package",
     "commitizen": "git-cz",
     "commit": "git pull && git add . && npm run commitizen",
     "lint": "eslint \"./src/**/*.{ts,tsx}\"",
@@ -72,6 +73,7 @@
     "eslint-plugin-typescript-sort-keys": "^2.1.0",
     "jsdom": "^20.0.0",
     "on-change": "^4.0.1",
+    "patch-package": "^6.5.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "rollup": "^2.79.1",
@@ -99,7 +101,7 @@
   },
   "dependencies": {
     "@resourge/shallow-clone": "^1.0.0",
-    "deepmerge-ts": ">=4.2.2",
-    "localforage": ">=1.10.0"
+    "localforage": ">=1.10.0",
+    "serialijse": "^0.3.0"
   }
 }

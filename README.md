@@ -659,9 +659,35 @@ export function App() {
 ```
 ### Class vs JSON
 
-When using `useFormStorage` all data will be converted to JSON (localStorage, indexDB, etc only work with pure JSON) that means Class's prototype will be removed. To prevent this from occurring some class decorators are provided.
+When using `useFormStorage` all data will be converted to JSON (localStorage, indexDB, etc only work with pure JSON) that means Class's prototype will be removed. To prevent this from occurring some class decorators/functions are provided.
 
-#### PreserveArrayClass and PreserveClass
+#### PreserveClass or addClassToPreserve
+
+With Decorator:
+
+```Typescript
+@PreserveClass
+class Test {
+	public doSomething() {
+
+	}
+}
+
+@PreserveClass
+class AppTest {
+	public test = {
+		subTest: 1
+	};
+
+	public classTest1 = new Test();
+
+	public classArrayTest = []
+
+	public classTest2?: Test;
+}
+```
+
+With a simple function:
 
 ```Typescript
 class Test {
@@ -669,21 +695,19 @@ class Test {
 
 	}
 }
-
+addClassToPreserve(Test)
 class AppTest {
 	public test = {
 		subTest: 1
 	};
 
-	@PreserveClass(Test)
 	public classTest1 = new Test();
 
-	@PreserveArrayClass(Test)
 	public classArrayTest = []
 
-	@PreserveClass(Test)
 	public classTest2?: Test;
 }
+addClassToPreserve(AppTest)
 ```
 
 ## Controller

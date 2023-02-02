@@ -7,12 +7,12 @@ import { terser } from 'rollup-plugin-terser';
 
 import { name, author, license } from './package.json';
 
-const external = ['react', 'react/jsx-runtime', '@resourge/shallow-clone', 'deepmerge-ts', 'localforage'];
+const external = ['react', 'react/jsx-runtime', '@resourge/shallow-clone', 'localforage', 'serialijse'];
 const globals = {
 	react: 'React',
 	'@resourge/shallow-clone': 'ShallowClone',
-	deepmerge: 'deepmerge-ts',
-	localforage: 'localforage'
+	localforage: 'localforage',
+	serialijse: 'serialijse'
 }
 
 function createBanner(libraryName, version, authorName, license) {
