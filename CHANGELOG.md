@@ -1,3 +1,11 @@
+## [1.18.5](https://github.com/resourge/react-form/compare/v1.18.4...v1.18.5) (2023-02-03)
+
+
+### Bug Fixes
+
+* **package:** fix patch-package ([7280a8c](https://github.com/resourge/react-form/commit/7280a8c7dd9cffb9e4956bad87298f493a10171a))
+* **usefixcursorjumpingtoend:** isBrowser not working in react-native ([782b505](https://github.com/resourge/react-form/commit/782b505d61499c767f7f59f6544ba6bacd06c606))
+
 ## [1.18.4](https://github.com/resourge/react-form/compare/v1.18.3...v1.18.4) (2023-02-02)
 
 
