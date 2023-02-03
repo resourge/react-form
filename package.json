@@ -73,7 +73,6 @@
     "eslint-plugin-typescript-sort-keys": "^2.1.0",
     "jsdom": "^20.0.0",
     "on-change": "^4.0.1",
-    "patch-package": "^6.5.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "rollup": "^2.79.1",
@@ -102,6 +101,7 @@
   },
   "dependencies": {
     "@resourge/shallow-clone": "^1.0.0",
-    "localforage": ">=1.10.0"
+    "localforage": ">=1.10.0",
+    "patch-package": ">=6.5.1"
   }
 }
