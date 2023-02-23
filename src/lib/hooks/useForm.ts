@@ -13,6 +13,7 @@ import { shallowClone } from '@resourge/shallow-clone';
 import observeChanges from 'on-change';
 
 import { FormContextObject } from '../contexts/FormContext';
+import { FormErrors } from '../types';
 import { FormKey } from '../types/FormKey';
 import {
 	OnFunctionChange,
@@ -61,19 +62,35 @@ export function useForm<T extends Record<string, any>>(
 	// #endregion errors
 
 	// #region State
-	const [state, _setFormState] = useState<State<T>>(() => ({
-		errors: {},
-		// eslint-disable-next-line new-cap
-		form: typeof defaultValue === 'function' 
+	const [{ data: form }, setFormData] = useState<{ data: T }>(() => ({
+		data: typeof defaultValue === 'function' 
 			? (
 				isClass(defaultValue) 
 					? new (defaultValue as new () => T)() 
 					: (defaultValue as () => T)()
-			) : shallowClone(defaultValue),
-		touches: {}
+			) : shallowClone(defaultValue)
 	}));
-	const stateRef = useRef<State<T>>(state);
-	stateRef.current = state;
+	const [errors, setErrors] = useState<FormErrors<T>>({});
+	const [touches, setTouches] = useState<Touches<T>>({});
+
+	const stateRef = useRef<State<T>>({
+		errors,
+		touches,
+		form
+	});
+	stateRef.current = {
+		errors,
+		touches,
+		form
+	};
+
+	const _setFormState = (state: State<T>) => {
+		setFormData({
+			data: state.form 
+		})
+		setErrors(state.errors)
+		setTouches(state.touches)
+	}
 
 	const setFormState = (newState: State<T>) => {
 		clearCacheErrors();
@@ -102,11 +119,11 @@ export function useForm<T extends Record<string, any>>(
 		getErrors,
 		clearCacheErrors
 	} = useErrors(
-		state.errors,
-		state.touches
+		errors,
+		touches
 	)
 
-	const [changedKeys, updateController] = useChangedKeys<T>(state.touches)
+	const [changedKeys, updateController] = useChangedKeys<T>(touches)
 
 	/**
 	 * Validates the form
@@ -196,9 +213,9 @@ export function useForm<T extends Record<string, any>>(
 			}
 		}
 		
-		const result = await onValid(state.form);
+		const result = await onValid(form);
 
-		await proms(state.form);
+		await proms(form);
 
 		return result;
 	}
@@ -453,17 +470,17 @@ export function useForm<T extends Record<string, any>>(
 	const getFormRef = useRef<UseFormReturn<T>>()
 
 	const result: any = {
-		form: state.form,
+		form,
 		get context() {
 			return getFormRef.current as FormContextObject<T>;
 		},
-		errors: state.errors,
+		errors,
 		get isValid(): boolean {
-			return Object.keys(state.errors).length === 0;
+			return Object.keys(errors).length === 0;
 		},
-		touches: state.touches,
+		touches,
 		get isTouched( ) {
-			return Object.keys(state.touches).length !== 0;
+			return Object.keys(touches).length !== 0;
 		},
 
 		changedKeys,
