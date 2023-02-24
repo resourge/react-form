@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-import { FormKey, Touches } from '../types';
+import { type FormKey, type Touches } from '../types';
 
 export const useChangedKeys = <T extends Record<string, any>>(touches: Touches<T>) => {
 	const changedKeys = useRef<Set<FormKey<T>>>(new Set());

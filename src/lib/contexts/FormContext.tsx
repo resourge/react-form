@@ -3,7 +3,7 @@ import { createContext, useContext } from 'react'
 
 import invariant from 'tiny-invariant'
 
-import { UseFormReturn } from '../types/types'
+import { type UseFormReturn } from '../types/types'
 
 import { ControllerContext } from './ControllerContext';
 

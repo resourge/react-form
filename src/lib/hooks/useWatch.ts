@@ -1,10 +1,11 @@
-import { MutableRefObject, useRef } from 'react'
+import { type MutableRefObject, useRef } from 'react'
 
-import { FormKey } from '../types'
+import { type FormKey } from '../types'
 
 export type WatchMethod<T extends Record<string, any>> = (form: T) => void | Promise<void>
 
 export type UseWatchReturn<T extends Record<string, any>> = {
+	hasWatchingKeys: (changedKeys: MutableRefObject<Set<FormKey<T>>>) => boolean
 	onSubmitWatch: MutableRefObject<() => (form: T) => Promise<void>>
 	onWatch: MutableRefObject<(form: T, changedKeys: MutableRefObject<Set<FormKey<T>>>) => Promise<void>>
 	watch: (key: FormKey<T>, method: WatchMethod<T>) => void
@@ -26,6 +27,11 @@ export const useWatch = <T extends Record<string, any>>(): UseWatchReturn<T> => 
 		else {
 			submitWatchRefs.current.add(method);
 		}
+	}
+
+	const hasWatchingKeys = (changedKeys: React.MutableRefObject<Set<FormKey<T>>>) => {
+		return watchedRefs.current.size > 0 && Array.from(watchedRefs.current)
+		.some(([key]) => changedKeys.current.has(key))
 	}
 
 	const onWatch = useRef(async (form: T, changedKeys: React.MutableRefObject<Set<FormKey<T>>>) => {
@@ -50,6 +56,7 @@ export const useWatch = <T extends Record<string, any>>(): UseWatchReturn<T> => 
 
 	return {
 		watch: watch as unknown as UseWatchReturn<T>['watch'],
+		hasWatchingKeys,
 		onWatch,
 		onSubmitWatch
 	};

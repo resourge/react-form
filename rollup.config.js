@@ -5,13 +5,18 @@ import terser from '@rollup/plugin-terser';
 import dts from 'rollup-plugin-dts';
 import filsesize from 'rollup-plugin-filesize';
 
-import { name, author, license } from './package.json';
+import packageJson from './package.json' assert { type: 'json' }
+
+const {
+	name, author, license
+} = packageJson
 
 const external = ['react', 'react/jsx-runtime', '@resourge/shallow-clone', 'localforage'];
 const globals = {
 	react: 'React',
 	'@resourge/shallow-clone': 'ShallowClone',
-	localforage: 'localforage'
+	localforage: 'localforage',
+	'react/jsx-runtime': 'jsxRuntime'
 }
 
 function createBanner(libraryName, version, authorName, license) {
@@ -64,7 +69,7 @@ const babelPlugins = [
 	'babel-plugin-dev-expression'
 ]
 
-const babelPresetEnv = ['@babel/preset-env', { 
+const babelPresetEnv = ['@babel/preset-env', {
 	targets: [
 		'defaults',
 		'not IE 11',
@@ -93,7 +98,7 @@ const modules = [
 			format: 'esm',
 			sourcemap,
 			banner
-			
+
 		},
 		external,
 		plugins: [
@@ -191,7 +196,7 @@ const cjsModules = [
 			}),
 			terser({
 				ecma: 8,
-				safari10: true 
+				safari10: true
 			})
 		]
 	}

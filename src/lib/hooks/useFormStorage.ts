@@ -4,8 +4,8 @@ import { useEffect, useRef } from 'react'
 import localForage from 'localforage'
 import * as serialijse from 'serialijse';
 
-import { FormKey, FormOptions, UseFormReturn } from '../types'
-import { State } from '../types/types'
+import { type FormKey, type FormOptions, type UseFormReturn } from '../types'
+import { type State } from '../types/types'
 
 import { useForm } from './useForm'
 
@@ -103,7 +103,9 @@ export function useFormStorage<T extends Record<string, any>>(
 						serializedState: serialijse.serialize(state)
 					}
 				)
-				.catch((e) => onStorageError(e))
+				.catch((e) => {
+					onStorageError(e); 
+				})
 			},
 			onSubmit: (state) => {
 				if ( options?.onSubmit ) {
@@ -111,7 +113,9 @@ export function useFormStorage<T extends Record<string, any>>(
 				}
 				if ( (options?.shouldClearAfterSubmit ?? true) ) {
 					localForage.removeItem(options.uniqueId)
-					.catch((e) => onStorageError(e))
+					.catch((e) => {
+						onStorageError(e); 
+					})
 				}
 			}
 		}
@@ -135,7 +139,9 @@ export function useFormStorage<T extends Record<string, any>>(
 			}
 			else {
 				localForage.removeItem(options.uniqueId)
-				.catch((e) => onStorageError(e))
+				.catch((e) => {
+					onStorageError(e); 
+				})
 			}
 		}
 	}

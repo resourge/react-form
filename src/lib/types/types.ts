@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-invalid-void-type */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { FormEvent, MouseEvent, Ref } from 'react';
+import { type FormEvent, type MouseEvent } from 'react';
 
-import { FormContextObject } from '../contexts/FormContext';
-import { WatchMethod } from '../hooks/useWatch';
+import { type FormContextObject } from '../contexts/FormContext';
+import { type WatchMethod } from '../hooks/useWatch';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { OnErrors, setDefaultOnError, ValidationErrors } from '../validators/setDefaultOnError';
+import { type OnErrors, setDefaultOnError, type ValidationErrors } from '../validators/setDefaultOnError';
 
-import { FormKey } from './FormKey';
+import { type FormKey } from './FormKey';
 
 export type Touches<T extends Record<string, any>> = {
 	/**
@@ -250,10 +250,7 @@ export type ProduceNewStateOptions = {
 	validate?: boolean
 }
 
-export type ProduceNewStateOptionsHistory = ProduceNewStateOptions & {
-	
-	type?: 'UNDO' | 'REDO'
-}
+export type ProduceNewStateOptionsHistory = ProduceNewStateOptions
 
 export type ResetOptions = {
 	/**
@@ -635,7 +632,7 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * ...
 	 * ```
 	 */
-	triggerChange: (cb: OnFunctionChange<T, void>, produceOptions?: ProduceNewStateOptions | undefined) => Promise<void>
+	triggerChange: (cb: OnFunctionChange<T, void>, produceOptions?: ProduceNewStateOptions | undefined) => void
 	/**
 	 * Manually force Controller component to update.
 	 * 

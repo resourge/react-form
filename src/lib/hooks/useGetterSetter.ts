@@ -5,7 +5,7 @@ import { useRef } from 'react';
 
 import { shallowClone } from '@resourge/shallow-clone';
 
-import { FormKey } from '../types/FormKey';
+import { type FormKey } from '../types/FormKey';
 import { isObject } from '../utils/utils';
 
 type FormSetValue<T extends object> = (obj: T, val: any) => void

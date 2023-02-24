@@ -6,9 +6,9 @@ import type { FormContextObject } from './FormContext';
 export {
 	ControllerContext, 
 	useController,
-	ControllerContextObject,
+	type ControllerContextObject,
 
 	FormContext,
 	useFormContext,
-	FormContextObject
+	type FormContextObject
 }

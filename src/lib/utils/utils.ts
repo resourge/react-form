@@ -1,4 +1,4 @@
-import { FormKey } from '../types/FormKey';
+import { type FormKey } from '../types/FormKey';
 
 export function isObject(value: any) {
 	return toString.call(value) === '[object Object]';

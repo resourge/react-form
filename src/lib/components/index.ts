@@ -5,8 +5,8 @@ import type { FormProviderProps } from './FormProvider';
 
 export {
 	FormProvider,
-	FormProviderProps,
+	type FormProviderProps,
 
 	Controller,
-	ControllerProps
+	type ControllerProps
 }

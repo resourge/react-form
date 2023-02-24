@@ -1,6 +1,4 @@
-import React from 'react';
-
-import { FormContext, FormContextObject } from '../contexts/FormContext';
+import { FormContext, type FormContextObject } from '../contexts/FormContext';
 
 export type FormProviderProps<T extends Record<string, any>> = React.PropsWithChildren<{
 	context: FormContextObject<T>

@@ -10,7 +10,7 @@ module.exports = {
 		'standard-with-typescript',
 		'react-app'
 	],
-	ignorePatterns: ['**/dist/*', './main.js', '**/examples/**/*'],
+	ignorePatterns: ['**/dist/*', './main.js', './src/lib_old/**/*', '*/examples/**/*'],
 	parser: '@typescript-eslint/parser',
 	parserOptions: {
 		project: './tsconfig.json',
@@ -79,7 +79,7 @@ module.exports = {
 		],
 		'react/no-unstable-nested-components': 0,
 		'newline-per-chained-call': ['error', {
-			ignoreChainWithDepth: 1
+			ignoreChainWithDepth: 5
 		}],
 		'object-property-newline': ['error', {
 			allowAllPropertiesOnSameLine: false

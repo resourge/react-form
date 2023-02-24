@@ -1,14 +1,14 @@
 import invariant from 'tiny-invariant'
 
 import { useControllerContext } from '../contexts/ControllerContext';
-import { FormContextObject, useFormContext } from '../contexts/FormContext'
-import { FormKey } from '../types/FormKey';
-import { PathValue } from '../types/PathValue';
-import { ProduceNewStateOptions, UseFormReturn } from '../types/types'
+import { type FormContextObject, useFormContext } from '../contexts/FormContext'
+import { type FormKey } from '../types/FormKey';
+import { type PathValue } from '../types/PathValue';
+import { type ProduceNewStateOptions, type UseFormReturn } from '../types/types'
 import { filterObjectByKey } from '../utils/utils';
 
 import { useGetterSetter } from './useGetterSetter';
-import { WatchMethod } from './useWatch';
+import { type WatchMethod } from './useWatch';
 
 /**
  * Hook to create a splitter form. Serves to create a form for the specific "formFieldKey"
@@ -32,7 +32,7 @@ export function useFormSplitter<
 			) => Promise<void>
 		), 
 		produceOptions?: ProduceNewStateOptions | undefined
-	) => Promise<void>
+	) => void
 }
 export function useFormSplitter<
 	T extends Record<string, any>,
@@ -51,7 +51,7 @@ export function useFormSplitter<
 			) => Promise<void>
 		), 
 		produceOptions?: ProduceNewStateOptions | undefined
-	) => Promise<void>
+	) => void
 }
 export function useFormSplitter<
 	T extends Record<string, any>,
@@ -72,7 +72,7 @@ export function useFormSplitter<
 				) => Promise<void>
 			), 
 			produceOptions?: ProduceNewStateOptions | undefined
-		) => Promise<void>
+		) => void
 	} {
 	const controllerContext = useControllerContext<any>();
 	let context: FormContextObject<any>;
@@ -123,18 +123,24 @@ export function useFormSplitter<
 				}
 			)
 		) as UseFormReturn<PathValue<T, K>>['handleSubmit'],
-		watch: ((key, method) => context.watch(key !== 'submit' ? getKey(key) : key, method as WatchMethod<any>)) as UseFormReturn<PathValue<T, K>>['watch'],
+		watch: ((key, method) => {
+			context.watch(key !== 'submit' ? getKey(key) : key, method as WatchMethod<any>); 
+		}) as UseFormReturn<PathValue<T, K>>['watch'],
 		field: ((key, options) => context.field(getKey(key), options)) as UseFormReturn<PathValue<T, K>>['field'],
 		getErrors: ((key, options) => context.getErrors(getKey(key), options)) as UseFormReturn<PathValue<T, K>>['getErrors'],
 		hasError: ((key, options) => context.hasError(getKey(key), options)) as UseFormReturn<PathValue<T, K>>['hasError'],
-		changeValue: ((key, value, options) => context.changeValue(getKey(key), value, options)) as UseFormReturn<PathValue<T, K>>['changeValue'],
+		changeValue: ((key, value, options) => {
+			context.changeValue(getKey(key), value, options); 
+		}) as UseFormReturn<PathValue<T, K>>['changeValue'],
 		getValue: ((key) => context.getValue(getKey(key))) as UseFormReturn<PathValue<T, K>>['getValue'],
 		context: context.context,
 		merge: (mergedForm) => {
 			getterSetter.set(_formFieldKey, context.form, mergedForm)
-			return context.merge(mergedForm)
+			context.merge(mergedForm);
 		},
-		onChange: ((key, fieldOptions) => (value) => context.onChange(getKey(key), fieldOptions)(value)) as UseFormReturn<PathValue<T, K>>['onChange'],
+		onChange: ((key, fieldOptions) => (value) => {
+			context.onChange(getKey(key), fieldOptions)(value); 
+		}) as UseFormReturn<PathValue<T, K>>['onChange'],
 		reset: (newFrom, resetOptions) => {
 			getterSetter.set(_formFieldKey, context.form, newFrom)
 			return context.reset(newFrom, resetOptions)
@@ -145,7 +151,7 @@ export function useFormSplitter<
 			cb,
 			produceOptions
 		) => {
-			return context.triggerChange(
+			context.triggerChange(
 				(form: T) => {
 					return cb(
 						getterSetter.get(_formFieldKey, form), 
@@ -157,6 +163,8 @@ export function useFormSplitter<
 				produceOptions
 			);
 		},
-		updateController: ((key) => context.updateController(getKey(key))) as UseFormReturn<PathValue<T, K>>['updateController']
+		updateController: ((key) => {
+			context.updateController(getKey(key)); 
+		}) as UseFormReturn<PathValue<T, K>>['updateController']
 	}
 }

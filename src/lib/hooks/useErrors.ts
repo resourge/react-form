@@ -1,13 +1,13 @@
 import { useRef } from 'react';
 
-import { FormKey } from '../types/FormKey';
+import { type FormKey } from '../types/FormKey';
 import {
-	GetErrorsOptions,
-	GetErrors,
-	HasErrorOptions,
-	Touches,
-	FormErrors,
-	FormOptions
+	type GetErrorsOptions,
+	type GetErrors,
+	type HasErrorOptions,
+	type Touches,
+	type FormErrors,
+	type FormOptions
 } from '../types/types'
 
 export type CacheType = string[] | FormErrors<any> | boolean
@@ -32,7 +32,7 @@ export const useErrors = <T extends Record<string, any>>(
 	touches: Touches<T>,
 	formOptions?: FormOptions<T>
 ) => {
-	const cacheErrors = useRef<{ [key: string]: CacheType }>({});
+	const cacheErrors = useRef<Record<string, CacheType>>({});
 
 	const setCacheErrors = <ReturnValue extends CacheType>(key: string, cb: () => ReturnValue): ReturnValue => {
 		if ( !cacheErrors.current[key] ) {

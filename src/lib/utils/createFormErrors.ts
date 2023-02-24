@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
-import { FormErrors } from '../types/types';
+import { type FormErrors } from '../types/types';
 import {
-	OnErrors,
-	ValidationError,
-	ValidationErrors,
-	ValidationWithErrors
+	type OnErrors,
+	type ValidationError,
+	type ValidationErrors,
+	type ValidationWithErrors
 } from '../validators/setDefaultOnError'
 
 import { getKeyFromPaths } from './utils';

@@ -22,7 +22,7 @@ import type {
 	UseFormReturnController
 } from './types';
 
-export {
+export type {
 	FieldForm,
 	FormErrors,
 	FormOptions,

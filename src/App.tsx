@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 
 import {
-	FormKey,
+	type FormKey,
 	FormProvider,
 	useForm,
 	useFormSplitter

@@ -2,40 +2,40 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 /* eslint-disable @typescript-eslint/no-invalid-void-type */
 import {
-	FormEvent,
+	type FormEvent,
 	useRef,
-	MouseEvent,
-	ChangeEvent,
+	type MouseEvent,
+	type ChangeEvent,
 	useState
 } from 'react'
 
 import { shallowClone } from '@resourge/shallow-clone';
 import observeChanges from 'on-change';
 
-import { FormContextObject } from '../contexts/FormContext';
-import { FormErrors } from '../types';
-import { FormKey } from '../types/FormKey';
+import { type FormContextObject } from '../contexts/FormContext';
+import { type FormErrors } from '../types';
+import { type FormKey } from '../types/FormKey';
+import { executeWatch } from '../types/produceNewStateUtils';
 import {
-	OnFunctionChange,
-	ValidateSubmission,
-	SubmitHandler,
-	FieldForm,
-	ProduceNewStateOptions,
-	FieldOptions,
-	ResetOptions,
-	FormOptions,
-	UseFormReturn,
-	Touches,
-	ProduceNewStateOptionsHistory,
-	State
+	type OnFunctionChange,
+	type ValidateSubmission,
+	type SubmitHandler,
+	type FieldForm,
+	type ProduceNewStateOptions,
+	type FieldOptions,
+	type ResetOptions,
+	type FormOptions,
+	type UseFormReturn,
+	type Touches,
+	type ProduceNewStateOptionsHistory,
+	type State
 } from '../types/types'
 import { createFormErrors, formatErrors } from '../utils/createFormErrors';
 import { getKeyFromPaths, isClass } from '../utils/utils'
-import { getDefaultOnError } from '../validators/setDefaultOnError';
+import { getDefaultOnError, type ValidationErrors } from '../validators/setDefaultOnError';
 
 import { useChangedKeys } from './useChangedKeys';
 import { useErrors } from './useErrors';
-import { useFixCursorJumpingToEnd } from './useFixCursorJumpingToEnd';
 import { useGetterSetter } from './useGetterSetter';
 import { useWatch } from './useWatch';
 
@@ -56,8 +56,6 @@ export function useForm<T extends Record<string, any>>(
 	options?: FormOptions<T>
 ): UseFormReturn<T> {
 	// #region errors
-	useFixCursorJumpingToEnd();
-
 	const onErrors = createFormErrors<T>(options?.onErrors ?? getDefaultOnError());
 	// #endregion errors
 
@@ -96,8 +94,10 @@ export function useForm<T extends Record<string, any>>(
 		clearCacheErrors();
 
 		Object.keys(newState.errors)
-		.filter((key) => !Object.keys(stateRef.current.errors)
-		.includes(key))
+		.filter(
+			(key) => !Object.keys(stateRef.current.errors)
+			.includes(key)
+		)
 		.forEach((key) => {
 			updateController(key as FormKey<T>)
 		})
@@ -110,6 +110,7 @@ export function useForm<T extends Record<string, any>>(
 
 	const {
 		watch,
+		hasWatchingKeys,
 		onWatch,
 		onSubmitWatch
 	} = useWatch();
@@ -130,26 +131,41 @@ export function useForm<T extends Record<string, any>>(
 	 * @param state Current State
 	 * @returns New validated state
 	 */
-	const validateState = async (state: State<T>): Promise<State<T>> => {
-		try {
-			const errors = options?.validate && await (Promise.resolve(options?.validate(state.form, [...changedKeys.current] as Array<FormKey<T>>)));
+	const validateState = (state: State<T>): State<T> | Promise<State<T>> => {
+		const onSuccess = (errors: void | ValidationErrors) => {
 			if ( errors && errors.length ) {
 				// eslint-disable-next-line @typescript-eslint/no-throw-literal
 				throw errors;
 			}
+
 			return { 
 				form: state.form,
 				errors: {},
 				touches: state.touches
 			}
 		}
-		catch ( err ) {
+		const onError = (err: any) => {
 			const errors = onErrors(err);
 			return { 
 				form: state.form,
 				errors,
 				touches: state.touches
 			}
+		}
+
+		try {
+			const result = options?.validate && options?.validate(state.form, [...changedKeys.current] as Array<FormKey<T>>);
+
+			if ( result instanceof Promise ) {
+				return result
+				.then(onSuccess)
+				.catch(onError)
+			}
+
+			return onSuccess(result)
+		}
+		catch ( err ) {
+			return onError(err)
 		}
 	}
 
@@ -170,7 +186,7 @@ export function useForm<T extends Record<string, any>>(
 
 		const proms = onSubmitWatch.current();
 
-		const { errors } = await validateState(stateRef.current);
+		const { errors } = await Promise.resolve(validateState(stateRef.current));
 
 		const hasError = Object.keys(errors).length
 
@@ -243,12 +259,12 @@ export function useForm<T extends Record<string, any>>(
 	 * @param produceOptions
 	 * @returns Return the new State(form and errors) or a Promise of the new State
 	 */
-	const produceNewState = async (
+	const produceNewState = (
 		cb: OnFunctionChange<T>, 
-		produceOptions?: ProduceNewStateOptionsHistory
-	): Promise<State<T>> => {
+		produceOptions?: ProduceNewStateOptionsHistory & ResetOptions
+	): void | Promise<void> => {
 		const oldState = stateRef.current;
-		let newState: State<T> = {
+		const newState: State<T> = {
 			form: oldState.form,
 			errors: {
 				...oldState.errors 
@@ -304,28 +320,37 @@ export function useForm<T extends Record<string, any>>(
 		const result = cb(proxy);
 
 		if ( result instanceof Promise ) {
-			await result;
+			return result
+			.then(() => {
+				executeWatch({
+					changedKeys,
+					hasWatchingKeys,
+					onWatch,
+					proxy,
+					setFormData,
+					newState,
+					unsubscribe: () => observeChanges.unsubscribe(proxy),
+					validateState,
+					setFormState,
+					options,
+					produceOptions
+				})
+			});
 		}
 
-		if (!produceOptions?.type) {
-			await onWatch.current(proxy, changedKeys)
-		}
-
-		newState.form = observeChanges.unsubscribe(proxy);
-
-		const validate = produceOptions?.validate ?? (options?.validateDefault ?? true);
-
-		if ( 
-			Boolean(produceOptions?.forceValidation) || validate
-		) {
-			newState = await validateState(newState);
-		}
-
-		if ( options?.onChange ) {
-			await options.onChange(newState)
-		}
-
-		return newState
+		executeWatch({
+			changedKeys,
+			hasWatchingKeys,
+			onWatch,
+			proxy,
+			setFormData,
+			newState,
+			unsubscribe: () => observeChanges.unsubscribe(proxy),
+			validateState,
+			setFormState,
+			options,
+			produceOptions
+		})
 	}
 
 	const reset = async (
@@ -337,7 +362,7 @@ export function useForm<T extends Record<string, any>>(
 			...(resetOptions ?? {})
 		}
 
-		const newState = await produceNewState(
+		const result = produceNewState(
 			(form: T) => {
 				(Object.keys(newFrom) as Array<keyof T>)
 				.forEach((key: keyof T) => {
@@ -345,19 +370,15 @@ export function useForm<T extends Record<string, any>>(
 				})
 			}, 
 			options
-		)
+		);
 
-		if ( options.clearTouched ) {
-			newState.touches = {};
+		if ( result instanceof Promise ) {
+			await result;
 		}
-
-		setFormState(newState);
 	}
 
-	const triggerChange = async (cb: OnFunctionChange<T>, produceOptions?: ProduceNewStateOptions) => {
-		const result = await produceNewState(cb, produceOptions);
-		
-		setFormState(result)
+	const triggerChange = (cb: OnFunctionChange<T>, produceOptions?: ProduceNewStateOptions) => {
+		produceNewState(cb, produceOptions);
 	}
 
 	const merge = (mergedForm: Partial<T>) => {

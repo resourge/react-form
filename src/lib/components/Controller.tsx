@@ -1,10 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-import React, { memo } from 'react';
+import { memo } from 'react';
 
 import { ControllerContext } from '../contexts/ControllerContext';
-import { FormContextObject } from '../contexts/FormContext';
-import { FormKey } from '../types/FormKey';
-import { UseFormReturnController } from '../types/types';
+import { type FormContextObject } from '../contexts/FormContext';
+import { type FormKey } from '../types/FormKey';
+import { type UseFormReturnController } from '../types/types';
 
 export type ControllerProps<T extends Record<string, any>> = {
 	children: React.ReactNode
@@ -48,7 +47,7 @@ export const Controller = memo(function Controller<T extends Record<string, any>
 		<ControllerContext.Provider
 			value={{
 				name,
-				context: context as FormContextObject<T>
+				context 
 			}}
 		>
 			{ children }

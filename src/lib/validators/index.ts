@@ -6,7 +6,7 @@ export {
 	setDefaultOnError,
 	getDefaultOnError,
 	
-	OnErrors,
+	type OnErrors,
 
 	setFormYupValidation
 }

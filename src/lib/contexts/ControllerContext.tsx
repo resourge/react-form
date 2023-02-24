@@ -2,7 +2,7 @@ import { createContext, useContext } from 'react'
 
 import invariant from 'tiny-invariant'
 
-import { FormContextObject } from './FormContext'
+import { type FormContextObject } from './FormContext'
 
 export type ControllerContextObject<
 	T extends Record<string, any>,
