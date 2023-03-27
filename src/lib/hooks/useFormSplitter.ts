@@ -120,7 +120,8 @@ export function useFormSplitter<
 				() => onValid(context.getValue(_formFieldKey)), 
 				(errors, error) => {
 					return Object.keys(filterObjectByKey(errors, _formFieldKey)).length === 0 && (onInvalid ? onInvalid(filterObjectByKey(errors, _formFieldKey), error) : true)
-				}
+				},
+				_formFieldKey
 			)
 		) as UseFormReturn<PathValue<T, K>>['handleSubmit'],
 		watch: ((key, method) => {
