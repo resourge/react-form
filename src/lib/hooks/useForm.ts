@@ -136,6 +136,7 @@ export function useForm<T extends Record<string, any>>(
 			if ( errors && errors.length ) {
 				if (formFieldKey) {
 					// BUG 2 
+					// eslint-disable-next-line @typescript-eslint/no-throw-literal
 					throw errors.filter(error => error.path.includes(formFieldKey)) // Works! filtering by formFieldKey like i said above for better performance we need to fix this
 				}
 				// eslint-disable-next-line @typescript-eslint/no-throw-literal
