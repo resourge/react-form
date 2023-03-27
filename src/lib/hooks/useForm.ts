@@ -131,9 +131,13 @@ export function useForm<T extends Record<string, any>>(
 	 * @param state Current State
 	 * @returns New validated state
 	 */
-	const validateState = (state: State<T>): State<T> | Promise<State<T>> => {
+	const validateState = (state: State<T>, formFieldKey?: string): State<T> | Promise<State<T>> => {
 		const onSuccess = (errors: void | ValidationErrors) => {
 			if ( errors && errors.length ) {
+				if (formFieldKey) {
+					// BUG 2 
+					throw errors.filter(error => error.path.includes(formFieldKey)) // Works! filtering by formFieldKey like i said above for better performance we need to fix this
+				}
 				// eslint-disable-next-line @typescript-eslint/no-throw-literal
 				throw errors;
 			}
@@ -173,10 +177,12 @@ export function useForm<T extends Record<string, any>>(
 	/**
 	 * Handles the form submit
 	 */
+	// BUG - 2 -> Added formFieldKey in onSubmit as param
 	async function onSubmit<K = void>(
 		onValid: SubmitHandler<T, K>,
 		onInvalid?: ValidateSubmission<T>,
-		e?: FormEvent<HTMLFormElement> | MouseEvent<any, MouseEvent>
+		e?: FormEvent<HTMLFormElement> | MouseEvent<any, MouseEvent>,
+		formFieldKey?: string
 	): Promise<K | undefined> {
 		const { form, touches } = stateRef.current
 		if ( e ) {
@@ -186,7 +192,7 @@ export function useForm<T extends Record<string, any>>(
 
 		const proms = onSubmitWatch.current();
 
-		const { errors } = await Promise.resolve(validateState(stateRef.current));
+		const { errors } = await Promise.resolve(validateState(stateRef.current, formFieldKey));
 
 		const hasError = Object.keys(errors).length
 
@@ -238,13 +244,15 @@ export function useForm<T extends Record<string, any>>(
 
 	function handleSubmit<K = void>(
 		onValid: SubmitHandler<T, K>,
-		onInvalid?: ValidateSubmission<T>
+		onInvalid?: ValidateSubmission<T>,
+		formFieldKey?: string
 	) {
 		return (e?: FormEvent<HTMLFormElement> | MouseEvent<any, MouseEvent>) => 
 			onSubmit<K>(
 				onValid,
 				onInvalid,
-				e
+				e,
+				formFieldKey
 			)
 	}
 	// #endregion Submit

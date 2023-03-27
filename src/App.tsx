@@ -106,8 +106,6 @@ function App() {
 		isTouched,
 		isValid,
 		context,
-		getErrors,
-		hasError,
 
 		changeValue,
 		triggerChange,
