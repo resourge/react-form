@@ -1,3 +1,15 @@
+# [1.20.0](https://github.com/resourge/react-form/compare/v1.19.0...v1.20.0) (2023-03-28)
+
+
+### Bug Fixes
+
+* **useformfilter:** fix errors not being displayed when needed ([c5b7bd2](https://github.com/resourge/react-form/commit/c5b7bd236f95860cb71070e2372179e22481778b))
+
+
+### Features
+
+* **useformstorage:** add ability to use external storage ([13cb424](https://github.com/resourge/react-form/commit/13cb4246a7d5dfd82090e2a71618a0d2f8a95633))
+
 # [1.19.0](https://github.com/resourge/react-form/compare/v1.18.5...v1.19.0) (2023-03-28)
 
 
