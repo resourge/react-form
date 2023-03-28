@@ -176,6 +176,7 @@ export function useForm<T extends Record<string, any>>(
 	async function onSubmit<K = void>(
 		onValid: SubmitHandler<T, K>,
 		onInvalid?: ValidateSubmission<T>,
+		filterKeysError?: (key: string) => boolean,
 		e?: FormEvent<HTMLFormElement> | MouseEvent<any, MouseEvent>
 	): Promise<K | undefined> {
 		const { form, touches } = stateRef.current
@@ -186,7 +187,15 @@ export function useForm<T extends Record<string, any>>(
 
 		const proms = onSubmitWatch.current();
 
-		const { errors } = await Promise.resolve(validateState(stateRef.current));
+		const { errors: _errors } = await Promise.resolve(validateState(stateRef.current));
+
+		const errors = filterKeysError ? Object.entries(_errors)
+		.reduce<FormErrors<T>>((errors, [key, value]) => {
+			if ( touches[key as FormKey<T>] || filterKeysError(key) ) {
+				errors[key as FormKey<T>] = value as string[]
+			}
+			return errors;
+		}, {}) : _errors
 
 		const hasError = Object.keys(errors).length
 
@@ -197,7 +206,9 @@ export function useForm<T extends Record<string, any>>(
 			}
 
 			Object.keys(errors)
+			.filter((key) => !filterKeysError || filterKeysError(key))
 			.forEach((key) => {
+				console.log('jey', key)
 				_touches[key as keyof Touches<T>] = true;
 			})
 		}
@@ -238,12 +249,14 @@ export function useForm<T extends Record<string, any>>(
 
 	function handleSubmit<K = void>(
 		onValid: SubmitHandler<T, K>,
-		onInvalid?: ValidateSubmission<T>
+		onInvalid?: ValidateSubmission<T>,
+		filterKeysError?: (key: string) => boolean
 	) {
 		return (e?: FormEvent<HTMLFormElement> | MouseEvent<any, MouseEvent>) => 
 			onSubmit<K>(
 				onValid,
 				onInvalid,
+				filterKeysError,
 				e
 			)
 	}
@@ -319,6 +332,23 @@ export function useForm<T extends Record<string, any>>(
 
 		const result = cb(proxy);
 
+		const _setFormState = (newState: State<T>) => {
+			newState.errors = produceOptions?.filterKeysError 
+				? Object.entries(newState.errors)
+				.reduce<FormErrors<T>>((errors, [key, value]) => {
+				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+					if ( newState.touches[key as FormKey<T>] || produceOptions?.filterKeysError!(key as FormKey<T>) ) {
+						errors[key as FormKey<T>] = value as string[]
+					}
+					return errors;
+				}, {}) 
+				: newState.errors
+
+			console.log('newState.errors', newState.errors)
+			
+			setFormState(newState)
+		}
+
 		if ( result instanceof Promise ) {
 			return result
 			.then(() => {
@@ -331,7 +361,7 @@ export function useForm<T extends Record<string, any>>(
 					newState,
 					unsubscribe: () => observeChanges.unsubscribe(proxy),
 					validateState,
-					setFormState,
+					setFormState: _setFormState,
 					options,
 					produceOptions
 				})
@@ -347,7 +377,7 @@ export function useForm<T extends Record<string, any>>(
 			newState,
 			unsubscribe: () => observeChanges.unsubscribe(proxy),
 			validateState,
-			setFormState,
+			setFormState: _setFormState,
 			options,
 			produceOptions
 		})

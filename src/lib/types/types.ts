@@ -73,24 +73,6 @@ export type State<T extends Record<string, any>> = {
 
 export type FormOptions<T extends Record<string, any>> = {
 	/**
-	 * Max number of "previous changes" the system will hold.
-	 * After 15 the first changes start to be replaced with the new ones.
-	 * @important In case of huge numbers the system performance may be impacted.
-	 * @default 15
-	 * @example 
-	 * ```Typescript
-	 * const  = useForm(
-	 *	 {
-	 * 		name: 'Rimuru'
-	 *	 },
-	 *   {
-	 * 		maxHistory: 10
-	 * 	 }
-	 * )
-	 * ```
-	 */
-	maxHistory?: number
-	/**
 	 * Triggers when form is changed
 	 */
 	onChange?: (state: State<T>) => Promise<void> | void
@@ -233,6 +215,10 @@ export type FieldForm<Value = any, Name = string> = FieldFormReadonly<Value, Nam
 
 export type ProduceNewStateOptions = {
 	/**
+	 * Method to make sure some errors are not triggered
+	 */
+	filterKeysError?: (key: string) => boolean
+	/**
 	 * Validates form regardless of conditions
 	 */
 	forceValidation?: boolean
@@ -252,29 +238,13 @@ export type ProduceNewStateOptions = {
 
 export type ProduceNewStateOptionsHistory = ProduceNewStateOptions
 
-export type ResetOptions = {
+export type ResetOptions = ProduceNewStateOptions & {
 	/**
 	 * On reset `touches` will be cleared
 	 * 
 	 * @default true
 	 */
 	clearTouched?: boolean
-	/**
-	 * Validates form regardless of conditions
-	 */
-	forceValidation?: boolean
-	/**
-	 * If `false` will not check `touches` and not call `onTouch` from options
-	 * 
-	 * @default false
-	 */
-	triggerTouched?: boolean
-	/**
-	 * Validates form if new form values are different from previous form values
-	 * 
-	 * @default false
-	 */
-	validate?: boolean
 }
 
 export type FieldOptions<Value = any> = {
