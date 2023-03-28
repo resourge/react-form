@@ -1,3 +1,15 @@
+# [1.19.0](https://github.com/resourge/react-form/compare/v1.18.5...v1.19.0) (2023-03-28)
+
+
+### Bug Fixes
+
+* **useform:** fix onchange in input not working correctly with accentuation ([20e2199](https://github.com/resourge/react-form/commit/20e2199df3a207fc735b5c6c32b23be55c32bbf9))
+
+
+### Features
+
+* **useform:** separate state into 3 useStates ([77a0631](https://github.com/resourge/react-form/commit/77a063159016ebbdf9f973c9b4652fcffeb015d7))
+
 ## [1.18.5](https://github.com/resourge/react-form/compare/v1.18.4...v1.18.5) (2023-02-03)
 
 
