@@ -123,13 +123,8 @@ export const useErrors = <T extends Record<string, any>>(
 					// @ts-expect-error // Working with array and object
 					return []
 				}
-				console.log('_errors', _errors)
-				console.log('touches', touches)
-				console.log('onlyOnTouch', onlyOnTouch)
-				console.log('onlyOnTouchKeys', onlyOnTouchKeys)
 
 				const newErrors = getErrors(key);
-				console.log('_key', _key, newErrors)
 
 				if ( !strict ) {
 					const regex = new RegExp(`^${key.replace('[', '\\[')

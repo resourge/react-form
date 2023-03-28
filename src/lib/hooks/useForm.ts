@@ -208,7 +208,6 @@ export function useForm<T extends Record<string, any>>(
 			Object.keys(errors)
 			.filter((key) => !filterKeysError || filterKeysError(key))
 			.forEach((key) => {
-				console.log('jey', key)
 				_touches[key as keyof Touches<T>] = true;
 			})
 		}
@@ -343,8 +342,6 @@ export function useForm<T extends Record<string, any>>(
 					return errors;
 				}, {}) 
 				: newState.errors
-
-			console.log('newState.errors', newState.errors)
 			
 			setFormState(newState)
 		}

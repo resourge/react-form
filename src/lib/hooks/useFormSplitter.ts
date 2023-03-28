@@ -131,14 +131,9 @@ export function useFormSplitter<
 			context.watch(key !== 'submit' ? getKey(key) : key, method as WatchMethod<any>); 
 		}) as UseFormReturn<PathValue<T, K>>['watch'],
 		field: ((key, options) => context.field(getKey(key), options)) as UseFormReturn<PathValue<T, K>>['field'],
-		getErrors: ((key, options) => {
-			console.log('key', key)
-			console.log('key', getKey(key))
-			return context.getErrors(getKey(key), options)
-		}) as UseFormReturn<PathValue<T, K>>['getErrors'],
+		getErrors: ((key, options) => context.getErrors(getKey(key), options)) as UseFormReturn<PathValue<T, K>>['getErrors'],
 		hasError: ((key, options) => context.hasError(getKey(key), options)) as UseFormReturn<PathValue<T, K>>['hasError'],
 		changeValue: ((key, value, options) => {
-			console.log('getKey(key)', getKey(key), value)
 			context.changeValue(getKey(key), value, {
 				...options,
 				filterKeysError

@@ -9,6 +9,24 @@ import { type State } from '../types/types'
 
 import { useForm } from './useForm'
 
+type LocalStorageFrom = {
+	getItem: (key: string) => (string | null) | Promise<string | null>
+	removeItem: (key: string) => void | Promise<void>
+	setItem: (key: string, value: string) => void | Promise<void>
+}
+
+const localStorage: LocalStorageFrom = {
+	async setItem(key: string, value: string) {
+		await localForage.setItem(key, value);
+	},
+	getItem(key: string) {
+		return localForage.getItem(key)
+	},
+	removeItem(key: string) {
+		return localForage.removeItem(key)
+	}
+}
+
 type FormStorageOptions<T extends Record<string, any>> = FormOptions<T> & {
 	/**
 	 * Unique id for local storage
@@ -35,6 +53,10 @@ type FormStorageOptions<T extends Record<string, any>> = FormOptions<T> & {
 	 */
 	shouldClearAfterSubmit?: boolean
 	/**
+	 * Custom storage
+	 */
+	storage?: LocalStorageFrom
+	/**
 	 * Local storage version (to clear when changes are done to the form)
 	 */
 	version?: string
@@ -45,12 +67,6 @@ type UseFormStorageReturn<T extends Record<string, any>> = UseFormReturn<T> & {
 	 * Serves to synchronize local storage data with form data
 	 */
 	restoreFromStorage: () => Promise<void>
-}
-
-type LocalStorageState<T extends Record<string, any>> = {
-	serializedState: string
-	state: State<T>
-	version: string
 }
 
 /**
@@ -86,6 +102,7 @@ export function useFormStorage<T extends Record<string, any>>(
 	const onStorageError = options?.onStorageError ?? (() => {});
 	const autoSyncWithLocalStorage = options?.autoSyncWithLocalStorage ?? true;
 	const version = options?.version ?? '1.0.0';
+	const storage = options?.storage ?? localStorage;
 
 	const formResult = useForm<T>(
 		defaultValue as any,
@@ -95,14 +112,13 @@ export function useFormStorage<T extends Record<string, any>>(
 				if ( options?.onChange ) {
 					options?.onChange(state)
 				}
-				localForage.setItem<LocalStorageState<T>>(
-					options.uniqueId, 
-					{
+				Promise.resolve(storage.setItem(
+					options.uniqueId,
+					JSON.stringify({
 						version,
-						state,
 						serializedState: serialijse.serialize(state)
-					}
-				)
+					})
+				))
 				.catch((e) => {
 					onStorageError(e); 
 				})
@@ -112,7 +128,7 @@ export function useFormStorage<T extends Record<string, any>>(
 					options?.onSubmit(state)
 				}
 				if ( (options?.shouldClearAfterSubmit ?? true) ) {
-					localForage.removeItem(options.uniqueId)
+					Promise.resolve(localForage.removeItem(options.uniqueId))
 					.catch((e) => {
 						onStorageError(e); 
 					})
@@ -122,10 +138,10 @@ export function useFormStorage<T extends Record<string, any>>(
 	)
 
 	const restoreFromStorage = async () => {
-		const localStorageState = await localForage.getItem<LocalStorageState<T>>(options.uniqueId)
+		const localStorageState = await Promise.resolve(storage.getItem(options.uniqueId))
 
 		if ( localStorageState ) {
-			const { version: localStorageVersion, serializedState } = localStorageState;
+			const { version: localStorageVersion, serializedState } = JSON.parse(localStorageState);
 			const state = serialijse.deserialize<State<T>>(serializedState);
 			
 			if ( localStorageVersion === version ) {
@@ -138,7 +154,7 @@ export function useFormStorage<T extends Record<string, any>>(
 				._setFormState(state)
 			}
 			else {
-				localForage.removeItem(options.uniqueId)
+				Promise.resolve(localForage.removeItem(options.uniqueId))
 				.catch((e) => {
 					onStorageError(e); 
 				})
