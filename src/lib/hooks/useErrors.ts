@@ -32,18 +32,18 @@ export const useErrors = <T extends Record<string, any>>(
 	touches: Touches<T>,
 	formOptions?: FormOptions<T>
 ) => {
-	const cacheErrors = useRef<Record<string, CacheType>>({});
+	const cacheErrors = useRef<Map<string, CacheType>>(new Map());
 
 	const setCacheErrors = <ReturnValue extends CacheType>(key: string, cb: () => ReturnValue): ReturnValue => {
-		if ( !cacheErrors.current[key] ) {
-			cacheErrors.current[key] = cb();
+		if ( !cacheErrors.current.has(key) ) {
+			cacheErrors.current.set(key, cb());
 		}
 
-		return cacheErrors.current[key] as ReturnValue
+		return cacheErrors.current.get(key) as ReturnValue
 	}
 
 	const clearCacheErrors = () => {
-		cacheErrors.current = {}
+		cacheErrors.current.clear()
 	}
 
 	const hasError = (
