@@ -128,7 +128,8 @@ export function useForm<T extends Record<string, any>>(
 		clearCacheErrors
 	} = useErrors(
 		errors,
-		touches
+		touches,
+		options
 	)
 
 	const [changedKeys, updateController] = useChangedKeys<T>(touches)
