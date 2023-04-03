@@ -288,8 +288,6 @@ export function useForm<T extends Record<string, any>>(
 
 		changedKeys.current.clear();
 
-		const changes: any[] = [];
-
 		const proxy = observeChanges(
 			newState.form,
 			(
@@ -299,10 +297,6 @@ export function useForm<T extends Record<string, any>>(
 			) => {
 				// @ts-expect-error // Paths are array, but on-change doesn't see it like that
 				const key = getKeyFromPaths<T>(paths);
-
-				changes.push((form: any) => {
-					getterSetter.set(key, form, previousValue)
-				})
 
 				if ( 
 					key && 
