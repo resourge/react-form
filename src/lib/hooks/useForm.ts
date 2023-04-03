@@ -93,11 +93,18 @@ export function useForm<T extends Record<string, any>>(
 	const setFormState = (newState: State<T>) => {
 		clearCacheErrors();
 
-		Object.keys(newState.errors)
-		.filter(
-			(key) => !Object.keys(stateRef.current.errors)
-			.includes(key)
-		)
+		new Set([
+			...Object.keys(newState.errors)
+			.filter(
+				(key) => !Object.keys(stateRef.current.errors)
+				.includes(key)
+			),
+			...Object.keys(newState.touches)
+			.filter(
+				(key) => !Object.keys(stateRef.current.touches)
+				.includes(key)
+			)
+		])
 		.forEach((key) => {
 			updateController(key as FormKey<T>)
 		})
