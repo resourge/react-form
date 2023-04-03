@@ -1,3 +1,18 @@
+# [1.21.0](https://github.com/resourge/react-form/compare/v1.20.0...v1.21.0) (2023-04-03)
+
+
+### Bug Fixes
+
+* **useerrors:** fix errors not showing inside controllers ([17ebed7](https://github.com/resourge/react-form/commit/17ebed7a65cc0de1c7e19f4301eca9d021849670))
+* **useform:** fix not importing form options in useErrors ([9e1ace0](https://github.com/resourge/react-form/commit/9e1ace0ea551b919c745dfebbf7740ae3741f924))
+* **useform:** remove unnecessary code ([f916f68](https://github.com/resourge/react-form/commit/f916f688f5d2f59fb39c4d5d31b095a7599763de))
+* **useformsplitter:** fix not updating controller when values change ([f6e014e](https://github.com/resourge/react-form/commit/f6e014ee51056b6f27473754cf195319c03992e3))
+
+
+### Features
+
+* **useerrors:** change from object to Map ([91cae52](https://github.com/resourge/react-form/commit/91cae52a83c97304ccb0f41c59504f51f2a8dd5e))
+
 # [1.20.0](https://github.com/resourge/react-form/compare/v1.19.0...v1.20.0) (2023-03-28)
 
 
