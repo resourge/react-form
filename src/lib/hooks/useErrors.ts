@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { type MutableRefObject, useRef } from 'react';
 
 import { type FormKey } from '../types/FormKey';
 import {
@@ -7,7 +7,8 @@ import {
 	type HasErrorOptions,
 	type Touches,
 	type FormErrors,
-	type FormOptions
+	type FormOptions,
+	type State
 } from '../types/types'
 
 export type CacheType = string[] | FormErrors<any> | boolean
@@ -28,8 +29,7 @@ const checkIfCanCheckError = <T extends Record<string, any>>(
 }
 
 export const useErrors = <T extends Record<string, any>>(
-	errors: FormErrors<T>,
-	touches: Touches<T>,
+	stateRef: MutableRefObject<State<T>>,
 	formOptions?: FormOptions<T>
 ) => {
 	const cacheErrors = useRef<Map<string, CacheType>>(new Map());
@@ -60,10 +60,10 @@ export const useErrors = <T extends Record<string, any>>(
 		return setCacheErrors<boolean>(
 			_key, 
 			() => {
-				const _errors: FormErrors<T> = errors ?? {};
+				const _errors: FormErrors<T> = stateRef.current.errors ?? {};
 
 				let hasError = false;
-				if ( checkIfCanCheckError(key, touches, onlyOnTouch, onlyOnTouchKeys) ) {
+				if ( checkIfCanCheckError(key, stateRef.current.touches, onlyOnTouch, onlyOnTouchKeys) ) {
 					hasError = Boolean(_errors[key]);
 				}
 
@@ -77,7 +77,7 @@ export const useErrors = <T extends Record<string, any>>(
 	
 						return Object.keys(_errors)
 						.some((errorKey) => {
-							if ( checkIfCanCheckError(errorKey, touches, onlyOnTouch) ) {
+							if ( checkIfCanCheckError(errorKey, stateRef.current.touches, onlyOnTouch) ) {
 								return regex.test(errorKey)
 							}
 							return false;
@@ -114,9 +114,9 @@ export const useErrors = <T extends Record<string, any>>(
 		return setCacheErrors<GetErrors<Model>>(
 			_key, 
 			() => {
-				const _errors: FormErrors<T> = errors ?? {};
+				const _errors: FormErrors<T> = stateRef.current.errors ?? {};
 				const getErrors = (key: FormKey<Model>): GetErrors<Model> => {
-					if ( checkIfCanCheckError(key, touches, onlyOnTouch, onlyOnTouchKeys) ) {
+					if ( checkIfCanCheckError(key, stateRef.current.touches, onlyOnTouch, onlyOnTouchKeys) ) {
 						// @ts-expect-error // Working with array and object
 						return [..._errors[key] ?? []];
 					}

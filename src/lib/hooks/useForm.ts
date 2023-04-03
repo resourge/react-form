@@ -127,8 +127,7 @@ export function useForm<T extends Record<string, any>>(
 		getErrors,
 		clearCacheErrors
 	} = useErrors(
-		errors,
-		touches,
+		stateRef,
 		options
 	)
 
