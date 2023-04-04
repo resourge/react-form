@@ -1,3 +1,6 @@
 import { PreserveClass, addClassToPreserve } from './preserveClass'
+import { parse, stringify } from './serializeJson'
 
-export { PreserveClass, addClassToPreserve }
+export {
+	PreserveClass, addClassToPreserve, parse, stringify 
+}

@@ -2,10 +2,10 @@
 import { useEffect, useRef } from 'react'
 
 import localForage from 'localforage'
-import * as serialijse from 'serialijse';
 
 import { type FormKey, type FormOptions, type UseFormReturn } from '../types'
 import { type State } from '../types/types'
+import { parse, stringify } from '../utils/serializeJson';
 
 import { useForm } from './useForm'
 
@@ -116,7 +116,7 @@ export function useFormStorage<T extends Record<string, any>>(
 					options.uniqueId,
 					JSON.stringify({
 						version,
-						serializedState: serialijse.serialize(state)
+						serializedState: stringify(state)
 					})
 				))
 				.catch((e) => {
@@ -142,7 +142,7 @@ export function useFormStorage<T extends Record<string, any>>(
 
 		if ( localStorageState ) {
 			const { version: localStorageVersion, serializedState } = JSON.parse(localStorageState);
-			const state = serialijse.deserialize<State<T>>(serializedState);
+			const state = parse<State<T>>(serializedState);
 			
 			if ( localStorageVersion === version ) {
 				Object.keys(state.form)

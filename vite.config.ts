@@ -10,6 +10,7 @@ export default defineConfig(({ mode }) => ({
 	define: {
 		__DEV__: (mode === 'development').toString()
 	},
+	
 	test: {
 		globals: true,
 		environment: 'jsdom',
@@ -27,6 +28,9 @@ export default defineConfig(({ mode }) => ({
 		checker({ 
 			typescript: true,
 			enableBuild: true,
+			overlay: {
+				initialIsOpen: false
+			},
 			eslint: {
 				lintCommand: 'eslint "./src/**/*.{ts,tsx}"'
 			}
