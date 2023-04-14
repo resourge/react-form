@@ -60,35 +60,23 @@ export function useForm<T extends Record<string, any>>(
 	// #endregion errors
 
 	// #region State
-	const [{ data: form }, setFormData] = useState<{ data: T }>(() => ({
-		data: typeof defaultValue === 'function' 
+	const [state, setState] = useState<State<T>>(() => ({
+		form: typeof defaultValue === 'function' 
 			? (
 				isClass(defaultValue) 
 					? new (defaultValue as new () => T)() 
 					: (defaultValue as () => T)()
-			) : shallowClone(defaultValue)
+			) : shallowClone(defaultValue),
+		errors: {},
+		touches: {}
 	}));
-	const [errors, setErrors] = useState<FormErrors<T>>({});
-	const [touches, setTouches] = useState<Touches<T>>({});
 
-	const stateRef = useRef<State<T>>({
-		errors,
-		touches,
-		form
-	});
-	stateRef.current = {
-		errors,
-		touches,
-		form
-	};
+	const stateRef = useRef<State<T>>(state);
+	stateRef.current = state;
 
-	const _setFormState = (state: State<T>) => {
-		setFormData({
-			data: state.form 
-		})
-		setErrors(state.errors)
-		setTouches(state.touches)
-	}
+	const {
+		form, errors, touches 
+	} = state
 
 	const setFormState = (newState: State<T>) => {
 		clearCacheErrors();
@@ -109,7 +97,11 @@ export function useForm<T extends Record<string, any>>(
 			updateController(key as FormKey<T>)
 		})
 
-		_setFormState(newState)
+		setState({
+			form: newState.form,
+			errors: newState.errors,
+			touches: newState.touches 
+		})
 	}
 	// #endregion State
 
@@ -332,53 +324,49 @@ export function useForm<T extends Record<string, any>>(
 
 		const result = cb(proxy);
 
-		const _setFormState = (newState: State<T>) => {
-			newState.errors = produceOptions?.filterKeysError 
-				? Object.entries(newState.errors)
-				.reduce<FormErrors<T>>((errors, [key, value]) => {
-				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-					if ( newState.touches[key as FormKey<T>] || produceOptions?.filterKeysError!(key as FormKey<T>) ) {
-						errors[key as FormKey<T>] = value as string[]
-					}
-					return errors;
-				}, {}) 
-				: newState.errors
-			
-			setFormState(newState)
+		const executeNewWatch = () => {
+			executeWatch({
+				changedKeys,
+				hasWatchingKeys,
+				onWatch,
+				proxy,
+				newState,
+				unsubscribe: () => observeChanges.unsubscribe(proxy),
+				validateState,
+				setFormData: (form) => {
+					setState({
+						form,
+						errors: stateRef.current.errors,
+						touches: stateRef.current.touches
+					})
+				},
+				setFormState: (newState) => {
+					newState.errors = produceOptions?.filterKeysError 
+						? Object.entries(newState.errors)
+						.reduce<FormErrors<T>>((errors, [key, value]) => {
+							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+							if ( newState.touches[key as FormKey<T>] || produceOptions?.filterKeysError!(key as FormKey<T>) ) {
+								errors[key as FormKey<T>] = value as string[]
+							}
+							return errors;
+						}, {}) 
+						: newState.errors
+						
+					setFormState(newState)
+				},
+				options,
+				produceOptions
+			})
 		}
 
 		if ( result instanceof Promise ) {
 			return result
 			.then(() => {
-				executeWatch({
-					changedKeys,
-					hasWatchingKeys,
-					onWatch,
-					proxy,
-					setFormData,
-					newState,
-					unsubscribe: () => observeChanges.unsubscribe(proxy),
-					validateState,
-					setFormState: _setFormState,
-					options,
-					produceOptions
-				})
+				executeNewWatch()
 			});
 		}
 
-		executeWatch({
-			changedKeys,
-			hasWatchingKeys,
-			onWatch,
-			proxy,
-			setFormData,
-			newState,
-			unsubscribe: () => observeChanges.unsubscribe(proxy),
-			validateState,
-			setFormState: _setFormState,
-			options,
-			produceOptions
-		})
+		executeNewWatch()
 	}
 
 	const reset = async (
@@ -553,7 +541,7 @@ export function useForm<T extends Record<string, any>>(
 		resetTouch,
 		watch,
 		updateController,
-		_setFormState
+		_setFormState: setState
 		// #endregion Form actions
 	}
 

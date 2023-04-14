@@ -82,9 +82,7 @@ type ExecuteWatchProduceState<T extends Record<string, any>> = {
 	hasWatchingKeys: (changedKeys: React.MutableRefObject<Set<string>>) => boolean
 	onWatch: React.MutableRefObject<(form: Record<string, any>, changedKeys: React.MutableRefObject<Set<string>>) => Promise<void>>
 	proxy: T
-	setFormData: (value: React.SetStateAction<{
-		data: T
-	}>) => void
+	setFormData: (value: State<T>['form']) => void
 } & ValidateProduceState<T>
 
 /**
@@ -104,9 +102,7 @@ export const executeWatch = <T extends Record<string, any>>({
 	options,
 	produceOptions
 }: ExecuteWatchProduceState<T>) => {
-	setFormData({
-		data: newState.form
-	});
+	setFormData(newState.form);
 
 	if ( hasWatchingKeys(changedKeys) ) {
 		return onWatch.current(proxy, changedKeys)

@@ -1,12 +1,12 @@
-import { declarePersistable } from 'serialijse';
+import { registerClass } from './serialize';
 
 // eslint-disable-next-line @typescript-eslint/prefer-function-type
 export function PreserveClass<T extends { new(...args: any[]): any }>(constructor: T) {
-	declarePersistable(constructor);
+	registerClass(constructor);
 	return constructor
 }
 
 // eslint-disable-next-line @typescript-eslint/prefer-function-type
 export function addClassToPreserve<T extends { new(...args: any[]): any }>(constructor: T) {
-	declarePersistable(constructor);
+	registerClass(constructor);
 }

@@ -1,11 +1,9 @@
 /* eslint-disable @typescript-eslint/prefer-function-type */
 import { useEffect, useRef } from 'react'
 
-import localForage from 'localforage'
-
 import { type FormKey, type FormOptions, type UseFormReturn } from '../types'
 import { type State } from '../types/types'
-import { parse, stringify } from '../utils/serializeJson';
+import { deserialize, serialize } from '../utils';
 
 import { useForm } from './useForm'
 
@@ -15,19 +13,11 @@ type LocalStorageFrom = {
 	setItem: (key: string, value: string) => void | Promise<void>
 }
 
-const localStorage: LocalStorageFrom = {
-	async setItem(key: string, value: string) {
-		await localForage.setItem(key, value);
-	},
-	getItem(key: string) {
-		return localForage.getItem(key)
-	},
-	removeItem(key: string) {
-		return localForage.removeItem(key)
-	}
-}
-
 type FormStorageOptions<T extends Record<string, any>> = FormOptions<T> & {
+	/**
+	 * Local storage
+	 */
+	storage: LocalStorageFrom
 	/**
 	 * Unique id for local storage
 	 */
@@ -52,10 +42,6 @@ type FormStorageOptions<T extends Record<string, any>> = FormOptions<T> & {
 	 * @default true
 	 */
 	shouldClearAfterSubmit?: boolean
-	/**
-	 * Custom storage
-	 */
-	storage?: LocalStorageFrom
 	/**
 	 * Local storage version (to clear when changes are done to the form)
 	 */
@@ -101,8 +87,8 @@ export function useFormStorage<T extends Record<string, any>>(
 	const onLoading = options?.onLoading ?? (() => {});
 	const onStorageError = options?.onStorageError ?? (() => {});
 	const autoSyncWithLocalStorage = options?.autoSyncWithLocalStorage ?? true;
-	const version = options?.version ?? '1.0.0';
-	const storage = options?.storage ?? localStorage;
+	const version = options.version ?? '1.0.0';
+	const storage = options.storage;
 
 	const formResult = useForm<T>(
 		defaultValue as any,
@@ -116,7 +102,7 @@ export function useFormStorage<T extends Record<string, any>>(
 					options.uniqueId,
 					JSON.stringify({
 						version,
-						serializedState: stringify(state)
+						serializedState: serialize(state)
 					})
 				))
 				.catch((e) => {
@@ -128,7 +114,7 @@ export function useFormStorage<T extends Record<string, any>>(
 					options?.onSubmit(state)
 				}
 				if ( (options?.shouldClearAfterSubmit ?? true) ) {
-					Promise.resolve(localForage.removeItem(options.uniqueId))
+					Promise.resolve(storage.removeItem(options.uniqueId))
 					.catch((e) => {
 						onStorageError(e); 
 					})
@@ -142,7 +128,7 @@ export function useFormStorage<T extends Record<string, any>>(
 
 		if ( localStorageState ) {
 			const { version: localStorageVersion, serializedState } = JSON.parse(localStorageState);
-			const state = parse<State<T>>(serializedState);
+			const state = deserialize<State<T>>(serializedState);
 			
 			if ( localStorageVersion === version ) {
 				Object.keys(state.form)
@@ -154,7 +140,7 @@ export function useFormStorage<T extends Record<string, any>>(
 				._setFormState(state)
 			}
 			else {
-				Promise.resolve(localForage.removeItem(options.uniqueId))
+				Promise.resolve(storage.removeItem(options.uniqueId))
 				.catch((e) => {
 					onStorageError(e); 
 				})

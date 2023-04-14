@@ -2,20 +2,22 @@ import { babel } from '@rollup/plugin-babel';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
 import terser from '@rollup/plugin-terser';
+import { readFileSync } from 'fs';
 import dts from 'rollup-plugin-dts';
 import filsesize from 'rollup-plugin-filesize';
 
-import packageJson from './package.json' assert { type: 'json' }
+const pkpackageJsong = JSON.parse(readFileSync('package.json', {
+	encoding: 'utf8'
+}));
 
 const {
 	name, author, license
-} = packageJson
+} = pkpackageJsong
 
-const external = ['react', 'react/jsx-runtime', '@resourge/shallow-clone', 'localforage'];
+const external = ['react', 'react/jsx-runtime', '@resourge/shallow-clone'];
 const globals = {
 	react: 'React',
 	'@resourge/shallow-clone': 'ShallowClone',
-	localforage: 'localforage',
 	'react/jsx-runtime': 'jsxRuntime'
 }
 
