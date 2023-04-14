@@ -27,7 +27,6 @@
   "author": "resourge",
   "license": "MIT",
   "scripts": {
-    "postinstall": "patch-package",
     "commitizen": "git-cz",
     "commit": "git pull && git add . && npm run commitizen",
     "lint": "eslint \"./src/**/*.{ts,tsx}\"",
