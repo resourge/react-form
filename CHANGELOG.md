@@ -1,3 +1,11 @@
+# [1.22.0](https://github.com/resourge/react-form/compare/v1.21.0...v1.22.0) (2023-04-14)
+
+
+### Features
+
+* **serialize:** change from serialise package to intern version ([98f8db9](https://github.com/resourge/react-form/commit/98f8db9bbc9dc27fd566c983e299f04fa93a8179))
+* **serializejson:** export the parse and stringify function to serialize ([2d1caf6](https://github.com/resourge/react-form/commit/2d1caf6d82be25683d6cf01dbddfcd8e142787e3))
+
 # [1.21.0](https://github.com/resourge/react-form/compare/v1.20.0...v1.21.0) (2023-04-03)
 
 
