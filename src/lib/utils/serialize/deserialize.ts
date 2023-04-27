@@ -130,8 +130,19 @@ export function deserialize<T extends object>(serializedMeta: string): T {
 	);
 }
 
-export function registerClass(classObj: Record<string, any>) {
-	const className = classObj.prototype.constructor.name;
+/**
+ * Registers a class for serialization.
+ * @param classObj Class
+ * @param className by default it will use the classObj class name.
+ */
+export function registerClass(classObj: Record<string, any>, className: string = classObj.prototype.constructor.name) {
+	Object.defineProperty(
+		classObj.prototype.constructor, 
+		'name', 
+		{
+			value: className 
+		}
+	);
 
 	SerializePrototypes[className] = className;
 	DeserializeFunctions[className] = (value, context) => {

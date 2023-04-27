@@ -1,7 +1,7 @@
-import { PreserveClass, addClassToPreserve } from './preserveClass'
+import { PreserveClass } from './preserveClass'
 import { deserialize, serialize, registerClass } from './serialize'
 
 export {
-	PreserveClass, addClassToPreserve, deserialize, serialize, 
+	PreserveClass, deserialize, serialize, 
 	registerClass
 }
