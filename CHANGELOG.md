@@ -1,3 +1,10 @@
+## [1.22.1](https://github.com/resourge/react-form/compare/v1.22.0...v1.22.1) (2023-04-27)
+
+
+### Bug Fixes
+
+* **deserialize:** add className param to registerClass for custom naming ([baf5a57](https://github.com/resourge/react-form/commit/baf5a5741b64133e5b9b0b4ebdb0d2dd67ce237f))
+
 # [1.22.0](https://github.com/resourge/react-form/compare/v1.21.0...v1.22.0) (2023-04-14)
 
 
