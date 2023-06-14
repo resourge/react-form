@@ -96,7 +96,7 @@ const createCycle = (meta: SerializeMetaType, originalMeta: Record<number, Seria
 }
 
 function deserializeMeta(value: SerializeMetaType, context: DeserializeContext) {
-	if ( typeof value === 'object' ) {
+	if ( value && typeof value === 'object' ) {
 		const fn = DeserializeFunctions[value.prototype];
 
 		if ( __DEV__ ) {
