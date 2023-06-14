@@ -1,3 +1,10 @@
+## [1.22.2](https://github.com/resourge/react-form/compare/v1.22.1...v1.22.2) (2023-06-14)
+
+
+### Bug Fixes
+
+* **deserialize:** fix invalid validation for undefined value on deserializeMeta ([e6604cb](https://github.com/resourge/react-form/commit/e6604cb10fe66879ae1c8e31ea5f101fb0e2512f))
+
 ## [1.22.1](https://github.com/resourge/react-form/compare/v1.22.0...v1.22.1) (2023-04-27)
 
 
