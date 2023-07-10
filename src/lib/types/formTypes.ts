@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-invalid-void-type */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { type FormEvent, type MouseEvent } from 'react';
+import { type FormEvent } from 'react';
 
 import { type FormContextObject } from '../contexts/FormContext';
 import { type WatchMethod } from '../hooks/useWatch';
@@ -22,7 +22,7 @@ export type FormErrors<T extends Record<string, any>> = {
 
 export type HasErrorOptions<T extends Record<string, any>> = {
 	/**
-	 * When true only returns if the key was `touched` (@default false)
+	 * When true only returns if the key was `touched` (@default true)
 	 */
 	onlyOnTouch?: boolean
 	/**
@@ -30,22 +30,22 @@ export type HasErrorOptions<T extends Record<string, any>> = {
 	 */
 	onlyOnTouchKeys?: Array<FormKey<T>>
 	/**
-	 * Includes object/array children
+	 * Includes children errors to define if is true or false (@default true)
 	 */
 	strict?: boolean
 }
 
 export type GetErrorsOptions<T extends Record<string, any>> = {
 	/**
-	 * Includes the children errors on the array
+	 * Includes the children errors on the array (@default true)
 	 */
 	includeChildsIntoArray?: boolean
 	/**
-	 * Includes `key` in children paths
+	 * Includes `key` in children paths (@default false)
 	 */
 	includeKeyInChildErrors?: boolean
 	/**
-	 * When true only returns if the key was `touched` (@default false)
+	 * When true only returns if the key was `touched` (@default true)
 	 */
 	onlyOnTouch?: boolean
 	/**
@@ -53,7 +53,7 @@ export type GetErrorsOptions<T extends Record<string, any>> = {
 	 */
 	onlyOnTouchKeys?: Array<FormKey<T>>
 	/**
-	 * Includes children errors as object into array.
+	 * Includes children errors as objects into array. (@default true)
 	 * 
 	 * Note: If `includeChildsIntoArray` is true `strict`
 	 * will by default be false
@@ -77,7 +77,7 @@ export type FormOptions<T extends Record<string, any>> = {
 	 */
 	onChange?: (state: State<T>) => Promise<void> | void
 	/**
-	 * Local method to treat errors.
+	 * Method to treat errors.
 	 * It's preferable to use {@link setDefaultOnError}
 	 * 
 	 * @expects - the method to return { [key]: [errors messages] }
@@ -99,7 +99,7 @@ export type FormOptions<T extends Record<string, any>> = {
 	onErrors?: OnErrors
 	/**
 	 * When true only returns errors if the key was `touched` (@default false)
-	 * * Note: Local onlyOnTouch takes priority over global onlyOnTouch
+	 * * Note: onlyOnTouch takes priority over global onlyOnTouch
 	 * @default true
 	 */
 	onlyOnTouchDefault?: boolean
@@ -152,7 +152,7 @@ export type FormOptions<T extends Record<string, any>> = {
 	 * With `false` will only validate on method {@link FormActions#handleSubmit} 
 	 * or if {@link FieldOptions#validate}/{@link ProduceNewStateOptions#validate} is set `true`.
 	 * 
-	 * * Note: Local {@link FieldOptions#validate} takes priority over global {@link FormOptions#validateDefault}
+	 * * Note: {@link FieldOptions#validate} takes priority over global {@link FormOptions#validateDefault}
 	 * @default true
 	 */
 	validateDefault?: boolean
@@ -211,15 +211,21 @@ export type FieldFormChange<Value = any, Name = string> = {
 	readOnly?: boolean
 }
 
-export type FieldForm<Value = any, Name = string> = FieldFormReadonly<Value, Name> | FieldFormBlur<Value, Name> | FieldFormChange<Value, Name>
+export type FieldForm<T extends Record<string, any>> = {
+	(key: FormKey<T>, options: FieldOptions<any> & { blur: true }): FieldFormBlur
+	(key: FormKey<T>, options: FieldOptions<any> & { readonly: true }): FieldFormReadonly
+	(key: FormKey<T>, options?: FieldOptions<any>): FieldFormChange
+}
+
+export type FieldFormReturn<Value = any, Name = string> = FieldFormReadonly<Value, Name> | FieldFormBlur<Value, Name> | FieldFormChange<Value, Name>
 
 export type ProduceNewStateOptions = {
 	/**
-	 * Method to make sure some errors are not triggered
+	 * Method to make sure some keys are not triggering error
 	 */
 	filterKeysError?: (key: string) => boolean
 	/**
-	 * Validates form regardless of conditions
+	 * Forces form validation regardless of conditions
 	 */
 	forceValidation?: boolean
 	/**
@@ -231,7 +237,7 @@ export type ProduceNewStateOptions = {
 	/**
 	 * Validates form if new form values are different from previous form values
 	 * 
-	 * @default false
+	 * @default true
 	 */
 	validate?: boolean
 }
@@ -240,7 +246,7 @@ export type ProduceNewStateOptionsHistory = ProduceNewStateOptions
 
 export type ResetOptions = ProduceNewStateOptions & {
 	/**
-	 * On reset `touches` will be cleared
+	 * On reset, `touches` will be cleared
 	 * 
 	 * @default true
 	 */
@@ -248,19 +254,19 @@ export type ResetOptions = ProduceNewStateOptions & {
 }
 
 export type FieldOptions<Value = any> = {
+	/**
+	 * Turns the field from a onChange to onBlur
+	 */
 	blur?: boolean
 	/**
 	 * Changes the value on change.
-	 * 
-	 * * Note: It's preferable for the input to return the actual value
-	 * * 	instead of an event
 	 * 
 	 * @example
 	 * ```Typescript
 	 * 
 	 * <input {
 	 * 		...field('test', {
-	 * 			onChange: (e) => e.target.value
+	 * 			onChange: (value) => `More Info ${value}`
 	 * 		})
 	 * }/>
 	 * ```
@@ -344,11 +350,7 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * ...
 	 * ```
 	 */
-	field: {
-		(key: FormKey<T>, options: FieldOptions<any> & { blur: true }): FieldFormBlur
-		(key: FormKey<T>, options: FieldOptions<any> & { readonly: true }): FieldFormReadonly
-		(key: FormKey<T>, options?: FieldOptions<any>): FieldFormChange
-	}
+	field: FieldForm<T>
 	/**
 	 * Form state
 	 */
@@ -431,7 +433,7 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	handleSubmit: <K = void>(
 		onValid: SubmitHandler<T, K>, 
 		onInvalid?: ValidateSubmission<T> | undefined
-	) => (e?: FormEvent<HTMLFormElement> | MouseEvent) => Promise<K | undefined>
+	) => (e?: FormEvent<HTMLFormElement> | React.MouseEvent) => Promise<K | undefined>
 	/**
 	 * Method to verify if `key` has errors
 	 * 
@@ -612,19 +614,26 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * @example 
 	 * ```Typescript
 	 * const {
+	 *   context,
 	 *	 updateController
-	 * } = useForm(
-	 *	 {
-	 * 		name: 'Rimuru'
-	 *	 }
-	 * )
-	 * ...
-	 * updateController('name')
+	 * } = useForm({
+	 *   keyElementOfForm: 'Rimuru'
+	 * })
+	 * 
+	 * updateController('keyElementOfForm')
+	 * 
+	 * <Controller
+	 *   context={context}
+	 *   name="keyElementOfForm"
+	 * >
+	 *   {...}
+	 * <Controller>
 	 * ```
 	 */
 	updateController: (key: FormKey<T>) => void
 	/**
-	 * Watch key to then execute the method to update other values or
+	 * After all changes are done, it will execute all "watched keys" methods.
+	 * Watch key, then executes the method to update itself or others values.
 	 * Watch 'submit' to execute when the form is submitted
 	 * 
 	 * @param key - key from `form` state
@@ -639,17 +648,16 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 *	 }
 	 * )
 	 * ...
+	 * // When 'name' is `touched` it will update again with the new name
+	 * // It does not rerender again, its a one time deal for every watch
+	 * // Order is important as well, as it will be executed by order in render
 	 * watch('name', (form) => {
-	 * 	form.name = 'Rimuru Tempest'
+	 *   form.name = 'Rimuru Tempest';
+	 * })
+	 * // When form is submitted
+	 * watch('submit', (form) => {
 	 * })
 	 * ```
 	 */
 	watch: (key: FormKey<T> | 'submit', method: WatchMethod<T>) => void
-}
-
-export type UseFormReturnController<T extends Record<string, any>> = UseFormReturn<T> & {
-	/**
-	 * Current changed keys. It is used in the `Controller` component
-	 */
-	changedKeys: React.MutableRefObject<Set<FormKey<T>>>
 }

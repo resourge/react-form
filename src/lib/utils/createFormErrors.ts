@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
-import { type FormErrors } from '../types/types';
+import { type FormErrors } from '../types/formTypes';
 import {
 	type OnErrors,
 	type ValidationError,

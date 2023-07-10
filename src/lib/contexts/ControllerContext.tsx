@@ -11,8 +11,8 @@ export type ControllerContextObject<
 	name: string
 }
 
-// @ts-expect-error I want the validation on the useController
-export const ControllerContext = createContext<ControllerContextObject<any, any, any>>(null);
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+export const ControllerContext = createContext<ControllerContextObject<any>>(null!);
 
 export const useControllerContext = <
 	T extends Record<string, any>

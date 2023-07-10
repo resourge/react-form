@@ -3,14 +3,14 @@ import { createContext, useContext } from 'react'
 
 import invariant from 'tiny-invariant'
 
-import { type UseFormReturn } from '../types/types'
+import { type UseFormReturn } from '../types/formTypes'
 
 import { ControllerContext } from './ControllerContext';
 
 export type FormContextObject<T extends Record<string, any>> = UseFormReturn<T>;
 
-// @ts-expect-error I want the validation on the useFormContext
-export const FormContext = createContext<FormContextObject<Record<string, any>>>(null);
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+export const FormContext = createContext<FormContextObject<Record<string, any>>>(null!);
 
 export const useFormContext = <T extends object>(): UseFormReturn<T> => {
 	const context = useContext(FormContext) as unknown as UseFormReturn<T>

@@ -1,10 +1,17 @@
 {
 	"compilerOptions": {
 		"composite": true,
+		"skipLibCheck": true,
 		"module": "esnext",
-		"moduleResolution": "node"
+		"moduleResolution": "node",
+		"strict": true,
+		"strictNullChecks": true,
+		"allowSyntheticDefaultImports": true,
+		"resolveJsonModule": true
 	},
 	"include": [
-		"vite.config.ts"
+		"**/vite.config.ts",
+		"./config/**/*",
+		"package.json"
 	]
 }

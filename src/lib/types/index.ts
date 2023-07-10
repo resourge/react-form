@@ -1,6 +1,6 @@
 import type { FormKey } from './FormKey'
 import type {
-	FieldForm,
+	FieldFormReturn,
 	FormErrors,
 	FormOptions,
 	OnFunctionChange,
@@ -17,12 +17,13 @@ import type {
 	FieldFormBlur,
 	FieldFormChange,
 	FieldFormReadonly,
+	FieldForm,
 	ProduceNewStateOptionsHistory,
-	ResetMethod,
-	UseFormReturnController
-} from './types';
+	ResetMethod
+} from './formTypes';
 
 export type {
+	FieldFormReturn,
 	FieldForm,
 	FormErrors,
 	FormOptions,
@@ -43,6 +44,5 @@ export type {
 	FieldFormChange,
 	FieldFormReadonly,
 	ProduceNewStateOptionsHistory,
-	ResetMethod,
-	UseFormReturnController
+	ResetMethod
 }

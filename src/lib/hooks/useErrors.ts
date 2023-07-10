@@ -9,7 +9,7 @@ import {
 	type FormErrors,
 	type FormOptions,
 	type State
-} from '../types/types'
+} from '../types/formTypes'
 
 export type CacheType = string[] | FormErrors<any> | boolean
 

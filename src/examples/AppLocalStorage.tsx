@@ -199,7 +199,8 @@ function App() {
 						errors: ['zordon error']
 					}
 				]
-			}
+			},
+			storage: window.localStorage
 		}
 	)
 

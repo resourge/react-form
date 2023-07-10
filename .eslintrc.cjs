@@ -34,7 +34,13 @@ module.exports = {
 			}
 		},
 		{
-			files: ['vite.config.ts', './scripts/assetManifest.ts'], // Your TypeScript files extension
+			files: ['./config/**/*.ts'], // Your TypeScript files extension
+			parserOptions: {
+				project: ['./tsconfig.node.json'] // Specify it only for TypeScript files
+			}
+		},
+		{
+			files: ['vite.config.ts'], // Your TypeScript files extension
 			parserOptions: {
 				project: ['./tsconfig.node.json'] // Specify it only for TypeScript files
 			}

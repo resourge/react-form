@@ -3,13 +3,20 @@ import { memo } from 'react';
 import { ControllerContext } from '../contexts/ControllerContext';
 import { type FormContextObject } from '../contexts/FormContext';
 import { type FormKey } from '../types/FormKey';
-import { type UseFormReturnController } from '../types/types';
+import { type UseFormReturn } from '../types/formTypes';
 
 export type ControllerProps<T extends Record<string, any>> = {
 	children: React.ReactNode
 	context: FormContextObject<T>
 	name: FormKey<T>
 	deps?: any[]
+}
+
+export type UseFormReturnController<T extends Record<string, any>> = UseFormReturn<T> & {
+	/**
+	 * Current changed keys. It is used in the `Controller` component
+	 */
+	changedKeys: React.MutableRefObject<Set<FormKey<T>>>
 }
 
 /**
@@ -40,9 +47,9 @@ export type ControllerProps<T extends Record<string, any>> = {
  * )
  * ```
  */
-export const Controller = memo(function Controller<T extends Record<string, any>>({
+export const Controller = memo(function Controller({
 	name, context, children 
-}: ControllerProps<T>) {
+}: ControllerProps<Record<string, any>>): JSX.Element {
 	return (
 		<ControllerContext.Provider
 			value={{

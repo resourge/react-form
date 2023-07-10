@@ -15,12 +15,11 @@ import observeChanges from 'on-change';
 import { type FormContextObject } from '../contexts/FormContext';
 import { type FormErrors } from '../types';
 import { type FormKey } from '../types/FormKey';
-import { executeWatch } from '../types/produceNewStateUtils';
 import {
 	type OnFunctionChange,
 	type ValidateSubmission,
 	type SubmitHandler,
-	type FieldForm,
+	type FieldFormReturn,
 	type ProduceNewStateOptions,
 	type FieldOptions,
 	type ResetOptions,
@@ -29,8 +28,9 @@ import {
 	type Touches,
 	type ProduceNewStateOptionsHistory,
 	type State
-} from '../types/types'
+} from '../types/formTypes'
 import { createFormErrors, formatErrors } from '../utils/createFormErrors';
+import { executeWatch } from '../utils/produceNewStateUtils';
 import { getKeyFromPaths, isClass } from '../utils/utils'
 import { getDefaultOnError, type ValidationErrors } from '../validators/setDefaultOnError';
 
@@ -449,7 +449,7 @@ export function useForm<T extends Record<string, any>>(
 	const field = (
 		key: FormKey<T>, 
 		fieldOptions?: FieldOptions<T>
-	): FieldForm => {
+	): FieldFormReturn => {
 		const value = getValue(key);
 
 		if ( fieldOptions?.blur ) {

@@ -1,30 +1,17 @@
 /// <reference types="vitest" />
 
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
 import checker from 'vite-plugin-checker';
-import tsconfigPaths from 'vite-tsconfig-paths'
+
+import { defineLibConfig } from './config/defineLibConfig';
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
-	define: {
+export default defineLibConfig(({ mode }) => ({
+	define: mode !== 'production' ? {
 		__DEV__: (mode === 'development').toString()
-	},
-	
-	test: {
-		globals: true,
-		environment: 'jsdom',
-		setupFiles: './src/setupTests.ts'
-	},
+	} : {},
 	plugins: [
-		react({
-			babel: {
-				parserOpts: {
-					plugins: ['decorators-legacy', 'classProperties']
-				}
-			}
-		}),
-		tsconfigPaths(),
+		react(),
 		checker({ 
 			typescript: true,
 			enableBuild: true,

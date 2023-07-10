@@ -29,13 +29,15 @@
 		}
 	},
 	"include": [
-		"src",
+		"./**/src/**/*",
 		".eslintrc.cjs",
 		"rollup.config.js"
 	],
 	"exclude": [
-		"dist",
-		"./main.js"
+		"./**/dist/**/*",
+		"dist_old",
+		"./src/examples",
+		"./node_modules/**/*"
 	],
 	"references": [
 		{

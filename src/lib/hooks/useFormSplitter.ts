@@ -4,7 +4,7 @@ import { useControllerContext } from '../contexts/ControllerContext';
 import { type FormContextObject, useFormContext } from '../contexts/FormContext'
 import { type FormKey } from '../types/FormKey';
 import { type PathValue } from '../types/PathValue';
-import { type ProduceNewStateOptions, type UseFormReturn } from '../types/types'
+import { type ProduceNewStateOptions, type UseFormReturn } from '../types/formTypes'
 import { filterObjectByKey } from '../utils/utils';
 
 import { useGetterSetter } from './useGetterSetter';

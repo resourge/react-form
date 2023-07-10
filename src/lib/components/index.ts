@@ -1,5 +1,5 @@
 import { Controller } from './Controller';
-import type { ControllerProps } from './Controller';
+import type { ControllerProps, UseFormReturnController } from './Controller';
 import { FormProvider } from './FormProvider';
 import type { FormProviderProps } from './FormProvider';
 
@@ -8,5 +8,6 @@ export {
 	type FormProviderProps,
 
 	Controller,
-	type ControllerProps
+	type ControllerProps,
+	type UseFormReturnController
 }

@@ -19,7 +19,7 @@ export type FormProviderProps<T extends Record<string, any>> = React.PropsWithCh
  * </FormProvider>
  * ```
  */
-export const FormProvider = <T extends Record<string, any>>({ children, context }: FormProviderProps<T>) => (
+export const FormProvider = <T extends Record<string, any>>({ children, context }: FormProviderProps<T>): JSX.Element => (
 	<FormContext.Provider value={context as FormContextObject<Record<string, any>>}>
 		{ children }
 	</FormContext.Provider>

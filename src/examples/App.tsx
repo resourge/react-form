@@ -109,7 +109,13 @@ function App() {
 		field,
 		watch,
 		reset,
-		handleSubmit
+		handleSubmit,
+		getValue,
+		merge,
+		onChange,
+		resetTouch,
+		setError,
+		updateController
 	} = useForm<FinalType>(
 		{
 			rafael: 10,
@@ -150,6 +156,14 @@ function App() {
 			}
 		}
 	)
+
+	getErrors('alfredo', {
+		includeChildsIntoArray: true,
+		includeKeyInChildErrors: false,
+		onlyOnTouch: true,
+		onlyOnTouchKeys: undefined,
+		strict: true
+	})
 
 	const submit = handleSubmit((form) => {
 		// console.log('form', form)
@@ -255,7 +269,15 @@ function App() {
 				>
 					Reset Rafael
 				</button>
-				<input { ...field('rafael')} />
+				<input { ...field('rafael', { 
+					blur: false,
+					filterKeysError: () => false,
+					forceValidation: false,
+					onChange: () => {},
+					readOnly: false,
+					triggerTouched: true,
+					validate: true
+				})} />
 				<textarea { ...field('rafael')}/>
 				<input { ...field('rafael')} />
 				<table>

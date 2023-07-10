@@ -2,12 +2,12 @@
 import { useEffect, useRef } from 'react'
 
 import { type FormKey, type FormOptions, type UseFormReturn } from '../types'
-import { type State } from '../types/types'
+import { type State } from '../types/formTypes'
 import { deserialize, serialize } from '../utils';
 
 import { useForm } from './useForm'
 
-type LocalStorageFrom = {
+type FormStorage = {
 	getItem: (key: string) => (string | null) | Promise<string | null>
 	removeItem: (key: string) => void | Promise<void>
 	setItem: (key: string, value: string) => void | Promise<void>
@@ -15,50 +15,50 @@ type LocalStorageFrom = {
 
 type FormStorageOptions<T extends Record<string, any>> = FormOptions<T> & {
 	/**
-	 * Local storage
+	 * Storage
 	 */
-	storage: LocalStorageFrom
+	storage: FormStorage
 	/**
-	 * Unique id for local storage
+	 * Unique id for storage
 	 */
 	uniqueId: string
 	/**
-	 * When true, will automatically sync the form data with local storage one
+	 * When true, will automatically sync the form data with storage one
 	 * 
 	 * @default true
 	 */
-	autoSyncWithLocalStorage?: boolean
+	autoSyncWithStorage?: boolean
 	/**
-	 * Reading from local storage can be a small delay, onLoading serves to show a loading.
+	 * Reading from storage can be a small delay, onLoading serves to show a loading.
 	 */
 	onLoading?: (isLoading: boolean) => void
 	/**
-	 * In case reading or writing in local storage gives an error
+	 * In case reading or writing in storage gives an error
 	 */
 	onStorageError?: (error: any) => void
 	/**
-	 * Should clear local storage after submit
+	 * Should clear storage after submit
 	 * 
 	 * @default true
 	 */
 	shouldClearAfterSubmit?: boolean
 	/**
-	 * Local storage version (to clear when changes are done to the form)
+	 * Storage version (to clear when changes are done to the form)
 	 */
 	version?: string
 }
 
 type UseFormStorageReturn<T extends Record<string, any>> = UseFormReturn<T> & {
 	/**
-	 * Serves to synchronize local storage data with form data
+	 * Serves to synchronize storage data with form data
 	 */
 	restoreFromStorage: () => Promise<void>
 }
 
 /**
- * Works the same as useForm but when changes are done it will also saves the data in a local storage (using localForage).
- * * Note that when changes are done to form data, it's always better to change/update the version so local storage data is cleared. 
- * * By default it will clear the form from local storage when submitted with success.
+ * Hook to create a form where changes will be saved in a storage.
+ * * Note that when changes are done to form data, it's always better to change/update the version so storage data is cleared. 
+ * * By default it will clear the form from storage when submitted with success.
  */
 export function useFormStorage<T extends Record<string, any>>(
 	defaultValue: ({ new(): T }), 
@@ -86,7 +86,7 @@ export function useFormStorage<T extends Record<string, any>>(
 
 	const onLoading = options?.onLoading ?? (() => {});
 	const onStorageError = options?.onStorageError ?? (() => {});
-	const autoSyncWithLocalStorage = options?.autoSyncWithLocalStorage ?? true;
+	const autoSyncWithStorage = options?.autoSyncWithStorage ?? true;
 	const version = options.version ?? '1.0.0';
 	const storage = options.storage;
 
@@ -124,13 +124,13 @@ export function useFormStorage<T extends Record<string, any>>(
 	)
 
 	const restoreFromStorage = async () => {
-		const localStorageState = await Promise.resolve(storage.getItem(options.uniqueId))
+		const storageState = await Promise.resolve(storage.getItem(options.uniqueId))
 
-		if ( localStorageState ) {
-			const { version: localStorageVersion, serializedState } = JSON.parse(localStorageState);
+		if ( storageState ) {
+			const { version: storageVersion, serializedState } = JSON.parse(storageState);
 			const state = deserialize<State<T>>(serializedState);
 			
-			if ( localStorageVersion === version ) {
+			if ( storageVersion === version ) {
 				Object.keys(state.form)
 				.forEach((key) => {
 					formResult.updateController(key as FormKey<T>);
@@ -149,7 +149,7 @@ export function useFormStorage<T extends Record<string, any>>(
 	}
 
 	useEffect(() => {
-		if ( autoSyncWithLocalStorage ) {
+		if ( autoSyncWithStorage ) {
 			(async () => {
 				onLoading(true);
 				try {

@@ -1,10 +1,10 @@
-import { type FormKey } from './FormKey'
+import { type FormKey } from '../types/FormKey'
 import {
 	type FormOptions,
 	type ProduceNewStateOptions,
 	type ResetOptions,
 	type State
-} from './types'
+} from '../types/formTypes'
 
 type FinalProduceStateProps<T extends Record<string, any>> = {
 	newState: State<T>
