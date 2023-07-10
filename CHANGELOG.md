@@ -1,3 +1,10 @@
+# [1.23.0](https://github.com/resourge/react-form/compare/v1.22.2...v1.23.0) (2023-07-10)
+
+
+### Features
+
+* **types:** redo documentation and update types to better match ([d1a5a45](https://github.com/resourge/react-form/commit/d1a5a451add3639a98356c9b9b8b352affbe61ec))
+
 ## [1.22.2](https://github.com/resourge/react-form/compare/v1.22.1...v1.22.2) (2023-06-14)
 
 
