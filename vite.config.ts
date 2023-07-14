@@ -6,10 +6,7 @@ import checker from 'vite-plugin-checker';
 import { defineLibConfig } from './config/defineLibConfig';
 
 // https://vitejs.dev/config/
-export default defineLibConfig(({ mode }) => ({
-	define: mode !== 'production' ? {
-		__DEV__: (mode === 'development').toString()
-	} : {},
+export default defineLibConfig(() => ({
 	plugins: [
 		react(),
 		checker({ 

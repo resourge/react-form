@@ -1,11 +1,13 @@
 import deepmerge from '@fastify/deepmerge'
 import { resolve } from 'path'
 import { defineConfig, type UserConfigExport } from 'vite'
+import banner from 'vite-plugin-banner'
 import dts from 'vite-plugin-dts'
 import viteTsconfigPaths from 'vite-tsconfig-paths'
 
 import PackageJson from '../package.json'
 
+import { createBanner } from './createBanner'
 import { packages } from './getPackages'
 
 const {
@@ -41,6 +43,9 @@ export const defineLibConfig = (
 ): UserConfigExport => defineConfig((originalConfig) => deepMerge(
 	typeof config === 'function' ? config(originalConfig) : config,
 	{
+		define: originalConfig.mode !== 'production' ? {
+			__DEV__: (originalConfig.mode === 'development').toString()
+		} : {},
 		test: {
 			globals: true,
 			environment: 'jsdom',
@@ -76,6 +81,7 @@ export const defineLibConfig = (
 			}, {}) : {}
 		},
 		plugins: [
+			banner(createBanner()),
 			viteTsconfigPaths(),
 			dts({
 				insertTypesEntry: true,
