@@ -1,3 +1,10 @@
+# [1.24.0](https://github.com/resourge/react-form/compare/v1.23.0...v1.24.0) (2023-07-18)
+
+
+### Features
+
+* **useform:** add validateOnlyAfterFirstSubmit to useForm ([74e79d2](https://github.com/resourge/react-form/commit/74e79d257e8c816ac568520404e0169c8a3cf9bb))
+
 # [1.23.0](https://github.com/resourge/react-form/compare/v1.22.2...v1.23.0) (2023-07-10)
 
 
