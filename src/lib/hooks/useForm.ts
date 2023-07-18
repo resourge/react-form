@@ -71,6 +71,8 @@ export function useForm<T extends Record<string, any>>(
 		touches: {}
 	}));
 
+	const firstSubmitRef = useRef(false);
+
 	const stateRef = useRef<State<T>>(state);
 	stateRef.current = state;
 
@@ -183,6 +185,8 @@ export function useForm<T extends Record<string, any>>(
 			e.preventDefault();
 			e.persist();
 		}
+
+		firstSubmitRef.current = true;
 
 		const proms = onSubmitWatch.current();
 
@@ -355,7 +359,8 @@ export function useForm<T extends Record<string, any>>(
 					setFormState(newState)
 				},
 				options,
-				produceOptions
+				produceOptions,
+				validateDefault: options?.validateDefault ?? (options?.validateOnlyAfterFirstSubmit ? firstSubmitRef.current : undefined)
 			})
 		}
 

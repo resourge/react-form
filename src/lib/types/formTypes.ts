@@ -156,6 +156,17 @@ export type FormOptions<T extends Record<string, any>> = {
 	 * @default true
 	 */
 	validateDefault?: boolean
+
+	/**
+	 * Validates form only after first submit.
+	 * When `true` every change batch will validate the form only after first submit
+	 * With `false` will only validate on method {@link FormActions#handleSubmit} 
+	 * or if {@link FieldOptions#validate}/{@link ProduceNewStateOptions#validate} is set `true`.
+	 * 
+	 * * Note: {@link FieldOptions#validate} takes priority over global {@link FormOptions#validateOnlyAfterFirstSubmit}
+	 * @default false
+	 */
+	validateOnlyAfterFirstSubmit?: boolean
 }
 
 export type FieldFormBlur<Value = any, Name = string> = {

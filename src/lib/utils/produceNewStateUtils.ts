@@ -11,6 +11,7 @@ type FinalProduceStateProps<T extends Record<string, any>> = {
 	setFormState: (newState: State<T>) => void
 	options?: FormOptions<T>
 	produceOptions?: ProduceNewStateOptions & ResetOptions
+	validateDefault?: boolean
 }
 
 export const finalProduceState = <T extends Record<string, any>>(
@@ -43,11 +44,12 @@ export const validateProduceState = <T extends Record<string, any>>({
 	validateState,
 	setFormState,
 	options,
-	produceOptions
+	produceOptions,
+	validateDefault
 }: ValidateProduceState<T>) => {
 	newState.form = unsubscribe();
 
-	const validate = produceOptions?.validate ?? (options?.validateDefault ?? true);
+	const validate = produceOptions?.validate ?? (validateDefault ?? true);
 
 	if ( 
 		Boolean(produceOptions?.forceValidation) || validate
@@ -61,7 +63,8 @@ export const validateProduceState = <T extends Record<string, any>>({
 					newState,
 					setFormState,
 					options,
-					produceOptions
+					produceOptions,
+					validateDefault
 				})
 			})
 		}
@@ -73,7 +76,8 @@ export const validateProduceState = <T extends Record<string, any>>({
 		newState,
 		setFormState,
 		options,
-		produceOptions
+		produceOptions,
+		validateDefault
 	})
 }
 
@@ -100,7 +104,8 @@ export const executeWatch = <T extends Record<string, any>>({
 	validateState,
 	setFormState,
 	options,
-	produceOptions
+	produceOptions,
+	validateDefault
 }: ExecuteWatchProduceState<T>) => {
 	setFormData(newState.form);
 
@@ -113,7 +118,8 @@ export const executeWatch = <T extends Record<string, any>>({
 				validateState,
 				setFormState,
 				options,
-				produceOptions
+				produceOptions,
+				validateDefault
 			})
 		})
 	}
@@ -124,6 +130,7 @@ export const executeWatch = <T extends Record<string, any>>({
 		validateState,
 		setFormState,
 		options,
-		produceOptions
+		produceOptions,
+		validateDefault
 	})
 }
