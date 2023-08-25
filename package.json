@@ -33,6 +33,7 @@
   "author": "resourge",
   "license": "MIT",
   "scripts": {
+    "postinstall": "patch-package",
     "commitizen": "git-cz",
     "commit": "git pull && git add . && npm run commitizen",
     "lint": "eslint \"./src/**/*.{ts,tsx}\"",
@@ -74,6 +75,7 @@
     "glob": "^10.3.3",
     "jsdom": "^22.1.0",
     "on-change": "^4.0.2",
+    "patch-package": "^8.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "semantic-release": "^21.0.7",
