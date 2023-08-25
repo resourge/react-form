@@ -1,3 +1,10 @@
+## [1.24.1](https://github.com/resourge/react-form/compare/v1.24.0...v1.24.1) (2023-08-25)
+
+
+### Bug Fixes
+
+* **useform:** fix a bug where elements Date in form where not working on watch ([d8c6a67](https://github.com/resourge/react-form/commit/d8c6a6790add1f13afe8899c34635bd6f14bd478))
+
 # [1.24.0](https://github.com/resourge/react-form/compare/v1.23.0...v1.24.0) (2023-07-18)
 
 
