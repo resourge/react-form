@@ -2,7 +2,9 @@ type RecursiveKeyOfHandleValue<TValue, Text extends string> =
 TValue extends Array<infer E>
 	? `${Text}` | RecursiveKeyOfHandleValue<E, `${Text}[${number}]`>
 	: TValue extends object
-		? Text | `${Text}${RecursiveKeyOf<TValue, false>}`
+		? TValue extends File | Date | Blob | Map<any, any> | Set<any> | Uint16Array | Uint32Array | Uint8Array
+			? Text
+			: Text | `${Text}${RecursiveKeyOf<TValue, false>}`
 		: Text;
   
 type RecursiveKeyOfAccess<TKey extends string | number> = `.${TKey}`;
