@@ -1,3 +1,10 @@
+## [1.24.2](https://github.com/resourge/react-form/compare/v1.24.1...v1.24.2) (2023-09-05)
+
+
+### Bug Fixes
+
+* **formkeys:** fix RecursiveKey on file, date, etc ([0ef8538](https://github.com/resourge/react-form/commit/0ef853881bff6572d3de3d1f415b52363f325d62))
+
 ## [1.24.1](https://github.com/resourge/react-form/compare/v1.24.0...v1.24.1) (2023-08-25)
 
 
