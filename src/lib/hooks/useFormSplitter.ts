@@ -86,7 +86,7 @@ export function useFormSplitter<
 		context = useFormContext<any>();
 	}
 
-	if ( __DEV__ ) {
+	if ( process.env.NODE_ENV === 'development' ) {
 		invariant(_formFieldKey, '\'formFieldKey\' undefined can only used inside a Controller component.');
 	}
 

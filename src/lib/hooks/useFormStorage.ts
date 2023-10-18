@@ -76,7 +76,7 @@ export function useFormStorage<T extends Record<string, any>>(
 	defaultValue: T | (() => T) | ({ new(): T }), 
 	options: FormStorageOptions<T>
 ): UseFormStorageReturn<T> {
-	if ( __DEV__ ) {
+	if ( process.env.NODE_ENV === 'development' ) {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const uniqueIdRef = useRef(options.uniqueId);
 		if ( options.uniqueId !== uniqueIdRef.current ) {

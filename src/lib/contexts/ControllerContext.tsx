@@ -25,7 +25,7 @@ const useControllerBase = <
 >(): ControllerContextObject<T> => {
 	const context = useControllerContext()
 
-	if ( __DEV__ ) {
+	if ( process.env.NODE_ENV === 'development' ) {
 		invariant(context, 'useControllerContext can only be used in the context of a <Controller> component.')
 	}
 

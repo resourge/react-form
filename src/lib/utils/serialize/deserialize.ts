@@ -99,7 +99,7 @@ function deserializeMeta(value: SerializeMetaType, context: DeserializeContext) 
 	if ( value && typeof value === 'object' ) {
 		const fn = DeserializeFunctions[value.prototype];
 
-		if ( __DEV__ ) {
+		if ( process.env.NODE_ENV === 'development' ) {
 			if ( !fn ) {
 				throw new ClassRegisterError(value.prototype)
 			}

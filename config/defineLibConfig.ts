@@ -43,9 +43,6 @@ export const defineLibConfig = (
 ): UserConfigExport => defineConfig((originalConfig) => deepMerge(
 	typeof config === 'function' ? config(originalConfig) : config,
 	{
-		define: originalConfig.mode !== 'production' ? {
-			__DEV__: (originalConfig.mode === 'development').toString()
-		} : {},
 		test: {
 			globals: true,
 			environment: 'jsdom',
