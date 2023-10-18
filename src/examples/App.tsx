@@ -349,3 +349,46 @@ function App() {
 }
 
 export default App
+
+/*
+
+type A = {
+	a: 10
+	b: B
+	c: [0]
+	d: File
+	f: [
+		{
+			g: [1]
+			id: number
+		}
+	]
+	g: [number, string]
+	gb: number[]
+}
+
+type B = {
+	a: A
+	b: 10
+}
+
+type Q = FormKey<B>
+/*
+"a" | "b" | "a.a" | "a.b" | "a.c" | "a.d" | "a.f" | "a.g" | "a.gb" | `a.c[${number}]` | `a.f[${number}]` | `a.g[${number}]` | `a.f[${number}].g` | `a.f[${number}].id` | `a.f[${number}].g[${number}]` | `a.gb[${number}]`
+"a" | "b" | "a.a" | "a.b" | "a.c" | `a.c[${number}]` | "a.d" | "a.f" | `a.f[${number}]` | "a.g" | `a.g[${number}]` | `a.f[${number}].g` | `a.f[${number}].g[${number}]` | `a.f[${number}].id` | "a.gb" | `a.gb[${number}]`
+"a" | "b" | "a.a" | "a.c" | `a.c[${number}]` | "a.d" | "a.f" | `a.f[${number}]` | "a.g" | `a.g[${number}]` | `a.f[${number}].g` | `a.f[${number}].g[${number}]` | `a.f[${number}].id` | "a.gb" | `a.gb[${number}]`
+*/
+
+/*
+"a" | "b" | "a.a" | "a.b" | "a.c" | "a.d" | "a.f" | "a.g" | "a.gb" | `a.c[${number}]` | `a.g[${number}]` | `a.f[${number}]` | `a.f[${number}].g` | `a.f[${number}].id` | `a.f[${number}].g[${number}]` | `a.gb[${number}]`
+*/
+/*
+"a" | "b" | "a.a" | "a.b" | "a.c" | "a.d" | "a.f" | "a.g" | "a.gb" | "a.c[0]" | "a.g[0]" | "a.f[0]" | "a.f[0].g" | "a.f[0].id" | "a.f[0].g[0]" | "a.g[1]" | `a.gb[${number}]`
+*/
+/*
+"a" | "b" | "a.a" | "a.b" | "a.c" | "a.d" | "a.f" | "a.g" | "a.gb" | "a.c[0]" | "a.g[0]" | "a.f[0]" | "a.f[0].g" | "a.f[0].id" | "a.f[0].g[0]" | "a.g[1]" | `a.gb[${number}]`
+*/
+/*
+"a" | "b" | "a.a" | "a.b" | "a.c" | "a.d" | "a.f" | "a.g" | "a.gb" | `a.c[${number}]` | `a.g[${number}]` | `a.f[${number}]` | `a.f[${number}].g` | `a.f[${number}].id` | `a.f[${number}].g[${number}]` | `a.gb[${number}]`
+*/
+*/
