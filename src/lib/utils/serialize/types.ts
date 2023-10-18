@@ -1,4 +1,4 @@
-import { type SerializePrototypes } from './SerializePrototypes'
+import { type SerializePrototypes } from './SerializePrototypes';
 
 export type SerializeMetaType = {
 	prototype: typeof SerializePrototypes[keyof typeof SerializePrototypes]

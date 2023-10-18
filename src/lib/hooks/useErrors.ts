@@ -9,7 +9,7 @@ import {
 	type FormErrors,
 	type FormOptions,
 	type State
-} from '../types/formTypes'
+} from '../types/formTypes';
 
 export type CacheType = string[] | FormErrors<any> | boolean
 
@@ -19,14 +19,14 @@ const checkIfCanCheckError = <T extends Record<string, any>>(
 	onlyOnTouch?: boolean,
 	onlyOnTouchKeys: Array<FormKey<T>> = []
 ) => {
-	return !onlyOnTouch || 
-		(
+	return !onlyOnTouch 
+		|| (
 			(onlyOnTouch || onlyOnTouchKeys.length) && (
-				Boolean(touches[key]) || 
-				onlyOnTouchKeys.some((onlyOnTouchKey: any) => Boolean(touches[onlyOnTouchKey]))
+				Boolean(touches[key]) 
+				|| onlyOnTouchKeys.some((onlyOnTouchKey: any) => Boolean(touches[onlyOnTouchKey]))
 			)
-		)
-}
+		);
+};
 
 export const useErrors = <T extends Record<string, any>>(
 	stateRef: MutableRefObject<State<T>>,
@@ -39,12 +39,12 @@ export const useErrors = <T extends Record<string, any>>(
 			cacheErrors.current.set(key, cb());
 		}
 
-		return cacheErrors.current.get(key) as ReturnValue
-	}
+		return cacheErrors.current.get(key) as ReturnValue;
+	};
 
 	const clearCacheErrors = () => {
-		cacheErrors.current.clear()
-	}
+		cacheErrors.current.clear();
+	};
 
 	const hasError = (
 		key: FormKey<T>, 
@@ -70,25 +70,23 @@ export const useErrors = <T extends Record<string, any>>(
 				if ( hasError ) {
 					return true;
 				}
-				else {
-					if ( !strict ) {
-						const regex = new RegExp(`^${key.replace('[', '\\[')
-						.replace(']', '\\]')}`, 'g')
+				else if ( !strict ) {
+					const regex = new RegExp(`^${key.replace('[', '\\[')
+					.replace(']', '\\]')}`, 'g');
 	
-						return Object.keys(_errors)
-						.some((errorKey) => {
-							if ( checkIfCanCheckError(errorKey, stateRef.current.touches, onlyOnTouch) ) {
-								return regex.test(errorKey)
-							}
-							return false;
-						})
-					}
+					return Object.keys(_errors)
+					.some((errorKey) => {
+						if ( checkIfCanCheckError(errorKey, stateRef.current.touches, onlyOnTouch) ) {
+							return regex.test(errorKey);
+						}
+						return false;
+					});
 				}
 
 				return hasError;
 			}
-		)
-	}
+		);
+	};
 
 	function getErrors<Model extends Record<string, any> = T>(
 		key: FormKey<Model>, 
@@ -121,25 +119,25 @@ export const useErrors = <T extends Record<string, any>>(
 						return [..._errors[key] ?? []];
 					}
 					// @ts-expect-error // Working with array and object
-					return []
-				}
+					return [];
+				};
 
 				const newErrors = getErrors(key);
 
 				if ( !strict ) {
 					const regex = new RegExp(`^${key.replace('[', '\\[')
-					.replace(']', '\\]')}`, 'g')
+					.replace(']', '\\]')}`, 'g');
 
 					Object.keys(_errors)
 					.forEach((errorKey: string) => {
 						if ( errorKey.includes(key) && errorKey !== key ) {
 							let newErrorKey = includeKeyInChildErrors === true ? errorKey : (
 								errorKey.replace(regex, '') || key
-							)
+							);
 
 							// Remove first char if is a "."
 							if ( newErrorKey[0] === '.' ) {
-								newErrorKey = newErrorKey.substring(1, newErrorKey.length)
+								newErrorKey = newErrorKey.substring(1, newErrorKey.length);
 							}
 
 							const _newErrors = getErrors(errorKey as FormKey<Model>);
@@ -155,12 +153,12 @@ export const useErrors = <T extends Record<string, any>>(
 
 				return newErrors;
 			}
-		)
+		);
 	}
 
 	return {
 		hasError,
 		getErrors,
 		clearCacheErrors
-	}
-}
+	};
+};

@@ -8,15 +8,15 @@ function isNumeric(value: string | number) {
 	if ( typeof value === 'number' ) {
 		return true;
 	}
-	return /^[-]?([1-9]\d*|0)(\.\d+)?$/.test(value)
+	return /^[-]?([1-9]\d*|0)(\.\d+)?$/.test(value);
 }
 
 export const getKeyFromPaths = <T extends Record<string, any>>(paths: string[]): FormKey<T> => {
 	return paths
 	.map((key) => `${isNumeric(key) ? `[${key}]` : `${key}`}`)
 	.join('.')
-	.replace(/\.\[/g, '[') as FormKey<T>
-}
+	.replace(/\.\[/g, '[') as FormKey<T>;
+};
 
 /**
  * determines if a variable is a class definition instead of a function
@@ -41,7 +41,7 @@ export function isClass(x: any) {
 export const filterObject = <T extends Record<string, any>>(obj: T, filterKey: (filterKey: FormKey<T>) => boolean): T => Object.fromEntries(
 	Object.entries(obj)
 	.filter(([key]) => filterKey(key as FormKey<T>))
-) as T
+) as T;
 
 /**
  * Filter an Object by Key
@@ -49,4 +49,4 @@ export const filterObject = <T extends Record<string, any>>(obj: T, filterKey: (
 export const filterObjectByKey = <T extends Record<string, any>>(obj: T, filterKey: FormKey<T>): T => Object.fromEntries(
 	Object.entries(obj)
 	.filter(([key]) => key.includes(filterKey))
-) as T
+) as T;

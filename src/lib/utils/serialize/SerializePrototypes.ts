@@ -23,4 +23,4 @@ export const SerializePrototypes: SerializePrototypeType = {
 	Array: 'Array',
 	Repeat: 'Repeat',
 	Error: 'Error'
-}
+};

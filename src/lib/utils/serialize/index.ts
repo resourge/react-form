@@ -3,4 +3,4 @@ import { serialize } from './serialize';
 
 export {
 	serialize, deserialize, registerClass 
-}
+};

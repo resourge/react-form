@@ -1,4 +1,4 @@
-import type { FormKey } from './FormKey'
+import type { FormKey } from './FormKey';
 import type {
 	FieldFormReturn,
 	FormErrors,
@@ -45,4 +45,4 @@ export type {
 	FieldFormReadonly,
 	ProduceNewStateOptionsHistory,
 	ResetMethod
-}
+};

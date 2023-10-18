@@ -1,6 +1,6 @@
-import { type MutableRefObject, useRef } from 'react'
+import { type MutableRefObject, useRef } from 'react';
 
-import { type FormKey } from '../types'
+import { type FormKey } from '../types';
 
 export type WatchMethod<T extends Record<string, any>> = (form: T) => void | Promise<void>
 
@@ -15,8 +15,8 @@ export type UseWatchReturn<T extends Record<string, any>> = {
  * Hook to watch key `touches` to then do "something" else
  */
 export const useWatch = <T extends Record<string, any>>(): UseWatchReturn<T> => {
-	const watchedRefs = useRef<Map<FormKey<T>, WatchMethod<T>>>(new Map())
-	const submitWatchRefs = useRef<Set<WatchMethod<T>>>(new Set())
+	const watchedRefs = useRef<Map<FormKey<T>, WatchMethod<T>>>(new Map());
+	const submitWatchRefs = useRef<Set<WatchMethod<T>>>(new Set());
 	
 	submitWatchRefs.current.clear();
 
@@ -27,12 +27,12 @@ export const useWatch = <T extends Record<string, any>>(): UseWatchReturn<T> => 
 		else {
 			submitWatchRefs.current.add(method);
 		}
-	}
+	};
 
 	const hasWatchingKeys = (changedKeys: React.MutableRefObject<Set<FormKey<T>>>) => {
 		return watchedRefs.current.size > 0 && Array.from(watchedRefs.current)
-		.some(([key]) => changedKeys.current.has(key))
-	}
+		.some(([key]) => changedKeys.current.has(key));
+	};
 
 	const onWatch = useRef(async (form: T, changedKeys: React.MutableRefObject<Set<FormKey<T>>>) => {
 		for (const [key, method] of watchedRefs.current) {
@@ -50,8 +50,8 @@ export const useWatch = <T extends Record<string, any>>(): UseWatchReturn<T> => 
 			await Promise.all(
 				submitMethods
 				.map((method) => Promise.resolve(method(form)))
-			)
-		}
+			);
+		};
 	});
 
 	return {
@@ -60,4 +60,4 @@ export const useWatch = <T extends Record<string, any>>(): UseWatchReturn<T> => 
 		onWatch,
 		onSubmitWatch
 	};
-}
+};

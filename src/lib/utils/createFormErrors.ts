@@ -5,7 +5,7 @@ import {
 	type ValidationError,
 	type ValidationErrors,
 	type ValidationWithErrors
-} from '../validators/setDefaultOnError'
+} from '../validators/setDefaultOnError';
 
 import { getKeyFromPaths } from './utils';
 
@@ -26,22 +26,22 @@ export const formatErrors = <T extends Record<string, any>> (
 		const path = getKeyFromPaths<T>(keys);
 
 		if ( !obj[path] ) {
-			obj[path] = []
+			obj[path] = [];
 		}
 
 		// @ts-expect-error Can't be undefined as it will always be an array because of the previous array
 		obj[path].push(...(value as ValidationError).error !== undefined ? [(value as ValidationError).error] : (value as ValidationWithErrors).errors);
 
-		return obj
+		return obj;
 	}, {});
 
 	return {
 		...defaultErrors,
 		..._simpleErrors
-	}
-}
+	};
+};
 
 export const createFormErrors = <T extends Record<string, any>>(onError: OnErrors) => 
 	(errors: any, defaultErrors: FormErrors<T> = {}) => {
-		return formatErrors<T>(onError(errors), defaultErrors)
-	}
+		return formatErrors<T>(onError(errors), defaultErrors);
+	};

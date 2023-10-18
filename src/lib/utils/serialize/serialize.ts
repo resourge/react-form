@@ -207,7 +207,7 @@ export function serialize(obj: Record<string, any>) {
 		} of cacheValues 
 	) {
 		if ( used ) {
-			meta[index] = serializeMetaObj
+			meta[index] = serializeMetaObj;
 		}
 	}
 

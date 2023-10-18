@@ -1,10 +1,10 @@
-import { type FormKey } from '../types/FormKey'
+import { type FormKey } from '../types/FormKey';
 import {
 	type FormOptions,
 	type ProduceNewStateOptions,
 	type ResetOptions,
 	type State
-} from '../types/formTypes'
+} from '../types/formTypes';
 
 type FinalProduceStateProps<T extends Record<string, any>> = {
 	newState: State<T>
@@ -23,7 +23,7 @@ export const finalProduceState = <T extends Record<string, any>>(
 	}: FinalProduceStateProps<T>
 ) => {
 	if ( options?.onChange ) {
-		options.onChange(newState)
+		options.onChange(newState);
 	}
 
 	if ( produceOptions?.clearTouched ) {
@@ -31,7 +31,7 @@ export const finalProduceState = <T extends Record<string, any>>(
 	}
 			
 	setFormState(newState);
-}
+};
 
 type ValidateProduceState<T extends Record<string, any>> = {
 	unsubscribe: () => T
@@ -65,8 +65,8 @@ export const validateProduceState = <T extends Record<string, any>>({
 					options,
 					produceOptions,
 					validateDefault
-				})
-			})
+				});
+			});
 		}
 
 		newState = validateStateResult; 
@@ -78,8 +78,8 @@ export const validateProduceState = <T extends Record<string, any>>({
 		options,
 		produceOptions,
 		validateDefault
-	})
-}
+	});
+};
 
 type ExecuteWatchProduceState<T extends Record<string, any>> = {
 	changedKeys: React.MutableRefObject<Set<FormKey<T>>>
@@ -120,8 +120,8 @@ export const executeWatch = <T extends Record<string, any>>({
 				options,
 				produceOptions,
 				validateDefault
-			})
-		})
+			});
+		});
 	}
 
 	validateProduceState({
@@ -132,5 +132,5 @@ export const executeWatch = <T extends Record<string, any>>({
 		options,
 		produceOptions,
 		validateDefault
-	})
-}
+	});
+};

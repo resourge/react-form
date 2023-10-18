@@ -1,10 +1,10 @@
-import invariant from 'tiny-invariant'
+import invariant from 'tiny-invariant';
 
 import { useControllerContext } from '../contexts/ControllerContext';
-import { type FormContextObject, useFormContext } from '../contexts/FormContext'
+import { type FormContextObject, useFormContext } from '../contexts/FormContext';
 import { type FormKey } from '../types/FormKey';
 import { type PathValue } from '../types/PathValue';
-import { type ProduceNewStateOptions, type UseFormReturn } from '../types/formTypes'
+import { type ProduceNewStateOptions, type UseFormReturn } from '../types/formTypes';
 import { filterObjectByKey } from '../utils/utils';
 
 import { useGetterSetter } from './useGetterSetter';
@@ -92,24 +92,24 @@ export function useFormSplitter<
 
 	const getKey = (key: FormKey<PathValue<T, K>>): any => {
 		return `${_formFieldKey}${key ? ((key as string).includes('[') ? key : `.${key as string}`) : ''}` as FormKey<PathValue<T, K>>;
-	}
+	};
 
-	const filterKeysError = (key: string) => key.includes(_formFieldKey) || _formFieldKey.includes(key)
+	const filterKeysError = (key: string) => key.includes(_formFieldKey) || _formFieldKey.includes(key);
 
 	const getterSetter = useGetterSetter();
 
 	return {
 		get form() {
-			return context.getValue(_formFieldKey)
+			return context.getValue(_formFieldKey);
 		},
 		get errors() {
-			return filterObjectByKey(context.errors, _formFieldKey)
+			return filterObjectByKey(context.errors, _formFieldKey);
 		},
 		get touches() {
-			return filterObjectByKey(context.touches, _formFieldKey)
+			return filterObjectByKey(context.touches, _formFieldKey);
 		},
 		get isTouched() {
-			return Object.keys(this.touches).length > 0
+			return Object.keys(this.touches).length > 0;
 		},
 		get isValid() {
 			return Object.keys(this.errors).length === 0;
@@ -121,7 +121,7 @@ export function useFormSplitter<
 			) => context.handleSubmit(
 				() => onValid(context.getValue(_formFieldKey)), 
 				(errors, error) => {
-					return Object.keys(filterObjectByKey(errors, _formFieldKey)).length === 0 && (onInvalid ? onInvalid(filterObjectByKey(errors, _formFieldKey), error) : true)
+					return Object.keys(filterObjectByKey(errors, _formFieldKey)).length === 0 && (onInvalid ? onInvalid(filterObjectByKey(errors, _formFieldKey), error) : true);
 				},
 				// @ts-expect-error I want this to be able to only occur inside FormSplitter
 				filterKeysError
@@ -142,7 +142,7 @@ export function useFormSplitter<
 		getValue: ((key) => context.getValue(getKey(key))) as UseFormReturn<PathValue<T, K>>['getValue'],
 		context: context.context,
 		merge: (mergedForm) => {
-			getterSetter.set(_formFieldKey, context.form, mergedForm)
+			getterSetter.set(_formFieldKey, context.form, mergedForm);
 			context.merge(mergedForm);
 		},
 		onChange: ((key, fieldOptions) => (value) => {
@@ -152,11 +152,11 @@ export function useFormSplitter<
 			})(value); 
 		}) as UseFormReturn<PathValue<T, K>>['onChange'],
 		reset: (newFrom, resetOptions) => {
-			getterSetter.set(_formFieldKey, context.form, newFrom)
+			getterSetter.set(_formFieldKey, context.form, newFrom);
 			return context.reset(newFrom, {
 				...resetOptions,
 				filterKeysError
-			})
+			});
 		},
 		resetTouch: context.resetTouch,
 		setError: context.setError,
@@ -169,9 +169,9 @@ export function useFormSplitter<
 					return cb(
 						getterSetter.get(_formFieldKey, form), 
 						(targetValue) => {
-							getterSetter.set(_formFieldKey, form, targetValue)
+							getterSetter.set(_formFieldKey, form, targetValue);
 						}
-					)
+					);
 				}, 
 				{
 					...produceOptions,
@@ -182,5 +182,5 @@ export function useFormSplitter<
 		updateController: ((key) => {
 			context.updateController(getKey(key)); 
 		}) as UseFormReturn<PathValue<T, K>>['updateController']
-	}
+	};
 }

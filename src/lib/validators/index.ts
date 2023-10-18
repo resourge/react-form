@@ -6,4 +6,4 @@ export {
 	getDefaultOnError,
 	
 	type OnErrors
-}
+};

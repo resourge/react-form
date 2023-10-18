@@ -1,4 +1,4 @@
-import { type FormKey } from './FormKey'
+import { type FormKey } from './FormKey';
 
 export type SplitStringIntoStringArray<K extends string> = K extends `${infer K1}.${infer R1}` 
 	? [

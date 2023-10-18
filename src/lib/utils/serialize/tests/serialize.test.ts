@@ -8,7 +8,7 @@ export class Test {
 	// ggq = () => {};
 }
 
-registerClass(Test)
+registerClass(Test);
 
 const serializableObj = {
 	date: new Date(),
@@ -36,4 +36,4 @@ test('serialize and deserialize', () => {
 	});
 
 	expect(deserialize(_serializableObj)).toEqual(serializableObj);
-})
+});

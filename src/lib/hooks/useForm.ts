@@ -7,7 +7,7 @@ import {
 	type MouseEvent,
 	type ChangeEvent,
 	useState
-} from 'react'
+} from 'react';
 
 import { shallowClone } from '@resourge/shallow-clone';
 import observeChanges from 'on-change';
@@ -28,10 +28,10 @@ import {
 	type Touches,
 	type ProduceNewStateOptionsHistory,
 	type State
-} from '../types/formTypes'
+} from '../types/formTypes';
 import { createFormErrors, formatErrors } from '../utils/createFormErrors';
 import { executeWatch } from '../utils/produceNewStateUtils';
-import { getKeyFromPaths, isClass } from '../utils/utils'
+import { getKeyFromPaths, isClass } from '../utils/utils';
 import { getDefaultOnError, type ValidationErrors } from '../validators/setDefaultOnError';
 
 import { useChangedKeys } from './useChangedKeys';
@@ -78,7 +78,7 @@ export function useForm<T extends Record<string, any>>(
 
 	const {
 		form, errors, touches 
-	} = state
+	} = state;
 
 	const setFormState = (newState: State<T>) => {
 		clearCacheErrors();
@@ -96,15 +96,15 @@ export function useForm<T extends Record<string, any>>(
 			)
 		])
 		.forEach((key) => {
-			updateController(key as FormKey<T>)
-		})
+			updateController(key as FormKey<T>);
+		});
 
 		setState({
 			form: newState.form,
 			errors: newState.errors,
 			touches: newState.touches 
-		})
-	}
+		});
+	};
 	// #endregion State
 
 	const getterSetter = useGetterSetter<T>();
@@ -123,9 +123,9 @@ export function useForm<T extends Record<string, any>>(
 	} = useErrors(
 		stateRef,
 		options
-	)
+	);
 
-	const [changedKeys, updateController] = useChangedKeys<T>(touches)
+	const [changedKeys, updateController] = useChangedKeys<T>(touches);
 
 	/**
 	 * Validates the form
@@ -143,16 +143,16 @@ export function useForm<T extends Record<string, any>>(
 				form: state.form,
 				errors: {},
 				touches: state.touches
-			}
-		}
+			};
+		};
 		const onError = (err: any) => {
 			const errors = onErrors(err);
 			return { 
 				form: state.form,
 				errors,
 				touches: state.touches
-			}
-		}
+			};
+		};
 
 		try {
 			const result = options?.validate && options?.validate(state.form, [...changedKeys.current] as Array<FormKey<T>>);
@@ -160,15 +160,15 @@ export function useForm<T extends Record<string, any>>(
 			if ( result instanceof Promise ) {
 				return result
 				.then(onSuccess)
-				.catch(onError)
+				.catch(onError);
 			}
 
-			return onSuccess(result)
+			return onSuccess(result);
 		}
 		catch ( err ) {
-			return onError(err)
+			return onError(err);
 		}
-	}
+	};
 
 	// #region Submit
 	/**
@@ -180,7 +180,7 @@ export function useForm<T extends Record<string, any>>(
 		filterKeysError?: (key: string) => boolean,
 		e?: FormEvent<HTMLFormElement> | MouseEvent<any, MouseEvent>
 	): Promise<K | undefined> {
-		const { form, touches } = stateRef.current
+		const { form, touches } = stateRef.current;
 		if ( e ) {
 			e.preventDefault();
 			e.persist();
@@ -195,31 +195,31 @@ export function useForm<T extends Record<string, any>>(
 		const errors = filterKeysError ? Object.entries(_errors)
 		.reduce<FormErrors<T>>((errors, [key, value]) => {
 			if ( touches[key as FormKey<T>] || filterKeysError(key) ) {
-				errors[key as FormKey<T>] = value as string[]
+				errors[key as FormKey<T>] = value as string[];
 			}
 			return errors;
-		}, {}) : _errors
+		}, {}) : _errors;
 
-		const hasError = Object.keys(errors).length
+		const hasError = Object.keys(errors).length;
 
-		let _touches: Touches<T> = {}
+		let _touches: Touches<T> = {};
 		if ( hasError ) {
 			_touches = {
 				...touches 
-			}
+			};
 
 			Object.keys(errors)
 			.filter((key) => !filterKeysError || filterKeysError(key))
 			.forEach((key) => {
 				_touches[key as keyof Touches<T>] = true;
-			})
+			});
 		}
 
 		setFormState({
 			form,
 			errors,
 			touches: _touches
-		})
+		});
 
 		if ( options?.onSubmit ) {
 			options?.onSubmit({
@@ -234,11 +234,11 @@ export function useForm<T extends Record<string, any>>(
 				const canGoOn = await Promise.resolve(onInvalid(errors, errors));
 
 				if ( !canGoOn ) {
-					return await Promise.reject(errors)
+					return await Promise.reject(errors);
 				}
 			}
 			else {
-				return await Promise.reject(errors)
+				return await Promise.reject(errors);
 			}
 		}
 		
@@ -260,7 +260,7 @@ export function useForm<T extends Record<string, any>>(
 				onInvalid,
 				filterKeysError,
 				e
-			)
+			);
 	}
 	// #endregion Submit
 
@@ -302,29 +302,29 @@ export function useForm<T extends Record<string, any>>(
 				const key = getKeyFromPaths<T>(paths);
 
 				if ( 
-					key && 
-					!(produceOptions?.triggerTouched === false) &&
-					typeof getterSetter.get(key, newState.form) !== 'function'
+					key 
+					&& !(produceOptions?.triggerTouched === false)
+					&& typeof getterSetter.get(key, newState.form) !== 'function'
 				) {
 					options?.onTouch && options?.onTouch(
 						key, 
 						value,
 						previousValue
-					)
+					);
 
 					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-					const didTouch = typeof value === 'boolean' ? Boolean(`${previousValue})` !== `${value}`) : previousValue !== value
+					const didTouch = typeof value === 'boolean' ? Boolean(`${previousValue})` !== `${value}`) : previousValue !== value;
 	
 					newState.touches[key] = ((newState.touches[key] ?? false) || didTouch);
 
-					updateController(key as FormKey<T>)
+					updateController(key as FormKey<T>);
 				}
 			},
 			{
 				pathAsArray: true,
 				details: true
 			}
-		)
+		);
 
 		const result = cb(proxy);
 
@@ -342,7 +342,7 @@ export function useForm<T extends Record<string, any>>(
 						form,
 						errors: stateRef.current.errors,
 						touches: stateRef.current.touches
-					})
+					});
 				},
 				setFormState: (newState) => {
 					newState.errors = produceOptions?.filterKeysError 
@@ -350,29 +350,29 @@ export function useForm<T extends Record<string, any>>(
 						.reduce<FormErrors<T>>((errors, [key, value]) => {
 							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 							if ( newState.touches[key as FormKey<T>] || produceOptions?.filterKeysError!(key as FormKey<T>) ) {
-								errors[key as FormKey<T>] = value as string[]
+								errors[key as FormKey<T>] = value as string[];
 							}
 							return errors;
 						}, {}) 
-						: newState.errors
+						: newState.errors;
 						
-					setFormState(newState)
+					setFormState(newState);
 				},
 				options,
 				produceOptions,
 				validateDefault: options?.validateDefault ?? (options?.validateOnlyAfterFirstSubmit ? firstSubmitRef.current : undefined)
-			})
-		}
+			});
+		};
 
 		if ( result instanceof Promise ) {
 			return result
 			.then(() => {
-				executeNewWatch()
+				executeNewWatch();
 			});
 		}
 
-		executeNewWatch()
-	}
+		executeNewWatch();
+	};
 
 	const reset = async (
 		newFrom: Partial<T>, 
@@ -381,14 +381,14 @@ export function useForm<T extends Record<string, any>>(
 		const options: ResetOptions = {
 			clearTouched: true,
 			...(resetOptions ?? {})
-		}
+		};
 
 		const result = produceNewState(
 			(form: T) => {
 				(Object.keys(newFrom) as Array<keyof T>)
 				.forEach((key: keyof T) => {
 					form[key as keyof T] = newFrom[key] as T[keyof T];
-				})
+				});
 			}, 
 			options
 		);
@@ -396,11 +396,11 @@ export function useForm<T extends Record<string, any>>(
 		if ( result instanceof Promise ) {
 			await result;
 		}
-	}
+	};
 
 	const triggerChange = (cb: OnFunctionChange<T>, produceOptions?: ProduceNewStateOptions) => {
 		produceNewState(cb, produceOptions);
-	}
+	};
 
 	const merge = (mergedForm: Partial<T>) => {
 		triggerChange((form: T) => {
@@ -409,17 +409,17 @@ export function useForm<T extends Record<string, any>>(
 				if ( form[key as keyof T] && mergedForm[key as keyof T] ) {
 					form[key as keyof T] = mergedForm[key as keyof T] as T[keyof T];
 				}
-			})
-		})
-	}
+			});
+		});
+	};
 
 	const resetTouch = () => {
 		setFormState({
 			form: stateRef.current.form,
 			errors: stateRef.current.errors,
 			touches: {}
-		})
-	}
+		});
+	};
 	// #endregion State
 
 	// #region Form elements
@@ -444,12 +444,12 @@ export function useForm<T extends Record<string, any>>(
 				getterSetter.set(key, form, _value);
 			}, 
 			fieldOptions
-		)
-	}
+		);
+	};
 
 	const getValue = (key: FormKey<T>): any => {
 		return getterSetter.get(key, stateRef.current.form);
-	}
+	};
 
 	const field = (
 		key: FormKey<T>, 
@@ -462,7 +462,7 @@ export function useForm<T extends Record<string, any>>(
 				name: key,
 				onBlur: onChange(key, fieldOptions),
 				defaultValue: value
-			}
+			};
 		}
 
 		if ( fieldOptions?.readOnly ) {
@@ -470,14 +470,14 @@ export function useForm<T extends Record<string, any>>(
 				name: key,
 				readOnly: true,
 				value
-			}
+			};
 		}
 
 		return {
 			name: key,
 			onChange: onChange(key, fieldOptions),
 			value
-		}
+		};
 	};
 
 	const changeValue = (
@@ -486,7 +486,7 @@ export function useForm<T extends Record<string, any>>(
 		produceOptions?: FieldOptions<any>
 	) => {
 		onChange(key, produceOptions)(value);
-	}
+	};
 	// #endregion Form elements
 
 	// #region Errors
@@ -498,18 +498,18 @@ export function useForm<T extends Record<string, any>>(
 	) => {
 		const {
 			errors, form, touches 
-		} = stateRef.current
-		const _errors = formatErrors(newErrors, errors)
+		} = stateRef.current;
+		const _errors = formatErrors(newErrors, errors);
 
 		setFormState({
 			form,
 			errors: _errors,
 			touches
-		})
-	}
+		});
+	};
 
 	// #endregion Errors
-	const getFormRef = useRef<UseFormReturn<T>>()
+	const getFormRef = useRef<UseFormReturn<T>>();
 
 	const result: any = {
 		form,
@@ -548,7 +548,7 @@ export function useForm<T extends Record<string, any>>(
 		updateController,
 		_setFormState: setState
 		// #endregion Form actions
-	}
+	};
 
 	getFormRef.current = result;
 

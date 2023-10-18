@@ -63,20 +63,20 @@ export const Controller = memo(function Controller({
 }, (prevProps, nextProps) => {
 	// This is so "changedKeys" will only be visible
 	// with types to the controller 
-	const context = nextProps.context as UseFormReturnController<Record<string, any>>
-	const changedKeys = context.changedKeys
+	const context = nextProps.context as UseFormReturnController<Record<string, any>>;
+	const changedKeys = context.changedKeys;
 	const keyToFind = nextProps.name;
 	const keys = [...changedKeys.current.keys()];
 
 	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-	const isSameDeps = !nextProps.deps || (nextProps.deps && nextProps.deps.length === 0) || Boolean(nextProps.deps && prevProps.deps && nextProps.deps.some((dep, index) => dep === prevProps.deps![index]))
+	const isSameDeps = !nextProps.deps || (nextProps.deps && nextProps.deps.length === 0) || Boolean(nextProps.deps && prevProps.deps && nextProps.deps.some((dep, index) => dep === prevProps.deps![index]));
 
 	const shouldUpdate = keys.some((key) => (
-		key.includes(keyToFind) || 
-		keyToFind.includes(key)
-	))
+		key.includes(keyToFind) 
+		|| keyToFind.includes(key)
+	));
 
 	return (
 		prevProps.name === nextProps.name && !(shouldUpdate) && isSameDeps
-	)
-}) as <T extends Record<string, any>>(props: ControllerProps<T>) => JSX.Element
+	);
+}) as <T extends Record<string, any>>(props: ControllerProps<T>) => JSX.Element;

@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/prefer-function-type */
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react';
 
-import { type FormKey, type FormOptions, type UseFormReturn } from '../types'
-import { type State } from '../types/formTypes'
+import { type FormKey, type FormOptions, type UseFormReturn } from '../types';
+import { type State } from '../types/formTypes';
 import { deserialize, serialize } from '../utils';
 
-import { useForm } from './useForm'
+import { useForm } from './useForm';
 
 type FormStorage = {
 	getItem: (key: string) => (string | null) | Promise<string | null>
@@ -80,7 +80,7 @@ export function useFormStorage<T extends Record<string, any>>(
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const uniqueIdRef = useRef(options.uniqueId);
 		if ( options.uniqueId !== uniqueIdRef.current ) {
-			throw new Error('uniqueId must be a static value')
+			throw new Error('uniqueId must be a static value');
 		}
 	}
 
@@ -96,7 +96,7 @@ export function useFormStorage<T extends Record<string, any>>(
 			...options,
 			onChange: (state) => {
 				if ( options?.onChange ) {
-					options?.onChange(state)
+					options?.onChange(state);
 				}
 				Promise.resolve(storage.setItem(
 					options.uniqueId,
@@ -107,24 +107,24 @@ export function useFormStorage<T extends Record<string, any>>(
 				))
 				.catch((e) => {
 					onStorageError(e); 
-				})
+				});
 			},
 			onSubmit: (state) => {
 				if ( options?.onSubmit ) {
-					options?.onSubmit(state)
+					options?.onSubmit(state);
 				}
 				if ( (options?.shouldClearAfterSubmit ?? true) ) {
 					Promise.resolve(storage.removeItem(options.uniqueId))
 					.catch((e) => {
 						onStorageError(e); 
-					})
+					});
 				}
 			}
 		}
-	)
+	);
 
 	const restoreFromStorage = async () => {
-		const storageState = await Promise.resolve(storage.getItem(options.uniqueId))
+		const storageState = await Promise.resolve(storage.getItem(options.uniqueId));
 
 		if ( storageState ) {
 			const { version: storageVersion, serializedState } = JSON.parse(storageState);
@@ -137,16 +137,16 @@ export function useFormStorage<T extends Record<string, any>>(
 				});
 
 				(formResult as UseFormReturn<T> & { _setFormState: (state: State<T>) => void })
-				._setFormState(state)
+				._setFormState(state);
 			}
 			else {
 				Promise.resolve(storage.removeItem(options.uniqueId))
 				.catch((e) => {
 					onStorageError(e); 
-				})
+				});
 			}
 		}
-	}
+	};
 
 	useEffect(() => {
 		if ( autoSyncWithStorage ) {
@@ -161,7 +161,7 @@ export function useFormStorage<T extends Record<string, any>>(
 				finally {
 					onLoading(false);
 				}
-			})()
+			})();
 		}
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
