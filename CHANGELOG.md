@@ -1,3 +1,10 @@
+## [1.24.5](https://github.com/resourge/react-form/compare/v1.24.4...v1.24.5) (2024-01-02)
+
+
+### Bug Fixes
+
+* **package.json:** fix postinstall ([51203a0](https://github.com/resourge/react-form/commit/51203a0e64e218b6d3bf6d3aa3160804fc7697ea))
+
 ## [1.24.4](https://github.com/resourge/react-form/compare/v1.24.3...v1.24.4) (2024-01-02)
 
 
