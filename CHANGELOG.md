@@ -1,3 +1,10 @@
+## [1.24.6](https://github.com/resourge/react-form/compare/v1.24.5...v1.24.6) (2024-01-02)
+
+
+### Bug Fixes
+
+* **package.json:** use npx on postinstall to fix patch-package not working in repositories ([3c5ad42](https://github.com/resourge/react-form/commit/3c5ad42e6a2b59bd1fd0780fe2d2e92c0b9625cd))
+
 ## [1.24.5](https://github.com/resourge/react-form/compare/v1.24.4...v1.24.5) (2024-01-02)
 
 
