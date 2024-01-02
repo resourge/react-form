@@ -1,3 +1,10 @@
+## [1.24.4](https://github.com/resourge/react-form/compare/v1.24.3...v1.24.4) (2024-01-02)
+
+
+### Bug Fixes
+
+* **package.json:** change postinstall to local ([c08034a](https://github.com/resourge/react-form/commit/c08034ab916936d34fe21633f9162a11a0c755e9))
+
 ## [1.24.3](https://github.com/resourge/react-form/compare/v1.24.2...v1.24.3) (2023-10-18)
 
 
