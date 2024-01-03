@@ -1,5 +1,7 @@
 diff --git a/node_modules/on-change/index.js b/node_modules/on-change/index.js
-index 158b7bf..326c613 100644
+old mode 100644
+new mode 100755
+index 158b7bf..74315e1
 --- a/node_modules/on-change/index.js
 +++ b/node_modules/on-change/index.js
 @@ -1,6 +1,6 @@
@@ -25,9 +27,93 @@ index 158b7bf..326c613 100644
  
  			const value = isBuiltinWithMutableMethods(target)
 -				? Reflect.get(target, property)
-+				? target.constructor.name.includes('Date') && property !== 'constructor'
++				? target.constructor.name.includes('Date') && property !== 'constructor' && typeof property !== 'symbol'
 +					? Reflect.get(target, property, receiver).bind(target)
 +					: Reflect.get(target, property)
  				: Reflect.get(target, property, receiver);
  
  			return prepareValue(value, target, property);
+diff --git a/node_modules/on-change/lib/cache.js b/node_modules/on-change/lib/cache.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/on-change/lib/constants.js b/node_modules/on-change/lib/constants.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/on-change/lib/ignore-property.js b/node_modules/on-change/lib/ignore-property.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/on-change/lib/is-array.js b/node_modules/on-change/lib/is-array.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/on-change/lib/is-builtin.js b/node_modules/on-change/lib/is-builtin.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/on-change/lib/is-iterator.js b/node_modules/on-change/lib/is-iterator.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/on-change/lib/is-object.js b/node_modules/on-change/lib/is-object.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/on-change/lib/is-symbol.js b/node_modules/on-change/lib/is-symbol.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/on-change/lib/path.js b/node_modules/on-change/lib/path.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/on-change/lib/smart-clone/clone/clone-array.js b/node_modules/on-change/lib/smart-clone/clone/clone-array.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/on-change/lib/smart-clone/clone/clone-date.js b/node_modules/on-change/lib/smart-clone/clone/clone-date.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/on-change/lib/smart-clone/clone/clone-map.js b/node_modules/on-change/lib/smart-clone/clone/clone-map.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/on-change/lib/smart-clone/clone/clone-object.js b/node_modules/on-change/lib/smart-clone/clone/clone-object.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/on-change/lib/smart-clone/clone/clone-set.js b/node_modules/on-change/lib/smart-clone/clone/clone-set.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/on-change/lib/smart-clone/clone/clone-weakmap.js b/node_modules/on-change/lib/smart-clone/clone/clone-weakmap.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/on-change/lib/smart-clone/clone/clone-weakset.js b/node_modules/on-change/lib/smart-clone/clone/clone-weakset.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/on-change/lib/smart-clone/diff/is-diff-arrays.js b/node_modules/on-change/lib/smart-clone/diff/is-diff-arrays.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/on-change/lib/smart-clone/diff/is-diff-certain.js b/node_modules/on-change/lib/smart-clone/diff/is-diff-certain.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/on-change/lib/smart-clone/diff/is-diff-maps.js b/node_modules/on-change/lib/smart-clone/diff/is-diff-maps.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/on-change/lib/smart-clone/diff/is-diff-sets.js b/node_modules/on-change/lib/smart-clone/diff/is-diff-sets.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/on-change/lib/smart-clone/methods/array.js b/node_modules/on-change/lib/smart-clone/methods/array.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/on-change/lib/smart-clone/methods/map.js b/node_modules/on-change/lib/smart-clone/methods/map.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/on-change/lib/smart-clone/methods/object.js b/node_modules/on-change/lib/smart-clone/methods/object.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/on-change/lib/smart-clone/methods/set.js b/node_modules/on-change/lib/smart-clone/methods/set.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/on-change/lib/smart-clone/smart-clone.js b/node_modules/on-change/lib/smart-clone/smart-clone.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/on-change/lib/wrap-iterator.js b/node_modules/on-change/lib/wrap-iterator.js
+old mode 100644
+new mode 100755
+diff --git a/node_modules/on-change/license b/node_modules/on-change/license
+old mode 100644
+new mode 100755
+diff --git a/node_modules/on-change/readme.md b/node_modules/on-change/readme.md
+old mode 100644
+new mode 100755
