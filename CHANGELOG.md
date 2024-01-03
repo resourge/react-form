@@ -1,3 +1,10 @@
+## [1.24.7](https://github.com/resourge/react-form/compare/v1.24.6...v1.24.7) (2024-01-03)
+
+
+### Bug Fixes
+
+* **on-change:** fix Date sometimes giving an error ([c24f9f0](https://github.com/resourge/react-form/commit/c24f9f0374eeca481f09007be2ba7dd6bbc5e480))
+
 ## [1.24.6](https://github.com/resourge/react-form/compare/v1.24.5...v1.24.6) (2024-01-02)
 
 
