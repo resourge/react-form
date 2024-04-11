@@ -1,8 +1,34 @@
-# React-Form
+# React Form
+
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+## Description
 
 `react-form` is a simple and basic controlled hook form. Aiming to create forms with minimal effort.
 
-Visit our website [resourge-react-form.netlify.app](https://resourge-react-form.netlify.app)
+## Table of Contents
+
+- [Installation](#installation)
+- [Usage](#usage)
+- [Documentation](#documentation)
+- [Contributing](#contributing)
+- [License](#license)
+- [Contact](#contact)
+
+## Installation
+
+To install use npm:
+
+```sh
+npm install @resourge/react-form
+```
+
+or with Yarn:
+
+```sh
+yarn add @resourge/react-form
+```
+
 
 ## Features
 
@@ -16,22 +42,7 @@ Visit our website [resourge-react-form.netlify.app](https://resourge-react-form.
 - "useFormStorage" for it to automatically save on a specific storage (ex: localStorage).
 
 
-## Installation
-
-Install using [Yarn](https://yarnpkg.com):
-
-```sh
-yarn add @resourge/react-form
-```
-
-or NPM:
-
-```sh
-npm install @resourge/react-form --save
-```
-
-
-## Basic Usage
+## Usage
 
 ```jsx
 import { useForm } from '@resourge/react-form'
@@ -77,9 +88,7 @@ function App() {
 }
 ```
 
-## Documentation
-
-### Form Default values
+## Form Default values
 
 Default form values can be a simple object or a class.
 
@@ -120,7 +129,7 @@ const { ... } = useForm(
 )
 ```
 
-### Form Options
+## Form Options
 
 ```Typescript
 // object
@@ -151,7 +160,7 @@ const { ... } = useForm(
 | **onSubmit** | `(formState) => void` | Called on form submission |
 | **onTouch** | `(key, value, previousValue) => void` | Method called every time a value is changed |
 
-### Form actions
+## Form actions
 
 ```Typescript
 // object
@@ -186,7 +195,7 @@ const {
 | **isValid** | `boolean` | Form state by default is false if `errors` are undefined or an empty object |
 | **context** | `object` | Context, mainly for use in `FormProvider` |
 
-#### `field`
+## `field`
 
 Method to connect the form element to the key by providing native attributes like `onChange`, `name`, etc
 
@@ -215,7 +224,7 @@ const {
 />
 ```
 
-##### Field options
+## Field options
 
 _Note: Field options are not mandatory or necessary, they are optional_
 
@@ -229,7 +238,7 @@ _Note: Field options are not mandatory or necessary, they are optional_
 | **triggerTouched** | `boolean` | true | If `false` will not check `touches` and not call `onTouch` from options |
 | **validate** | `boolean` | true | Validates form if new form values are different from previous form values |
 
-#### `getValue`
+## `getValue`
 
 Return the value for the matched key
 
@@ -245,7 +254,7 @@ const {
 getValue('name') /// Rimuru
 ```
 
-#### `triggerChange`
+## `triggerChange`
 
 Method to make multiple changes in one render
 
@@ -270,7 +279,7 @@ triggerChange((form) => {}, {
 })
 ```
 
-##### Field options
+## Field options
 
 _Note: Field options are not mandatory or necessary, they are optional_
 
@@ -281,7 +290,7 @@ _Note: Field options are not mandatory or necessary, they are optional_
 | **triggerTouched** | `boolean` | true | If `false` will not check `touches` and not call `onTouch` from options |
 | **validate** | `boolean` | true | Validates form if new form values are different from previous form values |
 
-#### `reset`
+## `reset`
 
 Resets form state
 
@@ -307,7 +316,7 @@ reset({ ... }, {
 })
 ```
 
-##### Field options
+## Field options
 
 _Note: Field options are not mandatory or necessary, they are optional_
 
@@ -319,7 +328,7 @@ _Note: Field options are not mandatory or necessary, they are optional_
 | **validate** | `boolean` | true | Validates form if new form values are different from previous form values |
 | **clearTouched** | `boolean` | true | On reset, `touches` will be cleared |
 
-#### `onChange`
+## `onChange`
 
 Returns a method to change key value
 
@@ -347,7 +356,7 @@ onChange('name', {
 })
 ```
 
-##### Field options
+## Field options
 
 _Note: Field options are not mandatory or necessary, they are optional_
 
@@ -361,7 +370,7 @@ _Note: Field options are not mandatory or necessary, they are optional_
 | **triggerTouched** | `boolean` | true | If `false` will not check `touches` and not call `onTouch` from options |
 | **validate** | `boolean` | true | Validates form if new form values are different from previous form values |
 
-#### `changeValue`
+## `changeValue`
 
 Simplified version of `onChange`, without the return method
 
@@ -388,7 +397,7 @@ changeValue('name', 'Rimuru Tempest', {
 })
 ```
 
-##### Field options
+## Field options
 
 _Note: Field options are not mandatory or necessary, they are optional_
 
@@ -402,7 +411,7 @@ _Note: Field options are not mandatory or necessary, they are optional_
 | **triggerTouched** | `boolean` | true | If `false` will not check `touches` and not call `onTouch` from options |
 | **validate** | `boolean` | true | Validates form if new form values are different from previous form values |
 
-#### `handleSubmit`
+## `handleSubmit`
 
 Method to handle form submission
 
@@ -422,7 +431,7 @@ const onSubmit = handleSubmit(
 )
 ```
 
-#### `getErrors`
+## `getErrors`
 
 Returns error messages for the matched key
 
@@ -462,7 +471,7 @@ getErrors('product.category.type.name', {
 })
 ```
 
-##### Field options
+## Field options
 
 _Note: Field options are not mandatory or necessary, they are optional_
 
@@ -474,7 +483,7 @@ _Note: Field options are not mandatory or necessary, they are optional_
 | **onlyOnTouchKeys** | ` Array<FormKey<T>>` | undefined | Array containing other keys to also validate on touch |
 | **strict** | `boolean` | true | Includes children errors as objects into array. _Note: If `includeChildsIntoArray` is true `strict` will by default be false_ |
 
-#### `hasError`
+## `hasError`
 
 Returns a boolean for the matched key
 
@@ -506,7 +515,7 @@ hasError('product.category') // returns true or false
 hasError('product.category.type.name') // returns true or false
 ```
 
-##### Field options
+## Field options
 
 _Note: Field options are not mandatory or necessary, they are optional_
 
@@ -516,7 +525,7 @@ _Note: Field options are not mandatory or necessary, they are optional_
 | **onlyOnTouchKeys** | ` Array<FormKey<T>>` | undefined | Array containing other keys to also validate on touch |
 | **strict** | `boolean` | true | Includes children errors to define if is true or false. _Note: If `includeChildsIntoArray` is true `strict` will by default be false_ |
 
-#### `setError`
+## `setError`
 
 Method to set custom errors
 
@@ -537,7 +546,7 @@ setError([
 ])
 ```
 
-#### `watch`
+## `watch`
 
 - After all changes are done, it will execute all "watched keys" methods.
 - Watch key, then executes the method to update itself or others values.
@@ -563,7 +572,7 @@ watch('submit', (form) => {
 })
 ```
 
-#### `resetTouch`
+## `resetTouch`
 
 Clears touch's
 
@@ -577,7 +586,7 @@ const {
 resetTouch()
 ```
 
-#### `updateController`
+## `updateController`
 
 Forces update controllers with key
 
@@ -766,7 +775,7 @@ function App() {
 }
 ```
 
-### useFormSplitter
+## useFormSplitter
 
 Hook to create a sub-form. Serves to basically create a sub form for the specific "formFieldKey", where all validations, forms and methods will be specific to the "formFieldKey" selected. (Works basically like a specific useForm for that "formFieldKey")
 
@@ -870,13 +879,13 @@ export function App() {
 }
 ```
 
-### useFormStorage
+## useFormStorage
 
 Hook to create a form where changes will be saved in a storage. <br/>
 _Note: that when changes are done to form data, it's always better to change/update the version so storage data is cleared._ <br/>
 _Note: By default it will clear the form from storage when submitted with success._
 
-### FormStorage Options
+## FormStorage Options
 
 ```jsx
 // object
@@ -914,11 +923,11 @@ const { ... } = useForm(
 | **onLoading** | `(isLoading) => void` | `false` | `undefined` | Reading from storage can be a small delay, onLoading serves to show a loading. |
 | **onStorageError** | `(error) => void` | `false` | `undefined` | In case reading or writing in storage gives an error |
 
-### Class vs JSON
+## Class vs JSON
 
 When using `useFormStorage` all data will be converted to JSON (localStorage, indexDB, etc only work with pure JSON) that means Class's prototype will be removed. To prevent this from occurring some class decorators/functions are provided.
 
-#### PreserveClass or addClassToPreserve
+## PreserveClass or addClassToPreserve
 
 With Decorator:
 
@@ -1024,26 +1033,21 @@ export function App() {
 }
 ```
 
-## Setup Errors
+For more detailed usage instructions, refer to the [documentation](#documentation).
 
-To simplify the process of converting errors from validation packages like joi, yup, zod, ajv, etc to `useForm` lookalike errors, use `setDefaultOnError`.
-You only need to setup this on the initialization of the application in this case App.tsx
+## Documentation
 
-`setDefaultOnError` will, by default (unless `onError` from [Form Options](#form-options) is set), customize the errors to fit `useForm` errors.
+For comprehensive documentation and usage examples, visit the [React Form documentation](https://resourge.vercel.app/docs/react-form/intro).
 
-_Note: We recommend the use of @resourge/schema, it has full support, its fast and work 100% with @resourge/react-form_
+## Contributing
 
-```jsx
-// In App.tsx
-import { setDefaultOnError } from '@resourge/react-form'
-
-setDefaultOnError((errors: any) => {
-  // Customize errors to fit the model 
-  // [{ path, errors }]
-  return []
-});
-```
+Contributions to React Form are welcome! To contribute, please follow the [contributing guidelines](CONTRIBUTING.md).
 
 ## License
 
-MIT Licensed.
+React Form is licensed under the [MIT License](LICENSE).
+
+## Contact
+
+For questions or support, please contact the maintainers:
+- GitHub: [Resourge](https://github.com/resourge)
