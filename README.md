@@ -1,15 +1,27 @@
-# React Form
+# @resourge/react-form
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## Description
+`@resourge/react-form` package provides a set of utilities for managing form state in React applications with built-in storage synchronization. It offers hooks and components designed to streamline form development, optimize rendering performance, and seamlessly synchronize form data with storage solutions.
 
-`react-form` is a simple and basic controlled hook form. Aiming to create forms with minimal effort.
+## Features
+
+- `Form State Management`: Easily manage form state and data using the `useForm` hook, providing a convenient interface for handling form inputs, validation, and submission.
+- `Automatic Storage Synchronization`: Automatically synchronize form data with storage solutions such as `localStorage` or `AsyncStorage` to persist user input across sessions.
+- `Performance Optimization`: Improve rendering performance for large forms with the `Controller` component, which updates only when relevant form fields change.
+- `Context-based Architecture`: Leverage the power of React context to provide form state and data to nested components with the `FormProvider` component.
+- `Customization and Flexibility`: Customize storage options, synchronization behavior, and form submission handling to suit your application's specific requirements.
+- `Developer-friendly API`: Utilize intuitive hooks and components to simplify form development and reduce boilerplate code.
 
 ## Table of Contents
 
 - [Installation](#installation)
 - [Usage](#usage)
+- [useForm](#useForm)
+- [useFormSplitter](#useFormSplitter)
+- [useFormStorage](#useFormStorage)
+- [FormProvider](#FormProvider)
+- [Controller](#Controller)
 - [Documentation](#documentation)
 - [Contributing](#contributing)
 - [License](#license)
@@ -17,1035 +29,514 @@
 
 ## Installation
 
-To install use npm:
-
-```sh
-npm install @resourge/react-form
-```
-
-or with Yarn:
+Install using [Yarn](https://yarnpkg.com):
 
 ```sh
 yarn add @resourge/react-form
 ```
 
+or NPM:
 
-## Features
+```sh
+npm install @resourge/react-form --save
+```
 
-- Controlled form.
-- Possibility of using `class` as default form data (see more [Form Data](#form-data)).
-- No native validation. The entire validation is up to the developer.
-- Simple to use with existing HTML form inputs and 3rd-party UI libraries.
-- Build with typescript.
-- Easy to use in react and react-native.
-- Possibility to "split" the form (having the same form, but validating specific sections (commonly used with form sections)).
-- "useFormStorage" for it to automatically save on a specific storage (ex: localStorage).
+## Usage
 
+```typescript
+const translationsInstance = SetupTranslations({
+  langs: ['en', 'fr', 'es'],
+  defaultLanguage: 'en',
+  plugins: [....],
+  // This
+  translations: {
+	greeting: {
+	  en: 'Hello',
+      fr: 'Bonjour',
+      es: 'Hola',
+	},
+	goodbye: {
+	  en: 'Goodbye',
+      fr: 'Au revoir',
+      es: 'Adiós',
+	},
+	homeScreen: {
+	  welcome: {
+	    en: 'Welcome',
+	    fr: 'Bienvenue',
+	    es: 'Bienvenido',
+	  },
+	},
+  },
+  // or
+  load: {
+    request: async () => {
+      // Example: Fetch translations from a server
+      const response = await fetch('/translations');
+      const translations = await response.json();
+      return translations;
+    },
+    structure: {
+      greeting: 'Hello',
+      goodbye: 'Goodbye',
+    }
+  }
+});
+```
+
+# useForm
+
+`useForm` is a custom React hook provided by the Form Management Library for handling form state, validation, and submission in React applications. It simplifies form management by providing a set of methods and options to manage form state, handle form events, and perform form validation.
+
+## Usage
+
+```tsx
+import { useForm } from '@resourge/react-form';
+
+const MyFormComponent = () => {
+  const { form, handleSubmit, field, errors } = useForm({
+    username: '',
+    password: ''
+  });
+
+  const onSubmit = handleSubmit(async () => {
+    // handle form submission logic
+  });
+
+  return (
+    <form onSubmit={onSubmit}>
+      <input {...field('username')} />
+      <input {...field('password')} />
+      <button type="submit">Submit</button>
+      {errors.username && <span>{errors.username}</span>}
+      {errors.password && <span>{errors.password}</span>}
+    </form>
+  );
+};
+
+export default MyFormComponent;
+```
+
+## API
+
+`useForm(defaultValue: T | (() => T) | { new(): T }, options?: FormOptions<T>): UseFormReturn<T>`
+
+`useForm` is the main hook exported by this package. It takes two arguments:
+
+### Parameters
+
+- `initialState`: The initial value of the form. It can be an object, a function returning an object or a new instance of a class, or a constructor.
+- `options` (optional): Additional options for customizing form behavior.
+
+#### Options
+
+`onChange`
+A callback function triggered whenever the form state changes. It receives the current form state as an argument.
+
+`onErrors`
+A callback function used to handle errors encountered during form validation or submission. It receives the error object as an argument and should return formatted error messages.
+
+`onSubmit`
+A callback function invoked after a successful form submission. It receives the form data as an argument.
+
+`onTouch`
+A callback function invoked when a form field is touched (i.e., focused and then blurred). It receives the field key, current value, and previous value as arguments.
+
+`validate`
+A function used to perform custom validation on the form fields. It receives the form data and an array of changed keys as arguments and returns either null for success, an array of error messages or throw errors if validation fails.
+
+`validateOnlyAfterFirstSubmit`
+A boolean flag indicating whether to perform validation only after the first form submission attempt. If set to true, validation will be triggered only after the first submission attempt.
+
+### Returns
+
+An object of type `UseFormReturn`, which contains the following properties and methods:
+
+- `changeValue(key: string, value: any, produceOptions?: FieldOptions): void`: Facilitates altering the value of a designated form field. Parameters include the field's key, the new value, and optional field options.
+```typescript
+// Change the value of the 'name' field to 'John'
+changeValue('name', 'John');
+```
+- `context`: Provides a context object primarily employed for seamless integration with the FormProvider/Controller pattern.
+- `errors`: Contains error messages associated with each form field.
+```tsx
+// Display error messages for the 'email' field
+{errors['email'] && <span className="error">{errors['email']}</span>}
+```
+- `field(key: string, options?: FieldOptions): FieldForm`: Establishes connections between form elements and specific fields, offering native attributes such as onChange, name, and value.
+```tsx
+// Connect an input field to the 'name' field
+<input {...field('name')} />
+```
+- `form`: Reflects the current state of the form, encapsulating the values of all form fields.
+```tsx
+// Access the value of the 'email' field
+const emailValue = form.email;
+```
+- `getErrors(key: string, options?: GetErrorsOptions): GetErrors`: Retrieves error messages pertinent to a particular form field, considering specified options.
+```tsx
+// Get error messages for the 'password' field
+const passwordErrors = getErrors('password');
+```
+- `getValue(key: string): any`: Fetches the value of a designated form field.
+```tsx
+// Get the value of the 'username' field
+const usernameValue = getValue('username');
+```
+- `handleSubmit(onValid: SubmitHandler, onInvalid?: ValidateSubmission): (event?: FormEvent<HTMLFormElement> | React.MouseEvent) => Promise<K | undefined>`: Manages form submission, executing a function upon valid submission and optionally controlling submission behavior when the form is invalid.
+```tsx
+// Handle form submission with custom validation logic
+const submitHandler = handleSubmit(
+  (form) => {
+    // Submit form data to the server
+  },
+  (errors) => {
+    // Handle form submission when there are validation errors
+    return true; // Continue with submission even if there are errors
+  }
+);
+```
+- `hasError(key: string, options?: HasErrorOptions): boolean`: Checks if a specified form field contains errors, considering specified options.
+```tsx
+// Check if the 'username' field has errors
+const hasUsernameError = hasError('username');
+```
+- `isTouched`: Indicates whether any form field has been interacted with by the user.
+- `isValid`: Indicates whether the form currently holds valid data, validating all form field values.
+- `merge(mergedForm: Partial<Record<string, any>>, resetOptions?: ResetOptions): void`: Merges a partial form state into the current form state, with optional resetting of form options.
+```tsx
+// Merge a partial form state into the current form state
+merge({ email: 'john@example.com' });
+```
+- `onChange(key: string, fieldOptions?: FieldOptions): (value: any) => void`: Generates a callback function to manage changes to a specific form field.
+```tsx
+// Generate a callback function to handle changes to the 'password' field
+const handlePasswordChange = onChange('password');
+```
+- `reset(newForm?: Partial<Record<string, any>>, resetOptions?: ResetOptions): Promise<void>`: Resets the form state to its initial state or a specified new form state, with optional resetting of form options.
+```tsx
+// Reset the form state to its initial state
+reset();
+```
+- `resetTouch(): void`: Clears touch states for all form fields.
+```tsx
+// Clear touch states for all form fields
+resetTouch();
+```
+- `setError(errors: Array<{ errors: string[], path: string }>): void`: Sets custom errors for specific form fields.
+```tsx
+// Set custom errors for the 'email' field
+setError([{ path: 'email', errors: ['Invalid email address'] }]);
+```
+- `touches`: Represents the touch state of each form field, where keys denote form field names and values indicate whether the field has been touched.
+```tsx
+// Check if the 'password' field has been touched
+const passwordTouched = touches['password'];
+```
+- `triggerChange(cb: OnFunctionChange, produceOptions?: ProduceNewStateOptions): void`: Enables simultaneous changes to the form state within a single render cycle, accepting a callback function to modify the state and optional options for customization.
+```tsx
+triggerChange((form) => {
+  form.username = 'john_doe';
+  form.email = 'john@example.com';
+});
+```
+- `updateController(key: string): void`: Manually triggers an update of the Controller component associated with a specific form field.
+```tsx
+// Manually force the Controller component associated with the 'email' field to update
+updateController('email');
+```
+- `watch(key: string | 'submit', method: WatchMethod): void`: Monitors specific form fields or form submission events, executing specified methods upon occurrence of these events.
+```tsx
+// Watch changes to the 'email' field and execute a method
+watch('email', (form) => {
+  // Handle changes to the 'email' field
+});
+```
+
+# useFormSplitter
+
+`useFormSplitter` hook is designed to create a form where changes are automatically saved and synchronized with a storage mechanism. This hook provides functionality to store and retrieve form data, making it easy to persist form state across sessions or device restarts. It extends the functionality of the `useForm` hook by providing additional options for storage configuration.
 
 ## Usage
 
 ```jsx
-import { useForm } from '@resourge/react-form'
+import { useFormSplitter } from '@resourge/react-form';
 
-function App() {
-  const {
-    form,
-    isTouched,
-    isValid,
-    field,
-    handleSubmit
-  } = useForm(
-    {
-      productName: ''
-    },
-    {
-      // Form validation
-      // @resourge/schema recommended use
-      validate: () => []
-    }
-  )
-  
+const MyComponent = () => {
+  const { form, handleSubmit, field } = useFormSplitter('personalDetails');
+
   const onSubmit = handleSubmit((form) => {
-    console.log('form', form)
-    // Send it to backend
-  })
-  
-  return (
-    <div>
-      <button 
-        onClick={onSubmit}
-      >
-        Submit
-      </button>
-      <div>
-        <label>
-          Product Name
-        </label>
-        <input { ...field('productName')} />
-      </div>
-    </div>
-  )
-}
-```
-
-## Form Default values
-
-Default form values can be a simple object or a class.
-
-Rules:
-
-* Only constrains `Form Data` to an object. Meaning that it's possible to have elements with `moment`, `dayjs`, `class's`, `luxonas`, etc.
-* Cached on the first render (changes will not affect the form data.)
-
-
-```Typescript
-// object
-const { ... } = useForm(
-  {
-    productName: ''
-  }
-)
-
-// class
-
-// For class without constructor or constructor with undefined params
-class Product {
-	public productName = '';
-}
-const { ... } = useForm(
-  Product
-)
-
-// For class with constructor or constructor with params
-class ProductWithConstructor {
-	public productName = '';
-
-	constructor(productName: string) {
-		this.productName = productName;
-	}
-}
-const { ... } = useForm(
-  () => new ProductWithConstructor('Apple')
-)
-```
-
-## Form Options
-
-```Typescript
-// object
-const { ... } = useForm(
-  ...,
-  {
-	// Not required
-	validate: (form, changedKeys) => [],
-	onErrors: (errors) => errors,
-	validateDefault: true,
-	validateOnlyAfterFirstSubmit: false,
-	onlyOnTouchDefault: true,
-	onChange: (formState) => { },
-	onSubmit: (formState) => { },
-	onTouch: (key, value, previousValue) => { }
-  }
-)
-```
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| **validate** | `(form, changedKeys) => void \| ValidationErrors \| Promise<void> \| Promise<ValidationErrors>` | Method to validate form. Usually with some kind of validator. (like yup, zod, joi, @resourge/schema(Recommended), etc) |
-| **onErrors** | `(errors: any \| any[]) => FormErrors` | Method to treat errors. |
-| **validateDefault** | `boolean` | Set's global validation. true by default |
-| **validateOnlyAfterFirstSubmit** | `boolean` | Set's global validation to only after first submit. true by default |
-| **onlyOnTouchDefault** | `boolean` | Set's globally to only show errors on camp touch. True by default |
-| **onChange** | `(formState) => void` | Called on every form change |
-| **onSubmit** | `(formState) => void` | Called on form submission |
-| **onTouch** | `(key, value, previousValue) => void` | Method called every time a value is changed |
-
-## Form actions
-
-```Typescript
-// object
-const {
-  form,
-  touches, isTouched,
-  errors, isValid,
-  context,
-
-  field, getValue,
-
-  triggerChange, reset, onChange, changeValue, 
-  
-  handleSubmit,
-
-  getErrors, hasError, setError,
-
-  watch,
-  
-  resetTouch,
-  
-  updateController
-} = useForm( ... )
-```
-
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| **form** | `object \| class` | [`formData`](#form-data) |
-| **touches** | `{ [form path]: boolean }` | Form touches (ex: { 'user.name': true }) |
-| **isTouched** | `boolean` | Form touches state by default is false if `touches` are undefined or an empty object |
-| **errors** | `{ [form path]: [path error messages] }` | Depends if `useForm` `validate` is set. (ex: { 'user.name': ['Name is required'] }) |
-| **isValid** | `boolean` | Form state by default is false if `errors` are undefined or an empty object |
-| **context** | `object` | Context, mainly for use in `FormProvider` |
-
-## `field`
-
-Method to connect the form element to the key by providing native attributes like `onChange`, `name`, etc
-
-```JSX
-const {
-  field
-} = useForm(
-  {
-    name: 'Rimuru'
-  }
-)
-
-<input {...field('name')} />
-
-<input 
-  { ...field('name', { 
-      blur: false,
-      readOnly: false,
-      filterKeysError: () => false,
-      forceValidation: false,
-      onChange: () => {},
-      triggerTouched: true,
-      validate: true
-    })
-  } 
-/>
-```
-
-## Field options
-
-_Note: Field options are not mandatory or necessary, they are optional_
-
-| Name | Type | Default | Description |
-| ---- | ---- | ---- | ----------- |
-| **blur** | `boolean` | false | Turns the field from a onChange to onBlur |
-| **filterKeysError** | `(key: string) => boolean` | undefined | Method to make sure some keys are not triggering errors |
-| **forceValidation** | `boolean` | false | Forces form validation regardless of conditions |
-| **onChange** | `(value: Value) => any` | undefined | Changes the value on change. |
-| **readOnly** | `boolean` | false | Turns the field from a onChange to readonly |
-| **triggerTouched** | `boolean` | true | If `false` will not check `touches` and not call `onTouch` from options |
-| **validate** | `boolean` | true | Validates form if new form values are different from previous form values |
-
-## `getValue`
-
-Return the value for the matched key
-
-```Typescript
-const {
-  getValue
-} = useForm(
-  {
-    name: 'Rimuru'
-  }
-)
-
-getValue('name') /// Rimuru
-```
-
-## `triggerChange`
-
-Method to make multiple changes in one render
-
-```Typescript
-const {
-  triggerChange
-} = useForm(
-  ...
-)
-
-triggerChange((form) => {
-  form.name = 'Rimuru';
-  form.age = '39';
-  ...
-})
-
-triggerChange((form) => {}, { 
-  filterKeysError: (key) => false,
-  forceValidation: false,
-  triggerTouched: true,
-  validate: true
-})
-```
-
-## Field options
-
-_Note: Field options are not mandatory or necessary, they are optional_
-
-| Name | Type | Default | Description |
-| ---- | ---- | ---- | ----------- |
-| **filterKeysError** | `(key: string) => boolean` | undefined | Method to make sure some keys are not triggering errors |
-| **forceValidation** | `boolean` | false | Forces form validation regardless of conditions |
-| **triggerTouched** | `boolean` | true | If `false` will not check `touches` and not call `onTouch` from options |
-| **validate** | `boolean` | true | Validates form if new form values are different from previous form values |
-
-## `reset`
-
-Resets form state
-
-```Typescript
-const {
-  reset
-} = useForm(
-  {
-    name: 'Rimuru'
-  }
-)
-...
-reset({
-  name: 'Rimuru Tempest'
-})
-
-reset({ ... }, {
-  filterKeysError: (key) => false,
-  forceValidation: false,
-  triggerTouched: true,
-  validate: true,
-  clearTouched: true
-})
-```
-
-## Field options
-
-_Note: Field options are not mandatory or necessary, they are optional_
-
-| Name | Type | Default | Description |
-| ---- | ---- | ---- | ----------- |
-| **filterKeysError** | `(key: string) => boolean` | undefined | Method to make sure some keys are not triggering errors |
-| **forceValidation** | `boolean` | false | Forces form validation regardless of conditions |
-| **triggerTouched** | `boolean` | true | If `false` will not check `touches` and not call `onTouch` from options |
-| **validate** | `boolean` | true | Validates form if new form values are different from previous form values |
-| **clearTouched** | `boolean` | true | On reset, `touches` will be cleared |
-
-## `onChange`
-
-Returns a method to change key value
-
-```Typescript
-const {
-  onChange
-} = useForm(
-  {
-    name: 'Rimuru'
-  }
-)
-...
-onChange('name')
-
-<input onChange={onChange('name')} />
-
-onChange('name', { 
-  blur: false,
-  readOnly: false,
-  filterKeysError: () => false,
-  forceValidation: false,
-  onChange: () => {},
-  triggerTouched: true,
-  validate: true
-})
-```
-
-## Field options
-
-_Note: Field options are not mandatory or necessary, they are optional_
-
-| Name | Type | Default | Description |
-| ---- | ---- | ---- | ----------- |
-| **blur** | `boolean` | false | Turns the field from a onChange to onBlur |
-| **filterKeysError** | `(key: string) => boolean` | undefined | Method to make sure some keys are not triggering errors |
-| **forceValidation** | `boolean` | false | Forces form validation regardless of conditions |
-| **onChange** | `(value: Value) => any` | undefined | Changes the value on change. |
-| **readOnly** | `boolean` | false | Turns the field from a onChange to readonly |
-| **triggerTouched** | `boolean` | true | If `false` will not check `touches` and not call `onTouch` from options |
-| **validate** | `boolean` | true | Validates form if new form values are different from previous form values |
-
-## `changeValue`
-
-Simplified version of `onChange`, without the return method
-
-```Typescript
-const {
-  changeValue
-} = useForm(
-  {
-    name: 'Rimuru',
-    age: '40'
-  }
-)
-...
-changeValue('name', 'Rimuru Tempest')
-
-changeValue('name', 'Rimuru Tempest', { 
-  blur: false,
-  readOnly: false,
-  filterKeysError: () => false,
-  forceValidation: false,
-  onChange: () => {},
-  triggerTouched: true,
-  validate: true
-})
-```
-
-## Field options
-
-_Note: Field options are not mandatory or necessary, they are optional_
-
-| Name | Type | Default | Description |
-| ---- | ---- | ---- | ----------- |
-| **blur** | `boolean` | false | Turns the field from a onChange to onBlur |
-| **filterKeysError** | `(key: string) => boolean` | undefined | Method to make sure some keys are not triggering errors |
-| **forceValidation** | `boolean` | false | Forces form validation regardless of conditions |
-| **onChange** | `(value: Value) => any` | undefined | Changes the value on change. |
-| **readOnly** | `boolean` | false | Turns the field from a onChange to readonly |
-| **triggerTouched** | `boolean` | true | If `false` will not check `touches` and not call `onTouch` from options |
-| **validate** | `boolean` | true | Validates form if new form values are different from previous form values |
-
-## `handleSubmit`
-
-Method to handle form submission
-
-```Typescript
-const onSubmit = handleSubmit((form) => {
-  /// Will only be called when form is valid
-  /// do something with it
-})
-
-const onSubmit = handleSubmit(
-  (form) => {
-    /// Will always be called 
-    /// because the next method returns true
-    /// do something with it
-  },
-  (errors) => true 
-)
-```
-
-## `getErrors`
-
-Returns error messages for the matched key
-
-```Typescript
-const {
-  getErrors
-} = useForm(
-  {
-    product: {
-      name: 'Apple',
-      category: {
-        name: 'Food',
-        type: {
-          name: 'Solid',
-          type: 'Vegetal'
-        }
-      }
-    }
-  },
-  {
-	validate: () => {
-		// Returned errors are going to be show in getErrors
-		return []
-	}
-  }
-)
-
-getErrors('product.category') /// [<<Error Messages>>]
-getErrors('product.category.type.name') /// [<<Error Messages>>]
-
-getErrors('product.category.type.name', {
-  includeChildsIntoArray: true,
-  includeKeyInChildErrors: false,
-  onlyOnTouch: true,
-  onlyOnTouchKeys: undefined,
-  strict: true
-})
-```
-
-## Field options
-
-_Note: Field options are not mandatory or necessary, they are optional_
-
-| Name | Type | Default | Description |
-| ---- | ---- | ---- | ----------- |
-| **includeChildsIntoArray** | `boolean` | true | Includes the children errors on the array |
-| **includeKeyInChildErrors** | `boolean` | false | Includes `key` in children paths |
-| **onlyOnTouch** | `boolean` | true |  When true only returns if the key was `touched` |
-| **onlyOnTouchKeys** | ` Array<FormKey<T>>` | undefined | Array containing other keys to also validate on touch |
-| **strict** | `boolean` | true | Includes children errors as objects into array. _Note: If `includeChildsIntoArray` is true `strict` will by default be false_ |
-
-## `hasError`
-
-Returns a boolean for the matched key
-
-```Typescript
-const {
-  hasError
-} = useForm(
-  {
-    product: {
-      name: 'Apple',
-      category: {
-        name: 'Food',
-        type: {
-          name: 'Solid',
-          type: 'Vegetal'
-        }
-      }
-    }
-  },
-  {
-	validate: () => {
-		// Returned errors are defined if hasError is true or false
-		return []
-	}
-  }
-)
-
-hasError('product.category') // returns true or false
-hasError('product.category.type.name') // returns true or false
-```
-
-## Field options
-
-_Note: Field options are not mandatory or necessary, they are optional_
-
-| Name | Type | Default | Description |
-| ---- | ---- | ---- | ----------- |
-| **onlyOnTouch** | `boolean` | true |  When true only returns if the key was `touched` |
-| **onlyOnTouchKeys** | ` Array<FormKey<T>>` | undefined | Array containing other keys to also validate on touch |
-| **strict** | `boolean` | true | Includes children errors to define if is true or false. _Note: If `includeChildsIntoArray` is true `strict` will by default be false_ |
-
-## `setError`
-
-Method to set custom errors
-
-```Typescript
-const {
-  setError
-} = useForm(
-  {
-    name: 'Rimuru'
-  }
-)
-
-setError([
-  {
-    key: 'name',
-    message: 'Beautiful name'
-  }
-])
-```
-
-## `watch`
-
-- After all changes are done, it will execute all "watched keys" methods.
-- Watch key, then executes the method to update itself or others values.
-- Watch 'submit' to execute when the form is submitted.
-
-```Typescript
-const {
-  watch
-} = useForm(
-  {
-    name: 'Rimuru'
-  }
-)
-
-// When 'name' is `touched` it will update again with the new name
-// It does not rerender again, its a one time deal for every watch
-// Order is important as well, as it will be executed by order in render
-watch('name', (form) => {
-  form.name = 'Rimuru Tempest';
-})
-// When form is submitted
-watch('submit', (form) => {
-})
-```
-
-## `resetTouch`
-
-Clears touch's
-
-```Typescript
-const {
-  resetTouch
-} = useForm(
-  ...
-)
-...
-resetTouch()
-```
-
-## `updateController`
-
-Forces update controllers with key
-
-```JSX
-const {
-  context,
-  updateController
-} = useForm({
-  keyElementOfForm: 'Rimuru'
-})
-
-updateController("keyElementOfForm")
-
-<Controller
-	context={context}
-	name="keyElementOfForm"
->
-  {...}
-<Controller>
-```
-
-## Form Provider and useFormContext
-
-Instead of inserting props in child components, FormProvider will create a context and a hook to access the form anywhere inside.
-
-```jsx
-import React from 'react';
-import { FormProvider, useForm, useFormContext } from '@resourge/react-form'
-
-export function CustomElement() {
-  const { form, isValid, field } = useFormContext()
+    // Handle form submission
+    console.log(form);
+  });
 
   return (
-    <>
-      <span>
-      {
-        isValid ? "Valid" : "Invalid" 
-      } CustomElement
-      </span>
-      <input {...field('customElement')} />
-    </>
-  )
+    <form onSubmit={onSubmit}>
+      <label>
+        First Name:
+        <input {...field('firstName')} />
+      </label>
+      <label>
+        Last Name:
+        <input {...field('lastName')} />
+      </label>
+      <button type="submit">Submit</button>
+    </form>
+  );
+};
+```
+
+## API
+
+### Parameters
+
+- `formFieldKey` (optional): The key from the `form` state to create the splitter form. Note that if `useFormSplitter` is used inside a `Controller`, this parameter is not needed. Otherwise, it is mandatory.
+
+### Return
+
+`useFormSplitter` hook returns an object with properties and methods identical to those returned by the `useForm` hook. However, these properties and methods operate specifically within the context of the specified form field key (`formFieldKey`).
+
+# useFormStorage
+
+`useFormStorage` hook is designed to create a form where changes are automatically saved and synchronized with a storage mechanism. This hook provides functionality to store and retrieve form data, making it easy to persist form state across sessions or device restarts. 
+
+## Usage
+
+```tsx
+import { useFormStorage } from '@resourge/react-form';
+
+// Example usage with default value and options
+const MyComponent = () => {
+  const { form, handleSubmit, restoreFromStorage } = useFormStorage(initialFormValue, {
+    storage: localStorage,
+    uniqueId: 'myForm',
+    autoSyncWithStorage: true,
+    onLoading: (isLoading) => {
+      // Handle loading state
+    },
+    onStorageError: (error) => {
+      // Handle storage error
+    },
+    shouldClearAfterSubmit: true,
+    version: '1.0.0',
+  });
+
+  // Use form, handleSubmit, and other methods as needed
+
+  return (
+    // Your JSX components
+  );
+};
+```
+
+## API
+
+### Syntax
+
+```typescript
+function useFormStorage<T extends Record<string, any>>(
+  defaultValue: T | (() => T) | ({ new(): T }), 
+  options: FormStorageOptions<T>
+): UseFormStorageReturn<T>;
+```
+
+### Parameters
+
+- `defaultValue`: Represents the initial value or a function that returns the initial value of the form.
+- `options`: An object containing various configuration options for form storage, extending the options available in the useForm hook
+
+
+#### Options
+
+- `storage`: The storage mechanism (e.g., localStorage) where form data will be saved.
+- `uniqueId`: A unique identifier for the form data within the storage.
+- `autoSyncWithStorage` (optional, default: `true`): Whether to automatically synchronize form data with storage.
+- `onLoading` (optional): A callback function to handle loading state while reading from storage.
+- `onStorageError` (optional): A callback function to handle errors that occur during storage operations.
+- `shouldClearAfterSubmit` (optional, default: `true`): A boolean value indicating whether to clear the form data from storage after successful form submission. Default is true.
+- `version` (optional, default: `'1.0.0'`): A version string used to track changes in form data and clear storage accordingly.
+
+### Return Value
+
+`useFormStorage` hook returns an object with properties and methods similar to those returned by the `useForm` hook. Additionally, it includes a `restoreFromStorage` method, which synchronizes the form data with the data stored in the storage mechanism.
+
+## PreserveClass/registerClass Function
+
+### PreserveClass
+
+`PreserveClass` is a utility function provided alongside `useFormStorage` to register a class for serialization. It ensures that class instances are properly serialized and deserialized when stored in the storage mechanism. Here's how you can use it:
+
+```typescript
+import { PreserveClass } from 'useFormStorage';
+
+// Define form data structure
+@PreserveClass
+class UserData {
+  name: string;
+  email: string;
+
+  constructor() {
+    this.name = '';
+    this.email = '';
+  }
+}
+```
+
+`@PreserveClass` decorator ensures that the `UserData` class is registered for serialization, allowing instances of this class to be stored and retrieved from storage seamlessly.
+
+### registerClass
+
+`registerClass` is another utility function to manually register a class for serialization. It can be used if you prefer not to use decorators. Here's how you can use it:
+
+
+```typescript
+import { registerClass } from 'useFormStorage';
+
+// Define form data structure
+class UserData {
+  name: string;
+  email: string;
+
+  constructor() {
+    this.name = '';
+    this.email = '';
+  }
 }
 
-export function App() {
-  const {
-    context
-  } = useForm( ... )
+// Register class for serialization
+registerClass(UserData);
+```
 
+`registerClass` function ensures that instances of the `UserData` class are properly serialized and deserialized when stored in the storage mechanism.
+
+#### Example 
+
+```tsx
+import { useFormStorage, PreserveClass } from '@resourge/react-form';
+
+// Define form data structure
+@PreserveClass
+class UserData {
+  name: string;
+  email: string;
+
+  constructor() {
+    this.name = '';
+    this.email = '';
+  }
+}
+
+// Register class for serialization (alternative method)
+registerClass(UserData);
+
+// Use useFormStorage hook
+const MyForm = () => {
+  const { formData, handleChange, handleSubmit } = useFormStorage<UserData>(
+    UserData,
+    {
+      storage: localStorage,
+      uniqueId: 'userFormData',
+      autoSyncWithStorage: true,
+      onLoading: (isLoading) => {
+        // Handle loading state
+      },
+      onStorageError: (error) => {
+        // Handle storage error
+      },
+      shouldClearAfterSubmit: true,
+      version: '1.0.0',
+    }
+  );
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input type="text" name="name" value={formData.name} onChange={handleChange} />
+      <input type="email" name="email" value={formData.email} onChange={handleChange} />
+      <button type="submit">Submit</button>
+    </form>
+  );
+};
+
+export default MyForm;
+```
+
+# FormProvider
+
+`FormProvider` component is a provider for deep forms. It wraps your form components and provides the form context to its descendants. It is typically used in conjunction with the `useForm` hook to manage form state.
+
+## Usage
+
+```tsx
+import { FormProvider, useForm } from '@resourge/react-form';
+
+const MyFormComponent = () => {
+  const { context } = useForm<MyFormData>(); // Replace MyFormData with your form data type
+  // Access form data, state, and methods from context
+  
   return (
     <FormProvider context={context}>
-      <CustomElement />
-      ...
+      {/* Your form components */}
     </FormProvider>
-  )
-}
+  );
+};
 ```
 
-## Advanced usage
+## useFormContext
 
-```jsx
-import { useForm } from '@resourge/react-form'
+`useFormContext` hook provides access to the form context created by the nearest `FormProvider` component. It returns the form context containing form data, state, and methods.
 
-function App() {
-  const {
-    form,
-    isTouched,
-    isValid,
-    field,
-    handleSubmit,
-	getErrors,
-	triggerChange,
-	watch
-  } = useForm(
-    {
-      productName: '',
-	  category: {
-		name: '',
-		type: ''
-	  },
-	  listOfOptions1: [
-		{
-			label: 'Option 1.1',
-			value: 1.1
-		},
-		{
-			label: 'Option 1.2',
-			value: 1.2
-		}
-	  ],
-	  option1: undefined,
-	  listOfOptions2: [],
-	  option2: undefined,
-    },
-    {
-      // Form validation
-      // @resourge/schema recommended use
-      validate: () => []
-    }
-  )
+```typescript
+import { useFormContext } from '@resourge/react-form';
 
-  watch('option1', async (form) => {
-	// make a request to the BD or something, can use form.option1
-	const listOfOptions2 = await Promise.resolve([
-		{
-			label: 'Option 2.1',
-			value: 2.1
-		},
-		{
-			label: 'Option 2.2',
-			value: 2.2
-		}
-	]) 
-	form.listOfOptions2 = listOfOptions2
-  })
-  
-  const onSubmit = handleSubmit((form) => {
-    console.log('form', form)
-    // Send it to backend
-  })
+const context = useFormContext<MyFormData>();
+```
+
+# Controller
+
+`Controller` component is used to optimize rendering performance by only updating its children if the specified form field (`name`) changes. This is especially useful for large forms with many elements or components.
+
+`Controller` optimizes rendering performance by preventing unnecessary updates to its children when form data changes, thus improving the performance of large forms.
+
+## Usage
+
+```tsx
+import { Controller, useForm } from '@resourge/react-form';
+
+const MyFormComponent = () => {
+  const { context } = useForm<MyFormData>(); // Replace MyFormData with your form data type
+  // Access form data, state, and methods from context
   
   return (
-    <div>
-      <button 
-        onClick={onSubmit}
-      >
-        Submit
-      </button>
-      <div>
-        <label>
-          Product Name
-        </label>
-        <input { ...field('productName')} /> <br />
-		<ul>
-		  {
-		    getErrors('productName').map((message) => (
-		      <li>{ message }</li>
-		    ))
-		  }
-		</ul>
-        <input { ...field('category.name')} /> <br />
-		<ul>
-		  {
-		    getErrors('productName').map((message) => (
-		      <li>{ message }</li>
-		    ))
-		  }
-		</ul>
-        <input { ...field('category.type')} /> <br />
-		<ul>
-		  {
-		    getErrors('productName').map((message) => (
-		      <li>{ message }</li>
-		    ))
-		  }
-		</ul> <br />
-		<select name="option1" {...field('option1')}>
-			{
-				form.listOfOptions1.map((option1) => (
-					<option value={option1.value}>{ option1.label }</option>
-				))
-			}
-		</select> <br />
-		<select name="option2" {...field('option2')}>
-			{
-				form.listOfOptions2.map((option2) => (
-					<option value={option2.value}>{ option2.label }</option>
-				))
-			}
-		</select> <br />
-		<button 
-			onClick={() => {
-				triggerChange((form) => {
-					form.category = {
-						name: 'Apple',
-						type: 'Food'
-					}
-				})
-			}}
-		>
-			Default category
-		</button>
-      </div>
-    </div>
-  )
-}
+    <FormProvider context={context}>
+      <Controller name="fieldName" context={context}>
+        {/* Your form field components */}
+      </Controller>
+    </FormProvider>
+  );
+};
 ```
 
-## useFormSplitter
+## useController
 
-Hook to create a sub-form. Serves to basically create a sub form for the specific "formFieldKey", where all validations, forms and methods will be specific to the "formFieldKey" selected. (Works basically like a specific useForm for that "formFieldKey")
+`useController` hook provides access to the context of the nearest `Controller` component. It returns the form context associated with the specified form field name.
 
+```typescript
+import { useController } from '@resourge/react-form';
 
-```jsx
-import React from 'react';
-import { useFormSplitter, useForm, Controller } from '@resourge/react-form'
-
-function CustomElement({ index, value }: { index, value: number }) {
-  const { 
-	form, // Will only be related to the `list[${index}]`
-	errors, // Will only be related to the `list[${index}]`
-	isValid, // Will only be related to the `list[${index}]`
-	isTouched, // Will only be related to the `list[${index}]`
-	handleSubmit // Will only be related to the `list[${index}]`, meaning it will only trigger if `list[${index}]` is valid
-
-	// When used inside a Controller component, its not necessary to add a key
-  } = useFormSplitter()
-  // otherwise its necessary to add a key
-  // } = useFormSplitter(`list[${index}]`)
-
-  return (
-	<table>
-	  <tbody>
-        <tr>
-          <td>
-            Form:
-          </td>
-          <td>
-            { JSON.stringify(form, null, 4) }
-          </td>
-		</tr>
-		<tr>
-          <td>
-            Errors:
-          </td>
-          <td>
-            { JSON.stringify(errors, null, 4) }
-          </td>
-		</tr>
-		<tr>
-          <td>
-            isValid:
-          </td>
-          <td>
-            { isValid.toString() }
-          </td>
-		</tr>
-		<tr>
-          <td>
-            isTouched:
-          </td>
-          <td>
-            { isTouched.toString() }
-          </td>
-		</tr>
-		<tr>
-          <td>
-            Submit:
-          </td>
-          <td>
-            <button 
-              onClick={
-                handleSubmit((form) => {
-                  // console.log('KeyName, form', KeyName, form)
-                })
-              }
-            >
-              Submit
-            </button>
-          </td>
-        </tr>
-	  </tbody>
-	</table>
-  )
-}
-
-export function App() {
-  const {
-    context,
-    form
-  } = useForm({
-    list: Array.from({ length: 1000 }).map((_, index) => index + 1)
-  })
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
-      {
-        form.list.map((value, index) => (
-          <Controller
-            key={`${index}`}
-            name={`list[${index}]`}
-            context={context}
-          >
-            <CustomElement value={value} />
-          </Controller>
-        ))
-      }
-    </div>
-  )
-}
+const context = useController<MyFormData>('fieldName');
 ```
-
-## useFormStorage
-
-Hook to create a form where changes will be saved in a storage. <br/>
-_Note: that when changes are done to form data, it's always better to change/update the version so storage data is cleared._ <br/>
-_Note: By default it will clear the form from storage when submitted with success._
-
-## FormStorage Options
-
-```jsx
-// object
-const { ... } = useForm(
-  ...,
-  {
-	//... same as normal useForm
-
-	// Required
-	uniqueId: 'unique form id', // Mandatory so you can save multiple forms
-	storage: {
-	  getItem: (key) => 'return key or null',
-	  removeItem: (key) => {},
-	  setItem: (key, value: string) => {}
-	}
-	// Or storage: window.localStorage
-
-	// NotRequired
-	autoSyncWithStorage: true,
-	shouldClearAfterSubmit: true,
-	version: '1.0.0',
-	onLoading: (isLoading) => {},
-	onStorageError: (error) => {}
-  }
-)
-```
-
-| Name | Type | Required | Default | Description |
-| ---- | ---- | -------- | -------- | ----------- |
-| **uniqueId** | `string` | `true` | `undefined` | Unique id for storage |
-| **storage** | `{ getItem: (key) => 'return key or null', removeItem: (key) => {}, setItem: (key, value: string) => {} }` | `true` | undefined | Storage where form is going to be saved |
-| **autoSyncWithStorage** | `boolean` | `false` | `true` | When true, will automatically sync the form data with storage one |
-| **shouldClearAfterSubmit** | `boolean` | `false` | `true` | Should clear storage after submit |
-| **version** | `string` | `false` | `1.0.0` | Storage version (changing will clear form from storage) |
-| **onLoading** | `(isLoading) => void` | `false` | `undefined` | Reading from storage can be a small delay, onLoading serves to show a loading. |
-| **onStorageError** | `(error) => void` | `false` | `undefined` | In case reading or writing in storage gives an error |
-
-## Class vs JSON
-
-When using `useFormStorage` all data will be converted to JSON (localStorage, indexDB, etc only work with pure JSON) that means Class's prototype will be removed. To prevent this from occurring some class decorators/functions are provided.
-
-## PreserveClass or addClassToPreserve
-
-With Decorator:
-
-```Typescript
-@PreserveClass
-class Test {
-  public doSomething() {
-  
-  }
-}
-
-@PreserveClass
-class AppTest {
-  public test = {
-	subTest: 1
-  };
-
-  public classTest1 = new Test();
-
-  public classArrayTest = []
-
-  public classTest2?: Test;
-}
-```
-
-With a simple function:
-
-```Typescript
-class Test {
-  public doSomething() {
-
-  }
-}
-addClassToPreserve(Test)
-class AppTest {
-  public test = {
-  	subTest: 1
-  };
-
-  public classTest1 = new Test();
-
-  public classArrayTest = []
-
-  public classTest2?: Test;
-}
-addClassToPreserve(AppTest)
-```
-
-## Controller
-
-For more complex and deep forms, where render's can impact performance 
-(like list's with multiple elements) `Controller` serves to minimize 
-the impact a render can have on react, by only updating children if prop `name`
-is `touched` by the form. 
-
-_Note: Is mandatory to use useController inside components inside a Controller. Serves to maintain performance benefits._
-
-```jsx
-import React from 'react';
-import { Controller, useController, useForm } from '@resourge/react-form'
-
-function CustomElement({ value }: { value: number }) {
-  const { 
-    onChange
-  } = useController()
-
-  return (
-    <div>
-      { value } <button
-        onClick={() => {
-          onChange && onChange(Math.random())
-        }}
-      >
-        Update with random value
-      </button>
-    </div>
-  )
-}
-
-export function App() {
-  const {
-    context,
-    form
-  } = useForm({
-    list: Array.from({ length: 1000 }).map((_, index) => index + 1)
-  })
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
-      {
-        form.list.map((value, index) => (
-          <Controller
-            key={`${index}`}
-            name={`list[${index}]`}
-            context={context}
-          >
-            <CustomElement value={value} />
-          </Controller>
-        ))
-      }
-    </div>
-  )
-}
-```
-
-For more detailed usage instructions, refer to the [documentation](#documentation).
 
 ## Documentation
 
-For comprehensive documentation and usage examples, visit the [React Form documentation](https://resourge.vercel.app/docs/react-form/intro).
+For comprehensive documentation and usage examples, visit the [react-form documentation](https://resourge.vercel.app/docs/react-form/intro).
 
 ## Contributing
 
-Contributions to React Form are welcome! To contribute, please follow the [contributing guidelines](CONTRIBUTING.md).
+Contributions to `@resourge/react-form` are welcome! To contribute, please follow the [contributing guidelines](CONTRIBUTING.md).
 
 ## License
 
-React Form is licensed under the [MIT License](LICENSE).
+`@resourge/react-form` is licensed under the [MIT License](LICENSE).
 
 ## Contact
 

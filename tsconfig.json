@@ -36,7 +36,7 @@
 	"exclude": [
 		"./**/dist/**/*",
 		"dist_old",
-		"./src/examples",
+		"./src/examples/**/*",
 		"./node_modules/**/*"
 	],
 	"references": [

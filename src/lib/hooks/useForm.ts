@@ -362,7 +362,7 @@ export function useForm<T extends Record<string, any>>(
 				},
 				options,
 				produceOptions,
-				validateDefault: options?.validateDefault ?? (options?.validateOnlyAfterFirstSubmit ? firstSubmitRef.current : undefined)
+				validateDefault: (options?.validateOnlyAfterFirstSubmit ? firstSubmitRef.current : undefined)
 			});
 		};
 

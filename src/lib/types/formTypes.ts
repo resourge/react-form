@@ -98,12 +98,6 @@ export type FormOptions<T extends Record<string, any>> = {
 	 */
 	onErrors?: OnErrors
 	/**
-	 * When true only returns errors if the key was `touched` (@default false)
-	 * * Note: onlyOnTouch takes priority over global onlyOnTouch
-	 * @default true
-	 */
-	onlyOnTouchDefault?: boolean
-	/**
 	 * Triggers when form is submitted
 	 */
 	onSubmit?: (state: State<T>) => Promise<void> | void
@@ -145,17 +139,6 @@ export type FormOptions<T extends Record<string, any>> = {
 	 * ```
 	 */
 	validate?: (form: T, changedKeys: Array<FormKey<T>>) => void | Promise<void> | ValidationErrors | Promise<ValidationErrors>
-
-	/**
-	 * Validate form.
-	 * When `true` every change batch will validate the form
-	 * With `false` will only validate on method {@link FormActions#handleSubmit} 
-	 * or if {@link FieldOptions#validate}/{@link ProduceNewStateOptions#validate} is set `true`.
-	 * 
-	 * * Note: {@link FieldOptions#validate} takes priority over global {@link FormOptions#validateDefault}
-	 * @default true
-	 */
-	validateDefault?: boolean
 
 	/**
 	 * Validates form only after first submit.

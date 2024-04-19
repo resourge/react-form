@@ -51,7 +51,7 @@ export const useErrors = <T extends Record<string, any>>(
 		options?: HasErrorOptions<T>
 	): boolean => {
 		const strict = options?.strict ?? true;
-		const onlyOnTouch = options?.onlyOnTouch ?? formOptions?.onlyOnTouchDefault ?? true;
+		const onlyOnTouch = options?.onlyOnTouch ?? true;
 		const onlyOnTouchKeys = options?.onlyOnTouchKeys ?? [];
 		
 		// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
@@ -90,19 +90,13 @@ export const useErrors = <T extends Record<string, any>>(
 
 	function getErrors<Model extends Record<string, any> = T>(
 		key: FormKey<Model>, 
-		options: GetErrorsOptions<T> = {
-			strict: true,
-			onlyOnTouch: formOptions?.onlyOnTouchDefault ?? true,
-			includeKeyInChildErrors: true,
-			includeChildsIntoArray: false,
-			onlyOnTouchKeys: []
-		}
+		options: GetErrorsOptions<T> = {}
 	): GetErrors<Model> {
-		const _strict = options?.strict ?? true;
-		const onlyOnTouch = options?.onlyOnTouch ?? formOptions?.onlyOnTouchDefault ?? true;
-		const onlyOnTouchKeys = options?.onlyOnTouchKeys ?? [];
-		const includeKeyInChildErrors = options?.includeKeyInChildErrors ?? true;
-		const includeChildsIntoArray = options?.includeChildsIntoArray ?? false;
+		const _strict = options.strict ?? true;
+		const onlyOnTouch = options.onlyOnTouch ?? true;
+		const onlyOnTouchKeys = options.onlyOnTouchKeys ?? [];
+		const includeKeyInChildErrors = options.includeKeyInChildErrors ?? true;
+		const includeChildsIntoArray = options.includeChildsIntoArray ?? false;
 
 		const strict = includeChildsIntoArray ? false : _strict;
 
