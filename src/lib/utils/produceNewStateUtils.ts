@@ -12,7 +12,7 @@ type FinalProduceStateProps<T extends Record<string, any>> = {
 	options?: FormOptions<T>
 	produceOptions?: ProduceNewStateOptions & ResetOptions
 	validateDefault?: boolean
-}
+};
 
 export const finalProduceState = <T extends Record<string, any>>(
 	{
@@ -36,7 +36,7 @@ export const finalProduceState = <T extends Record<string, any>>(
 type ValidateProduceState<T extends Record<string, any>> = {
 	unsubscribe: () => T
 	validateState: (state: State<T>) => State<T> | Promise<State<T>>
-} & FinalProduceStateProps<T>
+} & FinalProduceStateProps<T>;
 
 export const validateProduceState = <T extends Record<string, any>>({
 	newState,
@@ -87,7 +87,7 @@ type ExecuteWatchProduceState<T extends Record<string, any>> = {
 	onWatch: React.MutableRefObject<(form: Record<string, any>, changedKeys: React.MutableRefObject<Set<string>>) => Promise<void>>
 	proxy: T
 	setFormData: (value: State<T>['form']) => void
-} & ValidateProduceState<T>
+} & ValidateProduceState<T>;
 
 /**
  * First function to execute 

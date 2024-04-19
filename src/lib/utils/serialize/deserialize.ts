@@ -5,20 +5,20 @@ import { type SerializeMetaType, type DeserializeContext } from './types';
 
 const DeserializeFunctions: Record<string, (value: SerializeMetaType, context: DeserializeContext) => any> = {
 	[SerializePrototypes.Date]: (value: SerializeMetaType) => {
-		return new Date(value.value);
+		return new Date(value.value as string);
 	},
 	[SerializePrototypes.BigInt]: (value: SerializeMetaType) => {
-		return BigInt(value.value);
+		return BigInt(value.value as string);
 	},
 	[SerializePrototypes.RegExp]: (value: SerializeMetaType) => {
-		return new RegExp(value.value.value, value.value.flags);
+		return new RegExp(value.value.value as string, value.value.flags as string);
 	},
 	[SerializePrototypes.Url]: (value: SerializeMetaType) => {
-		return new URL(value.value);
+		return new URL(value.value as URL);
 	},
 	[SerializePrototypes.Error]: (value: SerializeMetaType) => {
 		const error = new Error(
-			value.value.message,
+			value.value.message as string,
 			{
 				cause: value.value.cause
 			}
@@ -51,7 +51,7 @@ const DeserializeFunctions: Record<string, (value: SerializeMetaType, context: D
 
 		const metaValues = context.meta[key];
 
-		return deserializeValues(metaValues, context, context.done[key]);
+		return deserializeValues(metaValues, context, context.done[key] as Record<any, any>);
 	}
 };
 
@@ -68,7 +68,7 @@ function deserializeValues(serializedMeta: SerializeMetaType, context: Deseriali
 
 function deserializeArray(serializedMeta: any[], context: DeserializeContext) {
 	return serializedMeta
-	.map((value) => deserializeMeta(value, context));
+	.map((value) => deserializeMeta(value as SerializeMetaType, context));
 }
 
 const createCycle = (meta: SerializeMetaType, originalMeta: Record<number, SerializeMetaType>): SerializeMetaType => {
@@ -88,7 +88,7 @@ const createCycle = (meta: SerializeMetaType, originalMeta: Record<number, Seria
 			} 
 		}
 		else {
-			meta.value = (meta.value as any[]).map((value) => createCycle(value, originalMeta));
+			meta.value = (meta.value as any[]).map((value) => createCycle(value as SerializeMetaType, originalMeta));
 		}
 	}
 
@@ -146,6 +146,6 @@ export function registerClass(classObj: Record<string, any>, className: string =
 
 	SerializePrototypes[className] = className;
 	DeserializeFunctions[className] = (value, context) => {
-		return Object.setPrototypeOf(deserializeValues(value, context, {}), classObj.prototype);
+		return Object.setPrototypeOf(deserializeValues(value, context, {}), classObj.prototype as object);
 	};
 }

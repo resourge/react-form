@@ -10,7 +10,7 @@ export type SerializePrototypeType = {
 	Repeat: 'Repeat'
 	Set: 'Set'
 	Url: 'Url'
-}
+};
 
 export const SerializePrototypes: SerializePrototypeType = {
 	Date: 'Date',

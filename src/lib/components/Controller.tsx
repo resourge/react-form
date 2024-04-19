@@ -10,14 +10,14 @@ export type ControllerProps<T extends Record<string, any>> = {
 	context: FormContextObject<T>
 	name: FormKey<T>
 	deps?: any[]
-}
+};
 
 export type UseFormReturnController<T extends Record<string, any>> = UseFormReturn<T> & {
 	/**
 	 * Current changed keys. It is used in the `Controller` component
 	 */
 	changedKeys: React.MutableRefObject<Set<FormKey<T>>>
-}
+};
 
 /**
  * Component `Controller` that only updates children if the 

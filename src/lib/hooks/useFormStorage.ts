@@ -11,7 +11,7 @@ type FormStorage = {
 	getItem: (key: string) => (string | null) | Promise<string | null>
 	removeItem: (key: string) => void | Promise<void>
 	setItem: (key: string, value: string) => void | Promise<void>
-}
+};
 
 type FormStorageOptions<T extends Record<string, any>> = FormOptions<T> & {
 	/**
@@ -46,14 +46,14 @@ type FormStorageOptions<T extends Record<string, any>> = FormOptions<T> & {
 	 * Storage version (to clear when changes are done to the form)
 	 */
 	version?: string
-}
+};
 
 type UseFormStorageReturn<T extends Record<string, any>> = UseFormReturn<T> & {
 	/**
 	 * Serves to synchronize storage data with form data
 	 */
 	restoreFromStorage: () => Promise<void>
-}
+};
 
 /**
  * Hook to create a form where changes will be saved in a storage.
@@ -63,15 +63,15 @@ type UseFormStorageReturn<T extends Record<string, any>> = UseFormReturn<T> & {
 export function useFormStorage<T extends Record<string, any>>(
 	defaultValue: ({ new(): T }), 
 	options: FormStorageOptions<T>
-): UseFormStorageReturn<T>
+): UseFormStorageReturn<T>;
 export function useFormStorage<T extends Record<string, any>>(
 	defaultValue: (() => T), 
 	options: FormStorageOptions<T>
-): UseFormStorageReturn<T>
+): UseFormStorageReturn<T>;
 export function useFormStorage<T extends Record<string, any>>(
 	defaultValue: T, 
 	options: FormStorageOptions<T>
-): UseFormStorageReturn<T>
+): UseFormStorageReturn<T>;
 export function useFormStorage<T extends Record<string, any>>(
 	defaultValue: T | (() => T) | ({ new(): T }), 
 	options: FormStorageOptions<T>
@@ -84,13 +84,11 @@ export function useFormStorage<T extends Record<string, any>>(
 		}
 	}
 
-	const onLoading = options?.onLoading ?? (() => {});
 	const onStorageError = options?.onStorageError ?? (() => {});
-	const autoSyncWithStorage = options?.autoSyncWithStorage ?? true;
 	const version = options.version ?? '1.0.0';
-	const storage = options.storage;
 
 	const formResult = useForm<T>(
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 		defaultValue as any,
 		{
 			...options,
@@ -98,7 +96,7 @@ export function useFormStorage<T extends Record<string, any>>(
 				if ( options?.onChange ) {
 					options?.onChange(state);
 				}
-				Promise.resolve(storage.setItem(
+				Promise.resolve(options.storage.setItem(
 					options.uniqueId,
 					JSON.stringify({
 						version,
@@ -114,7 +112,7 @@ export function useFormStorage<T extends Record<string, any>>(
 					options?.onSubmit(state);
 				}
 				if ( (options?.shouldClearAfterSubmit ?? true) ) {
-					Promise.resolve(storage.removeItem(options.uniqueId))
+					Promise.resolve(options.storage.removeItem(options.uniqueId))
 					.catch((e) => {
 						onStorageError(e); 
 					});
@@ -124,10 +122,10 @@ export function useFormStorage<T extends Record<string, any>>(
 	);
 
 	const restoreFromStorage = async () => {
-		const storageState = await Promise.resolve(storage.getItem(options.uniqueId));
+		const storageState = await Promise.resolve(options.storage.getItem(options.uniqueId));
 
 		if ( storageState ) {
-			const { version: storageVersion, serializedState } = JSON.parse(storageState);
+			const { version: storageVersion, serializedState } = JSON.parse(storageState) as { serializedState: string, version: string };
 			const state = deserialize<State<T>>(serializedState);
 			
 			if ( storageVersion === version ) {
@@ -140,7 +138,7 @@ export function useFormStorage<T extends Record<string, any>>(
 				._setFormState(state);
 			}
 			else {
-				Promise.resolve(storage.removeItem(options.uniqueId))
+				Promise.resolve(options.storage.removeItem(options.uniqueId))
 				.catch((e) => {
 					onStorageError(e); 
 				});
@@ -149,8 +147,9 @@ export function useFormStorage<T extends Record<string, any>>(
 	};
 
 	useEffect(() => {
-		if ( autoSyncWithStorage ) {
+		if ( options?.autoSyncWithStorage ?? true ) {
 			(async () => {
+				const onLoading = options?.onLoading ?? (() => {});
 				onLoading(true);
 				try {
 					await restoreFromStorage();

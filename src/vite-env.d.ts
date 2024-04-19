@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 /// <reference types="vite/client" />
 
 declare module 'seri' {
@@ -6,7 +5,7 @@ declare module 'seri' {
 		addClass: (obj: any) => void
 		parse: (objSring: string) => object
 		stringify: (obj: object) => string
-	}
+	};
 
 	const seri: Seri;
 	export default seri;

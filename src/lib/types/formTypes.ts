@@ -14,11 +14,11 @@ export type Touches<T extends Record<string, any>> = {
 	 * Paths for the keys touched
 	 */
 	[K in FormKey<T>]?: boolean
-}
+};
 
 export type FormErrors<T extends Record<string, any>> = { 
 	[K in FormKey<T>]?: string[]
-}
+};
 
 export type HasErrorOptions<T extends Record<string, any>> = {
 	/**
@@ -33,7 +33,7 @@ export type HasErrorOptions<T extends Record<string, any>> = {
 	 * Includes children errors to define if is true or false (@default true)
 	 */
 	strict?: boolean
-}
+};
 
 export type GetErrorsOptions<T extends Record<string, any>> = {
 	/**
@@ -59,17 +59,17 @@ export type GetErrorsOptions<T extends Record<string, any>> = {
 	 * will by default be false
 	 */
 	strict?: boolean
-}
+};
 
-export type GetErrors<T extends Record<string, any>> = string[] & FormErrors<T>
+export type GetErrors<T extends Record<string, any>> = string[] & FormErrors<T>;
 
-export type ResetMethod<T extends Record<string, any>> = (newFrom: Partial<T>, resetOptions?: ResetOptions | undefined) => Promise<void>
+export type ResetMethod<T extends Record<string, any>> = (newFrom: Partial<T>, resetOptions?: ResetOptions | undefined) => Promise<void>;
 
 export type State<T extends Record<string, any>> = {
 	errors: FormErrors<T>
 	form: T
 	touches: Touches<T>
-}
+};
 
 export type FormOptions<T extends Record<string, any>> = {
 	/**
@@ -167,7 +167,7 @@ export type FormOptions<T extends Record<string, any>> = {
 	 * @default false
 	 */
 	validateOnlyAfterFirstSubmit?: boolean
-}
+};
 
 export type FieldFormBlur<Value = any, Name = string> = {
 	/**
@@ -186,7 +186,7 @@ export type FieldFormBlur<Value = any, Name = string> = {
 	 * When true onChange will not be returned
 	 */
 	readOnly?: boolean
-}
+};
 
 export type FieldFormReadonly<Value = any, Name = string> = {
 	/**
@@ -201,7 +201,7 @@ export type FieldFormReadonly<Value = any, Name = string> = {
 	 * When true onChange will not be returned
 	 */
 	readOnly?: boolean
-}
+};
 
 export type FieldFormChange<Value = any, Name = string> = {
 	/**
@@ -220,15 +220,15 @@ export type FieldFormChange<Value = any, Name = string> = {
 	 * When true onChange will not be returned
 	 */
 	readOnly?: boolean
-}
+};
 
 export type FieldForm<T extends Record<string, any>> = {
 	(key: FormKey<T>, options: FieldOptions<any> & { blur: true }): FieldFormBlur
 	(key: FormKey<T>, options: FieldOptions<any> & { readonly: true }): FieldFormReadonly
 	(key: FormKey<T>, options?: FieldOptions<any>): FieldFormChange
-}
+};
 
-export type FieldFormReturn<Value = any, Name = string> = FieldFormReadonly<Value, Name> | FieldFormBlur<Value, Name> | FieldFormChange<Value, Name>
+export type FieldFormReturn<Value = any, Name = string> = FieldFormReadonly<Value, Name> | FieldFormBlur<Value, Name> | FieldFormChange<Value, Name>;
 
 export type ProduceNewStateOptions = {
 	/**
@@ -251,9 +251,9 @@ export type ProduceNewStateOptions = {
 	 * @default true
 	 */
 	validate?: boolean
-}
+};
 
-export type ProduceNewStateOptionsHistory = ProduceNewStateOptions
+export type ProduceNewStateOptionsHistory = ProduceNewStateOptions;
 
 export type ResetOptions = ProduceNewStateOptions & {
 	/**
@@ -262,7 +262,7 @@ export type ResetOptions = ProduceNewStateOptions & {
 	 * @default true
 	 */
 	clearTouched?: boolean
-}
+};
 
 export type FieldOptions<Value = any> = {
 	/**
@@ -287,11 +287,11 @@ export type FieldOptions<Value = any> = {
 	 * Disables `onChange` method
 	 */
 	readOnly?: boolean
-} & ProduceNewStateOptions
+} & ProduceNewStateOptions;
 
-export type OnFunctionChange<T extends Record<string, any>, Result = void> = ((form: T) => Result) | ((form: T) => Promise<Result>)
+export type OnFunctionChange<T extends Record<string, any>, Result = void> = ((form: T) => Result) | ((form: T) => Promise<Result>);
 
-export type SubmitHandler<T extends Record<string, any>, K = void> = (form: T) => K | Promise<K>
+export type SubmitHandler<T extends Record<string, any>, K = void> = (form: T) => K | Promise<K>;
 
 export type ValidateSubmission<T extends Record<string, any>> = (
 	/**
@@ -302,7 +302,7 @@ export type ValidateSubmission<T extends Record<string, any>> = (
 	 * Original Error
 	 */
 	error: any
-) => boolean | Promise<boolean>
+) => boolean | Promise<boolean>;
 
 export interface UseFormReturn<T extends Record<string, any>> {
 	/**

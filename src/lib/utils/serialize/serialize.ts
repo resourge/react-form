@@ -132,7 +132,7 @@ function serializeMeta(
 				return serializeError(obj);
 			}
 
-			return serializeObj(obj, cache);
+			return serializeObj(obj as Record<string, any>, cache);
 		default: 
 			return obj;
 	}

@@ -11,7 +11,7 @@ import {
 	type State
 } from '../types/formTypes';
 
-export type CacheType = string[] | FormErrors<any> | boolean
+export type CacheType = string[] | FormErrors<any> | boolean;
 
 const checkIfCanCheckError = <T extends Record<string, any>>(
 	key: string,
@@ -146,7 +146,7 @@ export const useErrors = <T extends Record<string, any>>(
 								newErrors.push(..._newErrors);
 							}
 							
-							newErrors[newErrorKey as keyof GetErrors<Model>] = _newErrors as any;
+							newErrors[newErrorKey as any] = _newErrors as any;
 						}
 					});
 				}

@@ -42,15 +42,15 @@ import { useWatch } from './useWatch';
 export function useForm<T extends Record<string, any>>(
 	defaultValue: { new(): T }, 
 	options?: FormOptions<T>
-): UseFormReturn<T>
+): UseFormReturn<T>;
 export function useForm<T extends Record<string, any>>(
 	defaultValue: () => T, 
 	options?: FormOptions<T>
-): UseFormReturn<T>
+): UseFormReturn<T>;
 export function useForm<T extends Record<string, any>>(
 	defaultValue: T, 
 	options?: FormOptions<T>
-): UseFormReturn<T>
+): UseFormReturn<T>;
 export function useForm<T extends Record<string, any>>(
 	defaultValue: T | (() => T) | ({ new(): T }), 
 	options?: FormOptions<T>
@@ -312,8 +312,10 @@ export function useForm<T extends Record<string, any>>(
 						previousValue
 					);
 
-					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-					const didTouch = typeof value === 'boolean' ? Boolean(`${previousValue})` !== `${value}`) : previousValue !== value;
+					const didTouch = typeof value === 'boolean' 
+						// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+						? Boolean(`${previousValue})` !== `${value}`) 
+						: previousValue !== value;
 	
 					newState.touches[key] = ((newState.touches[key] ?? false) || didTouch);
 
@@ -386,7 +388,7 @@ export function useForm<T extends Record<string, any>>(
 		const result = produceNewState(
 			(form: T) => {
 				(Object.keys(newFrom) as Array<keyof T>)
-				.forEach((key: keyof T) => {
+				.forEach((key) => {
 					form[key as keyof T] = newFrom[key] as T[keyof T];
 				});
 			}, 

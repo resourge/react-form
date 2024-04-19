@@ -1,4 +1,4 @@
-import { type FormKey } from './FormKey';
+import type { FormKey } from './FormKey';
 
 export type SplitStringIntoStringArray<K extends string> = K extends `${infer K1}.${infer R1}` 
 	? [
@@ -15,13 +15,13 @@ export type SplitStringIntoStringArray<K extends string> = K extends `${infer K1
 			] : K extends `${infer V}[${infer N}]`
 				? [...(V extends '' ? [] : SplitStringIntoStringArray<V>), N]
 				: [K]
-	)
+	);
 
 export type FindNestedValue<T extends Record<any, any> | never, Keys extends string[]> = T extends never 
 	? never
 	: (
 		Keys extends [infer E, ...infer R]
 			? FindNestedValue<T[E], R extends string[] ? R : []> : T
-	)
+	);
 
-export type PathValue<T extends Record<string, any> | never, Keys extends FormKey<T> | keyof T> = FindNestedValue<T, SplitStringIntoStringArray<Keys extends string ? Keys : ''>>
+export type PathValue<T extends Record<string, any> | never, Keys = FormKey<T> | keyof T> = FindNestedValue<T, SplitStringIntoStringArray<Keys extends string ? Keys : ''>>;

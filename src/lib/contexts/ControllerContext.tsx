@@ -9,7 +9,7 @@ export type ControllerContextObject<
 > = {
 	context: FormContextObject<T>
 	name: string
-}
+};
 
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 export const ControllerContext = createContext<ControllerContextObject<any>>(null!);

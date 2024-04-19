@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import invariant from 'tiny-invariant';
 
 import { useControllerContext } from '../contexts/ControllerContext';
@@ -10,6 +12,28 @@ import { filterObjectByKey } from '../utils/utils';
 import { useGetterSetter } from './useGetterSetter';
 import { type WatchMethod } from './useWatch';
 
+export type FormSplitterResult<
+	T extends Record<string, any>,
+	K = FormKey<T>
+> = Omit<UseFormReturn<PathValue<T, K>>, 'context' | 'triggerChange'> 
+& Pick<UseFormReturn<T>, 'context'> 
+& {
+	triggerChange: (
+		cb: (
+			(
+				form: PathValue<T, K>, 
+				setParentValue: (value: PathValue<T, K>) => void
+			) => void
+		) | (
+			(
+				form: PathValue<T, K>, 
+				setParentValue: (value: PathValue<T, K>) => void
+			) => Promise<void>
+		), 
+		produceOptions?: ProduceNewStateOptions | undefined
+	) => void
+};
+
 /**
  * Hook to create a splitter form. Serves to create a form for the specific "formFieldKey"
  * * Note: useFormSplitter used inside a Controller doesn't need "formFieldKey" otherwise is mandatory
@@ -18,65 +42,20 @@ import { type WatchMethod } from './useWatch';
 export function useFormSplitter<
 	T extends Record<string, any>,
 	K extends FormKey<T>
->(): Omit<UseFormReturn<PathValue<T, K>>, 'context' | 'triggerChange'> & Pick<UseFormReturn<T>, 'context'> & {
-	triggerChange: (
-		cb: (
-			(
-				form: PathValue<T, K>, 
-				setParentValue: (value: PathValue<T, K>) => void
-			) => void
-		) | (
-			(
-				form: PathValue<T, K>, 
-				setParentValue: (value: PathValue<T, K>) => void
-			) => Promise<void>
-		), 
-		produceOptions?: ProduceNewStateOptions | undefined
-	) => void
-}
+>(): FormSplitterResult<T, K>;
 export function useFormSplitter<
 	T extends Record<string, any>,
 	K extends FormKey<T>
->(formFieldKey: K): Omit<UseFormReturn<PathValue<T, K>>, 'context' | 'triggerChange'> & Pick<UseFormReturn<T>, 'context'> & {
-	triggerChange: (
-		cb: (
-			(
-				form: PathValue<T, K>, 
-				setParentValue: (value: PathValue<T, K>) => void
-			) => void
-		) | (
-			(
-				form: PathValue<T, K>, 
-				setParentValue: (value: PathValue<T, K>) => void
-			) => Promise<void>
-		), 
-		produceOptions?: ProduceNewStateOptions | undefined
-	) => void
-}
+>(formFieldKey: K): FormSplitterResult<T, K>;
 export function useFormSplitter<
 	T extends Record<string, any>,
 	K extends FormKey<T>
 >(
 	formFieldKey?: K
-): Omit<UseFormReturn<PathValue<T, K>>, 'context' | 'triggerChange'> & Pick<UseFormReturn<T>, 'context'> & {
-		triggerChange: (
-			cb: (
-				(
-					form: PathValue<T, K>, 
-					setParentValue: (value: PathValue<T, K>) => void
-				) => void
-			) | (
-				(
-					form: PathValue<T, K>, 
-					setParentValue: (value: PathValue<T, K>) => void
-				) => Promise<void>
-			), 
-			produceOptions?: ProduceNewStateOptions | undefined
-		) => void
-	} {
+): FormSplitterResult<T, K> {
 	const controllerContext = useControllerContext<any>();
 	let context: FormContextObject<any>;
-	let _formFieldKey = formFieldKey as K;
+	let _formFieldKey = formFieldKey!;
 	if ( controllerContext ) {
 		context = controllerContext.context;
 		_formFieldKey = formFieldKey ?? controllerContext.name as K;
@@ -90,15 +69,15 @@ export function useFormSplitter<
 		invariant(_formFieldKey, '\'formFieldKey\' undefined can only used inside a Controller component.');
 	}
 
-	const getKey = (key: FormKey<PathValue<T, K>>): any => {
-		return `${_formFieldKey}${key ? ((key as string).includes('[') ? key : `.${key as string}`) : ''}` as FormKey<PathValue<T, K>>;
+	const getKey = (key: string): any => {
+		return `${_formFieldKey}${key ? (key.includes('[') ? key : `.${key}`) : ''}` as FormKey<PathValue<T, K>>;
 	};
 
 	const filterKeysError = (key: string) => key.includes(_formFieldKey) || _formFieldKey.includes(key);
 
 	const getterSetter = useGetterSetter();
 
-	return {
+	const result: FormSplitterResult<T, K> = {
 		get form() {
 			return context.getValue(_formFieldKey);
 		},
@@ -115,42 +94,40 @@ export function useFormSplitter<
 			return Object.keys(this.errors).length === 0;
 		},
 		handleSubmit: (
-			(
-				onValid, 
-				onInvalid
-			) => context.handleSubmit(
-				() => onValid(context.getValue(_formFieldKey)), 
-				(errors, error) => {
-					return Object.keys(filterObjectByKey(errors, _formFieldKey)).length === 0 && (onInvalid ? onInvalid(filterObjectByKey(errors, _formFieldKey), error) : true);
-				},
-				// @ts-expect-error I want this to be able to only occur inside FormSplitter
-				filterKeysError
-			)
-		) as UseFormReturn<PathValue<T, K>>['handleSubmit'],
-		watch: ((key, method) => {
+			onValid, 
+			onInvalid
+		) => context.handleSubmit(
+			() => onValid(context.getValue(_formFieldKey)), 
+			(errors, error) => {
+				return Object.keys(filterObjectByKey(errors, _formFieldKey)).length === 0 && (onInvalid ? onInvalid(filterObjectByKey(errors, _formFieldKey), error) : true);
+			},
+			// @ts-expect-error I want this to be able to only occur inside FormSplitter
+			filterKeysError
+		),
+		watch: (key, method) => {
 			context.watch(key !== 'submit' ? getKey(key) : key, method as WatchMethod<any>); 
-		}) as UseFormReturn<PathValue<T, K>>['watch'],
-		field: ((key, options) => context.field(getKey(key), options)) as UseFormReturn<PathValue<T, K>>['field'],
-		getErrors: ((key, options) => context.getErrors(getKey(key), options)) as UseFormReturn<PathValue<T, K>>['getErrors'],
-		hasError: ((key, options) => context.hasError(getKey(key), options)) as UseFormReturn<PathValue<T, K>>['hasError'],
-		changeValue: ((key, value, options) => {
+		},
+		field: (key, options) => context.field(getKey(key), options) as any,
+		getErrors: (key, options) => context.getErrors(getKey(key), options),
+		hasError: (key, options) => context.hasError(getKey(key), options),
+		changeValue: (key, value, options) => {
 			context.changeValue(getKey(key), value, {
 				...options,
 				filterKeysError
 			}); 
-		}) as UseFormReturn<PathValue<T, K>>['changeValue'],
-		getValue: ((key) => context.getValue(getKey(key))) as UseFormReturn<PathValue<T, K>>['getValue'],
+		},
+		getValue: (key) => context.getValue(getKey(key)),
 		context: context.context,
 		merge: (mergedForm) => {
 			getterSetter.set(_formFieldKey, context.form, mergedForm);
 			context.merge(mergedForm);
 		},
-		onChange: ((key, fieldOptions) => (value) => {
+		onChange: (key, fieldOptions) => (value) => {
 			context.onChange(getKey(key), {
 				...fieldOptions,
 				filterKeysError
 			})(value); 
-		}) as UseFormReturn<PathValue<T, K>>['onChange'],
+		},
 		reset: (newFrom, resetOptions) => {
 			getterSetter.set(_formFieldKey, context.form, newFrom);
 			return context.reset(newFrom, {
@@ -179,8 +156,10 @@ export function useFormSplitter<
 				}
 			);
 		},
-		updateController: ((key) => {
+		updateController: (key) => {
 			context.updateController(getKey(key)); 
-		}) as UseFormReturn<PathValue<T, K>>['updateController']
+		}
 	};
+
+	return result;
 }

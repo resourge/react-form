@@ -15,4 +15,4 @@ export type RecursiveKeyOf<TObj extends object, TraversedTypes = TObj> = {
 	[TKey in keyof TObj & (string | number)]: RecursiveKeyOfHandleValue<TObj[TKey], RecursiveKeyOfAccess<TKey>, TraversedTypes>;
 }[keyof TObj & (string | number)];
 
-export type FormKey<T extends Record<string, any>> = RecursiveKeyOf<T>
+export type FormKey<T extends Record<string, any>> = RecursiveKeyOf<T>;

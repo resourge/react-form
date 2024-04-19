@@ -2,14 +2,14 @@ import { type MutableRefObject, useRef } from 'react';
 
 import { type FormKey } from '../types';
 
-export type WatchMethod<T extends Record<string, any>> = (form: T) => void | Promise<void>
+export type WatchMethod<T extends Record<string, any>> = (form: T) => void | Promise<void>;
 
 export type UseWatchReturn<T extends Record<string, any>> = {
 	hasWatchingKeys: (changedKeys: MutableRefObject<Set<FormKey<T>>>) => boolean
 	onSubmitWatch: MutableRefObject<() => (form: T) => Promise<void>>
 	onWatch: MutableRefObject<(form: T, changedKeys: MutableRefObject<Set<FormKey<T>>>) => Promise<void>>
 	watch: (key: FormKey<T>, method: WatchMethod<T>) => void
-}
+};
 
 /**
  * Hook to watch key `touches` to then do "something" else
