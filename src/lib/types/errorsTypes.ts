@@ -10,13 +10,3 @@ export type ValidationWithErrors = {
 export type ValidationErrors = Array<ValidationError | ValidationWithErrors>;
 
 export type OnErrors = (errors: any | any[]) => ValidationErrors;
-
-export let onErrorFn: OnErrors = (errors) => errors;
-
-export const getDefaultOnError = () => {
-	return onErrorFn;
-};
-
-export const setDefaultOnError = (onError: OnErrors) => {
-	onErrorFn = onError;
-};

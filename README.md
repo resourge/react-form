@@ -2,21 +2,20 @@
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-`@resourge/react-form` package provides a set of utilities for managing form state in React applications with built-in storage synchronization. It offers hooks and components designed to streamline form development, optimize rendering performance, and seamlessly synchronize form data with storage solutions.
+`@resourge/react-form` package provides a set of utilities for managing form state in react applications with built-in storage synchronization. It offers hooks and components designed to streamline form development, optimize rendering performance, and seamlessly synchronize form data with storage solutions.
 
 ## Features
 
 - `Form State Management`: Easily manage form state and data using the `useForm` hook, providing a convenient interface for handling form inputs, validation, and submission.
-- `Automatic Storage Synchronization`: Automatically synchronize form data with storage solutions such as `localStorage` or `AsyncStorage` to persist user input across sessions.
+- `Automatic Storage Synchronization`: Using `useFormStorage` automatically synchronize form data with storage solutions such as `localStorage` or `AsyncStorage` to persist user input's across sessions.
 - `Performance Optimization`: Improve rendering performance for large forms with the `Controller` component, which updates only when relevant form fields change.
-- `Context-based Architecture`: Leverage the power of React context to provide form state and data to nested components with the `FormProvider` component.
+- `Context-based Architecture`: Leverage the power of react context to provide form state and data to nested components with the `FormProvider` component.
 - `Customization and Flexibility`: Customize storage options, synchronization behavior, and form submission handling to suit your application's specific requirements.
 - `Developer-friendly API`: Utilize intuitive hooks and components to simplify form development and reduce boilerplate code.
 
 ## Table of Contents
 
 - [Installation](#installation)
-- [Usage](#usage)
 - [useForm](#useForm)
 - [useFormSplitter](#useFormSplitter)
 - [useFormStorage](#useFormStorage)
@@ -41,52 +40,9 @@ or NPM:
 npm install @resourge/react-form --save
 ```
 
-## Usage
-
-```typescript
-const translationsInstance = SetupTranslations({
-  langs: ['en', 'fr', 'es'],
-  defaultLanguage: 'en',
-  plugins: [....],
-  // This
-  translations: {
-	greeting: {
-	  en: 'Hello',
-      fr: 'Bonjour',
-      es: 'Hola',
-	},
-	goodbye: {
-	  en: 'Goodbye',
-      fr: 'Au revoir',
-      es: 'Adiós',
-	},
-	homeScreen: {
-	  welcome: {
-	    en: 'Welcome',
-	    fr: 'Bienvenue',
-	    es: 'Bienvenido',
-	  },
-	},
-  },
-  // or
-  load: {
-    request: async () => {
-      // Example: Fetch translations from a server
-      const response = await fetch('/translations');
-      const translations = await response.json();
-      return translations;
-    },
-    structure: {
-      greeting: 'Hello',
-      goodbye: 'Goodbye',
-    }
-  }
-});
-```
-
 # useForm
 
-`useForm` is a custom React hook provided by the Form Management Library for handling form state, validation, and submission in React applications. It simplifies form management by providing a set of methods and options to manage form state, handle form events, and perform form validation.
+`useForm` is a custom react hook for handling form state, validation, and submission in react applications. It simplifies form management by providing a set of methods and options to manage form state, handle form events, and perform form validation.
 
 ## Usage
 
@@ -121,7 +77,7 @@ export default MyFormComponent;
 
 `useForm(defaultValue: T | (() => T) | { new(): T }, options?: FormOptions<T>): UseFormReturn<T>`
 
-`useForm` is the main hook exported by this package. It takes two arguments:
+`useForm` is the main hook exported by this package. It takes two parameters:
 
 ### Parameters
 
@@ -131,26 +87,24 @@ export default MyFormComponent;
 #### Options
 
 `onChange`
-A callback function triggered whenever the form state changes. It receives the current form state as an argument.
-
-`onErrors`
-A callback function used to handle errors encountered during form validation or submission. It receives the error object as an argument and should return formatted error messages.
+Callback function triggered whenever the form state changes. It receives the current form state as an argument.
 
 `onSubmit`
-A callback function invoked after a successful form submission. It receives the form data as an argument.
+Upon successful form submission, this callback function is invoked, receiving the form data as its argument.
 
 `onTouch`
-A callback function invoked when a form field is touched (i.e., focused and then blurred). It receives the field key, current value, and previous value as arguments.
+When a form field is interacted with—focused and then blurred—this callback function is triggered. It takes the field key, current value, and previous value as arguments.
 
 `validate`
-A function used to perform custom validation on the form fields. It receives the form data and an array of changed keys as arguments and returns either null for success, an array of error messages or throw errors if validation fails.
+Designed for custom validation of form fields, this function takes the form data and an array of changed keys as arguments. It returns and empty array for success, an array of error messages, or throws errors if validation fails.
+
 
 `validateOnlyAfterFirstSubmit`
-A boolean flag indicating whether to perform validation only after the first form submission attempt. If set to true, validation will be triggered only after the first submission attempt.
+Flag indicating whether to perform validation only after the first form submission attempt. If set to true, validation will be triggered only after the first submission attempt.
 
 ### Returns
 
-An object of type `UseFormReturn`, which contains the following properties and methods:
+Contains the following properties and methods:
 
 - `changeValue(key: string, value: any, produceOptions?: FieldOptions): void`: Facilitates altering the value of a designated form field. Parameters include the field's key, the new value, and optional field options.
 ```typescript
@@ -183,7 +137,7 @@ const passwordErrors = getErrors('password');
 // Get the value of the 'username' field
 const usernameValue = getValue('username');
 ```
-- `handleSubmit(onValid: SubmitHandler, onInvalid?: ValidateSubmission): (event?: FormEvent<HTMLFormElement> | React.MouseEvent) => Promise<K | undefined>`: Manages form submission, executing a function upon valid submission and optionally controlling submission behavior when the form is invalid.
+- `handleSubmit(onValid: SubmitHandler, onInvalid?: ValidateSubmission): (event?: FormEvent<HTMLFormElement> | react.MouseEvent) => Promise<K | undefined>`: Manages form submission, executing a function upon valid submission and optionally controlling submission behavior when the form is invalid.
 ```tsx
 // Handle form submission with custom validation logic
 const submitHandler = handleSubmit(
@@ -255,7 +209,7 @@ watch('email', (form) => {
 
 # useFormSplitter
 
-`useFormSplitter` hook is designed to create a form where changes are automatically saved and synchronized with a storage mechanism. This hook provides functionality to store and retrieve form data, making it easy to persist form state across sessions or device restarts. It extends the functionality of the `useForm` hook by providing additional options for storage configuration.
+`useFormSplitter` hook is designed to split a larger form into smaller, more manageable sections. It creates a separate form for the specified form field key, allowing you to interact with only a portion of the overall form data.
 
 ## Usage
 
@@ -298,7 +252,11 @@ const MyComponent = () => {
 
 # useFormStorage
 
-`useFormStorage` hook is designed to create a form where changes are automatically saved and synchronized with a storage mechanism. This hook provides functionality to store and retrieve form data, making it easy to persist form state across sessions or device restarts. 
+`useFormStorage` hook is designed to create a form where changes are automatically saved in a storage mechanism such as local storage or session storage. It extends the functionality of the useForm hook by integrating storage management capabilities.
+
+#### Note
+
+Class instances can seamlessly work with `useFormStorage` when accompanied by the `PreserveClass` or `registerClass` functions. These functions ensure that class prototypes are preserved, enabling class instances to function correctly with the form storage mechanism. This capability is especially beneficial when dealing with forms that involve complex data structures or encapsulation within classes.
 
 ## Usage
 
@@ -462,7 +420,7 @@ export default MyForm;
 
 # FormProvider
 
-`FormProvider` component is a provider for deep forms. It wraps your form components and provides the form context to its descendants. It is typically used in conjunction with the `useForm` hook to manage form state.
+`FormProvider` component is a provider for deep forms. It wraps your form components and provides the form context to its descendants. It is typically used in conjunction with the `useForm` | `useFormStorage` | `useFormSplitter` hook to manage form state.
 
 ## Usage
 

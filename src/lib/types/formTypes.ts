@@ -4,10 +4,9 @@ import { type FormEvent } from 'react';
 
 import { type FormContextObject } from '../contexts/FormContext';
 import { type WatchMethod } from '../hooks/useWatch';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { type OnErrors, setDefaultOnError, type ValidationErrors } from '../validators/setDefaultOnError';
 
 import { type FormKey } from './FormKey';
+import { type ValidationErrors } from './errorsTypes';
 
 export type Touches<T extends Record<string, any>> = {
 	/**
@@ -76,27 +75,6 @@ export type FormOptions<T extends Record<string, any>> = {
 	 * Triggers when form is changed
 	 */
 	onChange?: (state: State<T>) => Promise<void> | void
-	/**
-	 * Method to treat errors.
-	 * It's preferable to use {@link setDefaultOnError}
-	 * 
-	 * @expects - the method to return { [key]: [errors messages] }
-	 * @example 
-	 * ```Typescript
-	 * const { ... } = useForm(
-	 *	 {
-	 * 		name: 'Rimuru'
-	 *	 },
-	 *   {
-	 * 		onErrors: ({ form, isValid, errors }) => {
-	 * 			/// This method changes the native `isValid`
-	 * 			return true
-	 * 		}
-	 * 	 }
-	 * )
-	 * ```
-	 */
-	onErrors?: OnErrors
 	/**
 	 * Triggers when form is submitted
 	 */

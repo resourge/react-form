@@ -15,6 +15,7 @@ import observeChanges from 'on-change';
 import { type FormContextObject } from '../contexts/FormContext';
 import { type FormErrors } from '../types';
 import { type FormKey } from '../types/FormKey';
+import { type ValidationErrors } from '../types/errorsTypes';
 import {
 	type OnFunctionChange,
 	type ValidateSubmission,
@@ -29,10 +30,9 @@ import {
 	type ProduceNewStateOptionsHistory,
 	type State
 } from '../types/formTypes';
-import { createFormErrors, formatErrors } from '../utils/createFormErrors';
+import { formatErrors } from '../utils/createFormErrors';
 import { executeWatch } from '../utils/produceNewStateUtils';
 import { getKeyFromPaths, isClass } from '../utils/utils';
-import { getDefaultOnError, type ValidationErrors } from '../validators/setDefaultOnError';
 
 import { useChangedKeys } from './useChangedKeys';
 import { useErrors } from './useErrors';
@@ -55,10 +55,6 @@ export function useForm<T extends Record<string, any>>(
 	defaultValue: T | (() => T) | ({ new(): T }), 
 	options?: FormOptions<T>
 ): UseFormReturn<T> {
-	// #region errors
-	const onErrors = createFormErrors<T>(options?.onErrors ?? getDefaultOnError());
-	// #endregion errors
-
 	// #region State
 	const [state, setState] = useState<State<T>>(() => ({
 		form: typeof defaultValue === 'function' 
@@ -146,7 +142,8 @@ export function useForm<T extends Record<string, any>>(
 			};
 		};
 		const onError = (err: any) => {
-			const errors = onErrors(err);
+			const errors = formatErrors<T>(err as ValidationErrors);
+
 			return { 
 				form: state.form,
 				errors,

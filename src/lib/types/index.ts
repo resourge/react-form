@@ -1,3 +1,5 @@
+import type { OnErrors } from '../types/errorsTypes';
+
 import type { FormKey } from './FormKey';
 import type {
 	FieldFormReturn,
@@ -44,5 +46,6 @@ export type {
 	FieldFormChange,
 	FieldFormReadonly,
 	ProduceNewStateOptionsHistory,
-	ResetMethod
+	ResetMethod,
+	OnErrors
 };

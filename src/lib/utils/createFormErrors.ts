@@ -1,11 +1,6 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
+import { type ValidationError, type ValidationErrors, type ValidationWithErrors } from '../types/errorsTypes';
 import { type FormErrors } from '../types/formTypes';
-import {
-	type OnErrors,
-	type ValidationError,
-	type ValidationErrors,
-	type ValidationWithErrors
-} from '../validators/setDefaultOnError';
 
 import { getKeyFromPaths } from './utils';
 
@@ -40,8 +35,3 @@ export const formatErrors = <T extends Record<string, any>> (
 		..._simpleErrors
 	};
 };
-
-export const createFormErrors = <T extends Record<string, any>>(onError: OnErrors) => 
-	(errors: any, defaultErrors: FormErrors<T> = {}) => {
-		return formatErrors<T>(onError(errors), defaultErrors);
-	};
