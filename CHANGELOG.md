@@ -1,3 +1,10 @@
+## [1.24.8](https://github.com/resourge/react-form/compare/v1.24.7...v1.24.8) (2024-04-22)
+
+
+### Performance Improvements
+
+* **useform:** removes unnecessary code ([2e1fa21](https://github.com/resourge/react-form/commit/2e1fa21833a0321e5c3eb1bafc849e2eff21d82d))
+
 ## [1.24.7](https://github.com/resourge/react-form/compare/v1.24.6...v1.24.7) (2024-01-03)
 
 
