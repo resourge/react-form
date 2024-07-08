@@ -1,3 +1,10 @@
+# [1.25.0](https://github.com/resourge/react-form/compare/v1.24.8...v1.25.0) (2024-07-08)
+
+
+### Features
+
+* **index.ts's:** change to export, update @resourge/shallow-clone and remove tiny-invariant ([7cea40a](https://github.com/resourge/react-form/commit/7cea40a08c9fc93f6b14a9dbaad139a9d5cb74d1))
+
 ## [1.24.8](https://github.com/resourge/react-form/compare/v1.24.7...v1.24.8) (2024-04-22)
 
 
