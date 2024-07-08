@@ -1,13 +1,4 @@
-import { Controller } from './Controller';
-import type { ControllerProps, UseFormReturnController } from './Controller';
-import { FormProvider } from './FormProvider';
-import type { FormProviderProps } from './FormProvider';
-
-export {
-	FormProvider,
-	type FormProviderProps,
-
-	Controller,
-	type ControllerProps,
-	type UseFormReturnController
-};
+export { Controller } from './Controller';
+export type { ControllerProps, UseFormReturnController } from './Controller';
+export { FormProvider } from './FormProvider';
+export type { FormProviderProps } from './FormProvider';

@@ -1,7 +1,7 @@
-import type { OnErrors } from '../types/errorsTypes';
+export type { OnErrors } from '../types/errorsTypes';
 
-import type { FormKey } from './FormKey';
-import type {
+export type { FormKey } from './FormKey';
+export type {
 	FieldFormReturn,
 	FormErrors,
 	FormOptions,
@@ -23,29 +23,3 @@ import type {
 	ProduceNewStateOptionsHistory,
 	ResetMethod
 } from './formTypes';
-
-export type {
-	FieldFormReturn,
-	FieldForm,
-	FormErrors,
-	FormOptions,
-	OnFunctionChange,
-	ProduceNewStateOptions,
-	FieldOptions,
-	ResetOptions,
-	SubmitHandler,
-	ValidateSubmission,
-	GetErrors,
-	GetErrorsOptions,
-	HasErrorOptions,
-
-	FormKey,
-	UseFormReturn,
-	Touches,
-	FieldFormBlur,
-	FieldFormChange,
-	FieldFormReadonly,
-	ProduceNewStateOptionsHistory,
-	ResetMethod,
-	OnErrors
-};

@@ -1,11 +1,3 @@
-import { useForm } from './useForm';
-import { useFormSplitter } from './useFormSplitter';
-import { useFormStorage } from './useFormStorage';
-
-export {
-	useForm,
-
-	useFormSplitter,
-
-	useFormStorage
-};
+export { useForm } from './useForm';
+export { useFormSplitter } from './useFormSplitter';
+export { useFormStorage } from './useFormStorage';

@@ -1,7 +1,4 @@
-import { PreserveClass } from './preserveClass';
-import { deserialize, serialize, registerClass } from './serialize';
-
+export { PreserveClass } from './preserveClass';
 export {
-	PreserveClass, deserialize, serialize, 
-	registerClass
-};
+	deserialize, serialize, registerClass 
+} from './serialize';
