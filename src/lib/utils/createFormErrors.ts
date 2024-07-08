@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/consistent-type-assertions */
 import { type ValidationError, type ValidationErrors, type ValidationWithErrors } from '../types/errorsTypes';
 import { type FormErrors } from '../types/formTypes';
 
@@ -24,8 +23,8 @@ export const formatErrors = <T extends Record<string, any>> (
 			obj[path] = [];
 		}
 
-		// @ts-expect-error Can't be undefined as it will always be an array because of the previous array
-		obj[path].push(...(value as ValidationError).error !== undefined ? [(value as ValidationError).error] : (value as ValidationWithErrors).errors);
+		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+		obj[path]!.push(...(value as ValidationError).error !== undefined ? [(value as ValidationError).error] : (value as ValidationWithErrors).errors);
 
 		return obj;
 	}, {});

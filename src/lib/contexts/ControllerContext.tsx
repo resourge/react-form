@@ -1,7 +1,5 @@
 import { createContext, useContext } from 'react';
 
-import invariant from 'tiny-invariant';
-
 import { type FormContextObject } from './FormContext';
 
 export type ControllerContextObject<
@@ -26,7 +24,9 @@ const useControllerBase = <
 	const context = useControllerContext();
 
 	if ( process.env.NODE_ENV === 'development' ) {
-		invariant(context, 'useControllerContext can only be used in the context of a <Controller> component.');
+		if ( !context ) {
+			throw new Error('useControllerContext can only be used in the context of a <Controller> component.');
+		}
 	}
 
 	return context as unknown as ControllerContextObject<T>;

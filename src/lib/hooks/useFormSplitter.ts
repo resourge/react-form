@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import invariant from 'tiny-invariant';
 
 import { useControllerContext } from '../contexts/ControllerContext';
 import { type FormContextObject, useFormContext } from '../contexts/FormContext';
@@ -66,7 +65,9 @@ export function useFormSplitter<
 	}
 
 	if ( process.env.NODE_ENV === 'development' ) {
-		invariant(_formFieldKey, '\'formFieldKey\' undefined can only used inside a Controller component.');
+		if ( !_formFieldKey ) {
+			throw new Error('\'formFieldKey\' undefined can only used inside a Controller component.');
+		}
 	}
 
 	const getKey = (key: string): any => {

@@ -1,5 +1,4 @@
 import deepmerge from '@fastify/deepmerge'
-import { resolve } from 'path'
 import { defineConfig, type UserConfigExport } from 'vite'
 import banner from 'vite-plugin-banner'
 import dts from 'vite-plugin-dts'
@@ -11,18 +10,8 @@ import { createBanner } from './createBanner'
 import { packages } from './getPackages'
 
 const {
-	dependencies, devDependencies, peerDependencies 
+	dependencies = {}, devDependencies = {}, peerDependencies  = {}
 } = PackageJson;
-
-const globals: Record<string, string> = {
-	vue: 'Vue',
-	'react/jsx-runtime': 'ReactJsxRuntime',
-	react: 'React',
-	'react-dom': 'ReactDOM',
-	'@resourge/shallow-clone': 'ResourceShallowClone'
-}
-
-const globalsKeys = Object.keys(globals);
 
 const external = [
 	'react/jsx-runtime',
@@ -54,28 +43,16 @@ export const defineLibConfig = (
 				entry: entryLib,
 				name: 'index',
 				fileName: 'index',
-				formats: ['cjs', 'es', 'umd']
+				formats: ['es']
 			},
 			outDir: './dist',
+			sourcemap: true,
 			rollupOptions: {
-				output: {
-					dir: './dist',
-					globals: external.filter((key) => globalsKeys.includes(key))
-					.reduce<Record<string, string>>((obj, key) => {
-						obj[key] = globals[key];
-						return obj
-					}, {}),
-					sourcemap: true
-				},
 				external
 			}
 		},
 		resolve: {
-			preserveSymlinks: true,
-			alias: originalConfig.mode === 'development' ? packages.reduce((obj, { name, path }) => {
-				obj[name] = resolve(path, `../${entryLib}`)
-				return obj;
-			}, {}) : {}
+			preserveSymlinks: true
 		},
 		plugins: [
 			banner(createBanner()),
