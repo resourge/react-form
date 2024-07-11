@@ -7,7 +7,6 @@ import {
 	type HasErrorOptions,
 	type Touches,
 	type FormErrors,
-	type FormOptions,
 	type State
 } from '../types/formTypes';
 
@@ -29,8 +28,7 @@ const checkIfCanCheckError = <T extends Record<string, any>>(
 };
 
 export const useErrors = <T extends Record<string, any>>(
-	stateRef: MutableRefObject<State<T>>,
-	formOptions?: FormOptions<T>
+	stateRef: MutableRefObject<State<T>>
 ) => {
 	const cacheErrors = useRef<Map<string, CacheType>>(new Map());
 

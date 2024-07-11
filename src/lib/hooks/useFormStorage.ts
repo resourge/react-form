@@ -125,7 +125,10 @@ export function useFormStorage<T extends Record<string, any>>(
 		const storageState = await Promise.resolve(options.storage.getItem(options.uniqueId));
 
 		if ( storageState ) {
-			const { version: storageVersion, serializedState } = JSON.parse(storageState) as { serializedState: string, version: string };
+			const { version: storageVersion, serializedState } = JSON.parse(storageState) as { 
+				serializedState: string
+				version: string 
+			};
 			const state = deserialize<State<T>>(serializedState);
 			
 			if ( storageVersion === version ) {

@@ -116,7 +116,10 @@ function deserializeMeta(value: SerializeMetaType, context: DeserializeContext) 
  * @returns T
  */
 export function deserialize<T extends object>(serializedMeta: string): T {
-	const { json, meta } = JSON.parse(serializedMeta) as { json: SerializeMetaType, meta: Record<number, SerializeMetaType> };
+	const { json, meta } = JSON.parse(serializedMeta) as { 
+		json: SerializeMetaType
+		meta: Record<number, SerializeMetaType> 
+	};
 
 	Object.values(meta)
 	.forEach((serializeObj) => createCycle(serializeObj, meta));

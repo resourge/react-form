@@ -549,7 +549,10 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * ///
 	 * ```
 	 */
-	setError: (errors: Array<{ errors: string[], path: FormKey<T> }>) => void
+	setError: (errors: Array<{ 
+		errors: string[]
+		path: FormKey<T> 
+	}>) => void
 	/**
 	 * Form touches // { [form key]: boolean }
 	 * * Note: To be `touched` the system does a shallow comparison (ex: previousValue !== value)

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/prefer-promise-reject-errors */
 /* eslint-disable @typescript-eslint/prefer-function-type */
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 /* eslint-disable @typescript-eslint/no-invalid-void-type */
@@ -116,10 +117,7 @@ export function useForm<T extends Record<string, any>>(
 		hasError,
 		getErrors,
 		clearCacheErrors
-	} = useErrors(
-		stateRef,
-		options
-	);
+	} = useErrors(stateRef);
 
 	const [changedKeys, updateController] = useChangedKeys<T>(touches);
 
@@ -131,7 +129,7 @@ export function useForm<T extends Record<string, any>>(
 	const validateState = (state: State<T>): State<T> | Promise<State<T>> => {
 		const onSuccess = (errors: void | ValidationErrors) => {
 			if ( errors && errors.length ) {
-				// eslint-disable-next-line @typescript-eslint/no-throw-literal
+				// eslint-disable-next-line @typescript-eslint/no-throw-literal, @typescript-eslint/only-throw-error
 				throw errors;
 			}
 
