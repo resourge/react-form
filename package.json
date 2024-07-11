@@ -89,8 +89,5 @@
 	},
 	"peerDependencies": {
 		"react": ">=17.0.0"
-	},
-	"dependencies": {
-		"@resourge/shallow-clone": "^1.1.1"
 	}
 }

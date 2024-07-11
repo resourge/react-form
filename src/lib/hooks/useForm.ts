@@ -9,7 +9,6 @@ import {
 	useState
 } from 'react';
 
-import { shallowClone } from '@resourge/shallow-clone';
 import observeChanges from 'on-change';
 
 import { type FormContextObject } from '../contexts/FormContext';
@@ -32,6 +31,7 @@ import {
 } from '../types/formTypes';
 import { formatErrors } from '../utils/createFormErrors';
 import { executeWatch } from '../utils/produceNewStateUtils';
+import { shallowClone } from '../utils/shallowClone';
 import { getKeyFromPaths, isClass } from '../utils/utils';
 
 import { useChangedKeys } from './useChangedKeys';
