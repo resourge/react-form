@@ -403,9 +403,7 @@ export function useForm<T extends Record<string, any>>(
 		triggerChange((form: T) => {
 			Object.keys(mergedForm)
 			.forEach((key: unknown) => {
-				if ( form[key as keyof T] && mergedForm[key as keyof T] ) {
-					form[key as keyof T] = mergedForm[key as keyof T] as T[keyof T];
-				}
+				form[key as keyof T] = mergedForm[key as keyof T] as T[keyof T];
 			});
 		});
 	};

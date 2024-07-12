@@ -1,0 +1,345 @@
+import { act } from 'react';
+
+import { renderHook } from '@testing-library/react';
+import {
+	describe,
+	it,
+	expect,
+	vi
+} from 'vitest';
+
+import { useForm } from '../useForm';
+
+// Define a basic form type for testing
+interface FormData {
+	age: number
+	name: string
+}
+
+describe('useForm', () => {
+	const defaultValues: FormData = {
+		name: '',
+		age: 0 
+	};
+
+	// Test field function
+	it('should return correct field props', () => {
+		const { result } = renderHook(() => useForm(defaultValues));
+
+		const fieldProps = result.current.field('name');
+
+		expect(fieldProps).toEqual({
+			name: 'name',
+			onChange: expect.any(Function),
+			value: ''
+		});
+	});
+
+	// Test getErrors function
+	it('should return errors for the form', async () => {
+		const { result } = renderHook(() => useForm(defaultValues));
+
+		act(() => {
+			result.current.setError([
+				{
+					path: 'name', 
+					errors: ['Name is required']
+				}
+			]);
+		});
+
+		await vi.waitFor(() => {
+			expect(result.current.getErrors('name', {
+				onlyOnTouch: false 
+			})).toEqual(['Name is required']);
+		});
+	});
+
+	// Test getValue function
+	it('should return current value of a specific field', () => {
+		const { result } = renderHook(() => useForm(defaultValues));
+
+		act(() => {
+			result.current.changeValue('name', 'Jane Doe');
+		});
+
+		expect(result.current.getValue('name')).toBe('Jane Doe');
+	});
+
+	// Test hasError function
+	it('should check if a field has an error', async () => {
+		const { result } = renderHook(() => useForm(defaultValues));
+
+		act(() => {
+			result.current.setError([
+				{
+					path: 'name', 
+					errors: ['Name is required']
+				}
+			]);
+		});
+
+		await vi.waitFor(() => {		
+			expect(result.current.hasError('name', {
+				onlyOnTouch: false 
+			})).toBe(true);
+		});
+		expect(result.current.hasError('age', {
+			onlyOnTouch: false 
+		})).toBe(false);
+	});
+
+	// Test merge function
+	it('should merge form values', async () => {
+		const { result } = renderHook(() => useForm(defaultValues));
+
+		act(() => {
+			result.current.merge({
+				name: 'Jane Doe',
+				age: 25 
+			});
+		});
+
+		await vi.waitFor(() => {		
+			expect(result.current.form).toEqual({
+				name: 'Jane Doe',
+				age: 25 
+			});
+		});
+	});
+
+	// Test onChange function
+	it('should update form value on change', () => {
+		const { result } = renderHook(() => useForm(defaultValues));
+
+		act(() => {
+			result.current.onChange('name')('Jane Doe');
+		});
+
+		expect(result.current.form.name).toBe('Jane Doe');
+	});
+
+	// Test resetTouch function
+	it('should reset touch state for a field', () => {
+		const { result } = renderHook(() => useForm(defaultValues));
+
+		act(() => {
+			result.current.changeValue('name', 'Jane Doe');
+		});
+
+		act(() => {
+			result.current.resetTouch();
+		});
+
+		expect(result.current.touches).toEqual({});
+	});
+
+	// Test setError function
+	it('should set error for a specific field', () => {
+		const { result } = renderHook(() => useForm(defaultValues));
+
+		act(() => {
+			result.current.setError([
+				{
+					path: 'name', 
+					errors: ['Name is required']
+				}
+			]);
+		});
+
+		expect(result.current.errors).toEqual({
+			name: ['Name is required']
+		});
+	});
+
+	// Test triggerChange function
+	it('should trigger change event for a specific field', () => {
+		const { result } = renderHook(() => useForm(defaultValues));
+
+		act(() => {
+			result.current.triggerChange((form) => form.name = 'Jane Doe');
+		});
+
+		expect(result.current.form.name).toBe('Jane Doe');
+	});
+
+	// Test updateController function
+	it('should update the form controller', () => {
+		const { result } = renderHook(() => useForm(defaultValues));
+
+		act(() => {
+			result.current.updateController('name');
+		});
+
+		// @ts-expect-error Expected
+		expect(result.current.changedKeys.current.has('name')).toBeTruthy();
+	});
+
+	// Test watch function
+	it('should watch changes to a field', async () => {
+		const { result } = renderHook(() => useForm(defaultValues));
+
+		const watchFn = vi.fn();
+
+		act(() => {
+			result.current.watch('name', watchFn);
+		});
+
+		act(() => {
+			result.current.onChange('name')('Jane Doe');
+		});
+
+		await vi.waitFor(() => {
+			expect(watchFn).toBeCalled();
+		});
+	});
+
+	it('should initialize with provided values', () => {
+		const initialValues = {
+			name: 'John',
+			age: 30 
+		};
+		const { result } = renderHook(() => useForm(initialValues));
+
+		expect(result.current.form).toEqual(initialValues);
+	});
+
+	it('should change field values correctly', () => {
+		const initialValues = {
+			name: 'John',
+			age: 30 
+		};
+		const { result } = renderHook(() => useForm(initialValues));
+
+		act(() => {
+			result.current.changeValue('name', 'Jane');
+		});
+
+		expect(result.current.form.name).toBe('Jane');
+	});
+
+	it('should validate fields and set errors', () => {
+		const initialValues = {
+			name: '',
+			age: 30 
+		};
+		const validate = (values: any) => {
+			const errors = [];
+			if (!values.name) {
+				errors.push({
+					path: 'name',
+					error: 'Name is required'
+				});
+			}
+			return errors;
+		};
+
+		const { result } = renderHook(() => useForm(initialValues, {
+			validate 
+		}));
+
+		act(() => {
+			result.current.changeValue('age', 31);
+		});
+
+		expect(result.current.errors.name).toContain('Name is required');
+	});
+
+	it('should handle form submission', async () => {
+		const initialValues = {
+			name: 'John',
+			age: 30 
+		};
+		const mockCallback = vi.fn();
+		const { result } = renderHook(() => useForm(initialValues));
+
+		await act(async () => {
+			await result.current.handleSubmit(mockCallback)();
+		});
+
+		expect(mockCallback).toHaveBeenCalledWith(initialValues);
+	});
+
+	it('should not submit the form if validation fails', async () => {
+		const initialValues = {
+			name: '',
+			age: 30 
+		};
+		const validate = (values: any) => {
+			const errors = [];
+			if (!values.name) {
+				errors.push({
+					path: 'name',
+					error: 'Name is required'
+				});
+			}
+			return errors;
+		};
+		const mockCallback = vi.fn();
+		const { result } = renderHook(() => useForm(initialValues, {
+			validate 
+		}));
+
+		await act(async () => {
+			try {
+				await result.current.handleSubmit(mockCallback)();
+			}
+			catch {}
+		});
+
+		expect(mockCallback).not.toHaveBeenCalled();
+
+		await vi.waitFor(() => {
+			expect(result.current.errors.name).toContain('Name is required');
+		});
+	});
+
+	it('should handle field changes correctly', () => {
+		const initialForm = {
+			name: 'John',
+			age: 30 
+		};
+		const { result } = renderHook(() => useForm(initialForm));
+
+		// Change field value
+		act(() => {
+			result.current.changeValue('name', 'Jane');
+		});
+
+		// Verify the form state
+		expect(result.current.form.name).toBe('Jane');
+	});
+
+	it('should validate form and set errors', () => {
+		const initialForm = {
+			name: 'John',
+			age: 30 
+		};
+		// Set up mock validation
+		const mockValidation = vi.fn(() => {
+			return [
+				{
+					error: 'Name is required',
+					path: 'name'
+				}
+			];
+		});
+
+		const { result } = renderHook(() => useForm(
+			initialForm, 
+			{
+				validate: mockValidation 
+			}
+		));
+
+		// Trigger form validation
+		act(() => {
+			result.current.triggerChange(() => ({}), {
+				validate: true 
+			});
+		});
+
+		// Verify if errors are set
+		expect(result.current.errors.name).toContain('Name is required');
+	});
+});
