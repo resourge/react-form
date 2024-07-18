@@ -52,11 +52,7 @@ const validateState = <T extends Record<string, any>>(
 
 		return {};
 	};
-	const onError = (err: any) => {
-		const errors = formatErrors<T>(err as ValidationErrors);
-
-		return errors;
-	};
+	const onError = (err: any) => formatErrors<T>(err as ValidationErrors);
 
 	try {
 		const result = validate && validate(form, changedKeys);
@@ -91,7 +87,7 @@ export function useForm<T extends Record<string, any>>(
 	options: FormOptions<T> = {}
 ): UseFormReturn<T> {
 	const _state = useState(0);
-	const forceUpdate = () => _state[1]((x) => x + 1);
+	const forceUpdate = () => _state[1](_state[0] + 1);
 
 	// #region State
 
@@ -208,7 +204,7 @@ export function useForm<T extends Record<string, any>>(
 			);
 		},
 		onErrors(errors) {
-			const errorRefKeys = Object.keys(errorRef.current);
+			const errorRefKeys = Object.keys(touchesRef.current);
 
 			clearCacheErrors();
 

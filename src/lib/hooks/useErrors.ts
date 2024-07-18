@@ -51,7 +51,8 @@ export const useErrors = <T extends Record<string, any>>(
 	const validateForm = async () => {
 		const errors = await Promise.resolve(validate());
 
-		updateErrors(errors);
+		onErrors(errors);
+		errorRef.current = errors;
 
 		return errors;
 	};
@@ -138,7 +139,7 @@ export const useErrors = <T extends Record<string, any>>(
 				const getErrors = (key: FormKey<Model>): GetErrors<Model> => {
 					if ( checkIfCanCheckError(key, touches, onlyOnTouch, onlyOnTouchKeys) ) {
 						// @ts-expect-error // Working with array and object
-						return [...errors[key] ?? []];
+						return [...errorRef.current[key] ?? []];
 					}
 					// @ts-expect-error // Working with array and object
 					return [];

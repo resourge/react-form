@@ -211,8 +211,6 @@ describe('useForm', () => {
 			result.current.changeValue('age', 31);
 		});
 
-		console.log('result.current.errors', result.current.errors);
-
 		expect(result.current.errors.name).toContain('Name is required');
 	});
 
