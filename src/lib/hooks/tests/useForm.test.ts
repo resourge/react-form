@@ -89,25 +89,6 @@ describe('useForm', () => {
 		})).toBe(false);
 	});
 
-	// Test merge function
-	it('should merge form values', async () => {
-		const { result } = renderHook(() => useForm(defaultValues));
-
-		act(() => {
-			result.current.merge({
-				name: 'Jane Doe',
-				age: 25 
-			});
-		});
-
-		await vi.waitFor(() => {		
-			expect(result.current.form).toEqual({
-				name: 'Jane Doe',
-				age: 25 
-			});
-		});
-	});
-
 	// Test onChange function
 	it('should update form value on change', () => {
 		const { result } = renderHook(() => useForm(defaultValues));
@@ -161,18 +142,6 @@ describe('useForm', () => {
 		});
 
 		expect(result.current.form.name).toBe('Jane Doe');
-	});
-
-	// Test updateController function
-	it('should update the form controller', () => {
-		const { result } = renderHook(() => useForm(defaultValues));
-
-		act(() => {
-			result.current.updateController('name');
-		});
-
-		// @ts-expect-error Expected
-		expect(result.current.changedKeys.current.has('name')).toBeTruthy();
 	});
 
 	// Test watch function
@@ -241,6 +210,8 @@ describe('useForm', () => {
 		act(() => {
 			result.current.changeValue('age', 31);
 		});
+
+		console.log('result.current.errors', result.current.errors);
 
 		expect(result.current.errors.name).toContain('Name is required');
 	});
@@ -334,8 +305,8 @@ describe('useForm', () => {
 
 		// Trigger form validation
 		act(() => {
-			result.current.triggerChange(() => ({}), {
-				validate: true 
+			result.current.triggerChange((form) => {
+				form.name = 'Jon';
 			});
 		});
 

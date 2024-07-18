@@ -16,7 +16,7 @@ export type UseFormReturnController<T extends Record<string, any>> = UseFormRetu
 	/**
 	 * Current changed keys. It is used in the `Controller` component
 	 */
-	changedKeys: React.MutableRefObject<Set<FormKey<T>>>
+	changedKeys: Array<FormKey<T>>
 };
 
 /**
@@ -61,20 +61,13 @@ export const Controller = memo(function Controller({
 		</ControllerContext.Provider>
 	);
 }, (prevProps, nextProps) => {
-	// This is so "changedKeys" will only be visible
-	// with types to the controller 
-	const context = nextProps.context as UseFormReturnController<Record<string, any>>;
-	const changedKeys = context.changedKeys;
-	const keyToFind = nextProps.name;
-	const keys = [...changedKeys.current.keys()];
-
 	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 	const isSameDeps = !nextProps.deps || (nextProps.deps && nextProps.deps.length === 0) || Boolean(nextProps.deps && prevProps.deps && nextProps.deps.some((dep, index) => dep === prevProps.deps![index]));
 
-	const shouldUpdate = keys.some((key) => (
-		key.includes(keyToFind) 
-		|| keyToFind.includes(key)
-	));
+	// This is so "changedKeys" will only be visible
+	// with types to the controller 
+	const shouldUpdate = (nextProps.context as UseFormReturnController<Record<string, any>>)
+	.changedKeys.some((key) => key.includes(nextProps.name) || nextProps.name.includes(key));
 
 	return (
 		prevProps.name === nextProps.name && !(shouldUpdate) && isSameDeps

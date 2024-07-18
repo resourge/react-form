@@ -1,14 +1,14 @@
-import { type MutableRefObject, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 
 import { type FormKey } from '../types/FormKey';
 import {
-	type GetErrorsOptions,
-	type GetErrors,
-	type HasErrorOptions,
-	type Touches,
 	type FormErrors,
-	type State
+	type GetErrors,
+	type GetErrorsOptions,
+	type HasErrorOptions,
+	type Touches
 } from '../types/formTypes';
+import { deepCompare } from '../utils/comparationUtils';
 
 export type CacheType = string[] | FormErrors<any> | boolean;
 
@@ -28,9 +28,45 @@ const checkIfCanCheckError = <T extends Record<string, any>>(
 };
 
 export const useErrors = <T extends Record<string, any>>(
-	stateRef: MutableRefObject<State<T>>
+	{
+		validate, touches, changedKeys, canValidate, onErrors
+	}: {
+		canValidate: boolean
+		changedKeys: Array<FormKey<T>>
+		onErrors: (errors: FormErrors<T>) => void
+		touches: Touches<T>
+		validate: () => FormErrors<T> | Promise<FormErrors<T>>
+	}
 ) => {
 	const cacheErrors = useRef<Map<string, CacheType>>(new Map());
+	const errorRef = useRef<FormErrors<T>>({} as FormErrors<T>);
+
+	const updateErrors = (errors: FormErrors<T>) => { 
+		if ( !deepCompare(errors, errorRef.current) ) { 
+			onErrors(errors);
+			errorRef.current = errors;
+		}
+	};
+
+	const validateForm = async () => {
+		const errors = await Promise.resolve(validate());
+
+		updateErrors(errors);
+
+		return errors;
+	};
+
+	useMemo(() => {
+		const res = canValidate ? validate() : errorRef.current;
+
+		if ( res instanceof Promise ) {
+			return res.then((err = errorRef.current) => {
+				updateErrors(err);
+			});
+		}
+
+		errorRef.current = res;
+	}, [changedKeys.join(',')]);
 
 	const setCacheErrors = <ReturnValue extends CacheType>(key: string, cb: () => ReturnValue): ReturnValue => {
 		if ( !cacheErrors.current.has(key) ) {
@@ -40,17 +76,15 @@ export const useErrors = <T extends Record<string, any>>(
 		return cacheErrors.current.get(key) as ReturnValue;
 	};
 
-	const clearCacheErrors = () => {
-		cacheErrors.current.clear();
-	};
+	const clearCacheErrors = () => cacheErrors.current.clear();
 
 	const hasError = (
 		key: FormKey<T>, 
-		options?: HasErrorOptions<T>
+		options: HasErrorOptions<T> = {}
 	): boolean => {
-		const strict = options?.strict ?? true;
-		const onlyOnTouch = options?.onlyOnTouch ?? true;
-		const onlyOnTouchKeys = options?.onlyOnTouchKeys ?? [];
+		const strict = options.strict ?? true;
+		const onlyOnTouch = options.onlyOnTouch ?? true;
+		const onlyOnTouchKeys = options.onlyOnTouchKeys ?? [];
 		
 		// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
 		const _key: string = `has_errors_${key}_${strict}_${onlyOnTouch}`;
@@ -58,23 +92,20 @@ export const useErrors = <T extends Record<string, any>>(
 		return setCacheErrors<boolean>(
 			_key, 
 			() => {
-				const _errors: FormErrors<T> = stateRef.current.errors ?? {};
-
 				let hasError = false;
-				if ( checkIfCanCheckError(key, stateRef.current.touches, onlyOnTouch, onlyOnTouchKeys) ) {
-					hasError = Boolean(_errors[key]);
+				if ( checkIfCanCheckError(key, touches, onlyOnTouch, onlyOnTouchKeys) ) {
+					hasError = Boolean(errorRef.current[key]);
 				}
 
 				if ( hasError ) {
 					return true;
 				}
 				else if ( !strict ) {
-					const regex = new RegExp(`^${key.replace('[', '\\[')
-					.replace(']', '\\]')}`, 'g');
+					const regex = new RegExp(`^${key.replace('[', '\\[').replace(']', '\\]')}`, 'g');
 	
-					return Object.keys(_errors)
+					return Object.keys(errorRef.current)
 					.some((errorKey) => {
-						if ( checkIfCanCheckError(errorKey, stateRef.current.touches, onlyOnTouch) ) {
+						if ( checkIfCanCheckError(errorKey, touches, onlyOnTouch) ) {
 							return regex.test(errorKey);
 						}
 						return false;
@@ -104,11 +135,10 @@ export const useErrors = <T extends Record<string, any>>(
 		return setCacheErrors<GetErrors<Model>>(
 			_key, 
 			() => {
-				const _errors: FormErrors<T> = stateRef.current.errors ?? {};
 				const getErrors = (key: FormKey<Model>): GetErrors<Model> => {
-					if ( checkIfCanCheckError(key, stateRef.current.touches, onlyOnTouch, onlyOnTouchKeys) ) {
+					if ( checkIfCanCheckError(key, touches, onlyOnTouch, onlyOnTouchKeys) ) {
 						// @ts-expect-error // Working with array and object
-						return [..._errors[key] ?? []];
+						return [...errors[key] ?? []];
 					}
 					// @ts-expect-error // Working with array and object
 					return [];
@@ -117,15 +147,14 @@ export const useErrors = <T extends Record<string, any>>(
 				const newErrors = getErrors(key);
 
 				if ( !strict ) {
-					const regex = new RegExp(`^${key.replace('[', '\\[')
-					.replace(']', '\\]')}`, 'g');
+					const regex = new RegExp(`^${key.replace('[', '\\[').replace(']', '\\]')}`, 'g');
 
-					Object.keys(_errors)
+					Object.keys(errorRef.current)
 					.forEach((errorKey: string) => {
 						if ( errorKey.includes(key) && errorKey !== key ) {
-							let newErrorKey = includeKeyInChildErrors === true ? errorKey : (
-								errorKey.replace(regex, '') || key
-							);
+							let newErrorKey = includeKeyInChildErrors === true 
+								? errorKey 
+								: ( errorKey.replace(regex, '') || key );
 
 							// Remove first char if is a "."
 							if ( newErrorKey[0] === '.' ) {
@@ -149,8 +178,11 @@ export const useErrors = <T extends Record<string, any>>(
 	}
 
 	return {
+		errorRef,
 		hasError,
 		getErrors,
-		clearCacheErrors
+		clearCacheErrors,
+		updateErrors,
+		validateForm
 	};
 };

@@ -148,7 +148,5 @@ export function registerClass(classObj: Record<string, any>, className: string =
 	);
 
 	SerializePrototypes[className] = className;
-	DeserializeFunctions[className] = (value, context) => {
-		return Object.setPrototypeOf(deserializeValues(value, context, {}), classObj.prototype as object);
-	};
+	DeserializeFunctions[className] = (value, context) => Object.setPrototypeOf(deserializeValues(value, context, {}), classObj.prototype as object);
 }

@@ -1,8 +1,5 @@
+import { type FormErrors, type Touches } from '../types';
 import { type FormKey } from '../types/FormKey';
-
-export function isObject(value: any) {
-	return toString.call(value) === '[object Object]';
-}
 
 function isNumeric(value: string | number) {
 	if ( typeof value === 'number' ) {
@@ -22,9 +19,7 @@ export const getKeyFromPaths = <T extends Record<string, any>>(paths: string[]):
  * determines if a variable is a class definition instead of a function
  */
 export function isClass(x: any) {
-	if ( 
-		typeof x === 'function'
-	) {
+	if ( typeof x === 'function' ) {
 		const prototype = Object.getOwnPropertyDescriptor(x, 'prototype');
 
 		if ( prototype ) { 
@@ -50,3 +45,17 @@ export const filterObjectByKey = <T extends Record<string, any>>(obj: T, filterK
 	Object.entries(obj)
 	.filter(([key]) => key.includes(filterKey))
 ) as T;
+
+export function filterKeys<T extends Record<string, any>>(
+	newErrors: FormErrors<T>,
+	touches: Touches<T>,
+	filterKeysError?: (key: string) => boolean
+) {
+	return filterKeysError ? Object.entries(newErrors)
+	.reduce<FormErrors<T>>((errors, [key, value]) => {
+		if ( touches[key as FormKey<T>] || filterKeysError(key) ) {
+			errors[key as FormKey<T>] = value as string[];
+		}
+		return errors;
+	}, {}) : newErrors;
+}

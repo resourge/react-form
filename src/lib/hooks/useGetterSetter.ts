@@ -4,8 +4,6 @@
 import { useRef } from 'react';
 
 import { type FormKey } from '../types/FormKey';
-import { shallowClone } from '../utils/shallowClone';
-import { isObject } from '../utils/utils';
 
 type FormSetValue<T extends object> = (obj: T, val: any) => void;
 export const setValue = <T extends object>(field: string): FormSetValue<T> => {
@@ -17,12 +15,10 @@ export const getValue = <T extends object>(field: string): FormGetValue<T> => {
 	return new Function('obj', `return obj${field ? `.${field}` : ''}`) as FormGetValue<T>;
 };
 
-export const createGetterSetter = <T extends object>(field: string) => {
-	return {
-		set: setValue<T>(field),
-		get: getValue<T>(field)
-	};
-};
+export const createGetterSetter = <T extends object>(field: string) => ({
+	set: setValue<T>(field),
+	get: getValue<T>(field)
+});
 
 export type GetterSetter<T extends object> = Map<string, {
 	get: FormGetValue<T>
@@ -54,12 +50,7 @@ export const useGetterSetter = <T extends Record<string, any>>() => {
 
 	const set = (key: FormKey<T>, form: T, value: any) => {
 		checkGetterSetter(key);
-		if ( isObject(value) || Array.isArray(value) ) {
-			getterSetter.current.get(key)!.set(form, shallowClone(value));
-		}
-		else {
-			getterSetter.current.get(key)!.set(form, value);
-		}
+		getterSetter.current.get(key)!.set(form, value);
 	};
 
 	const get = (key: FormKey<T>, form: T) => {

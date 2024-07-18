@@ -6,7 +6,7 @@ export type {
 	FormErrors,
 	FormOptions,
 	OnFunctionChange,
-	ProduceNewStateOptions,
+	SplitterOptions,
 	FieldOptions,
 	ResetOptions,
 	SubmitHandler,

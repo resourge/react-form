@@ -62,11 +62,10 @@ export type GetErrorsOptions<T extends Record<string, any>> = {
 
 export type GetErrors<T extends Record<string, any>> = string[] & FormErrors<T>;
 
-export type ResetMethod<T extends Record<string, any>> = (newFrom: Partial<T>, resetOptions?: ResetOptions | undefined) => Promise<void>;
+export type ResetMethod<T extends Record<string, any>> = (newFrom: Partial<T>, resetOptions?: ResetOptions | undefined) => void;
 
-export type State<T extends Record<string, any>> = {
+export type FormState<T extends Record<string, any>> = {
 	errors: FormErrors<T>
-	form: T
 	touches: Touches<T>
 };
 
@@ -74,11 +73,11 @@ export type FormOptions<T extends Record<string, any>> = {
 	/**
 	 * Triggers when form is changed
 	 */
-	onChange?: (state: State<T>) => Promise<void> | void
+	onChange?: (form: T, state: FormState<T>) => Promise<void> | void
 	/**
 	 * Triggers when form is submitted
 	 */
-	onSubmit?: (state: State<T>) => Promise<void> | void
+	onSubmit?: (form: T, state: FormState<T>) => Promise<void> | void
 	/**
 	 * Method called every time a value is changed
 	 * 
@@ -122,7 +121,7 @@ export type FormOptions<T extends Record<string, any>> = {
 	 * Validates form only after first submit.
 	 * When `true` every change batch will validate the form only after first submit
 	 * With `false` will only validate on method {@link FormActions#handleSubmit} 
-	 * or if {@link FieldOptions#validate}/{@link ProduceNewStateOptions#validate} is set `true`.
+	 * or if {@link FieldOptions#validate}/{@link SplitterOptions#validate} is set `true`.
 	 * 
 	 * * Note: {@link FieldOptions#validate} takes priority over global {@link FormOptions#validateOnlyAfterFirstSubmit}
 	 * @default false
@@ -184,39 +183,23 @@ export type FieldFormChange<Value = any, Name = string> = {
 };
 
 export type FieldForm<T extends Record<string, any>> = {
-	(key: FormKey<T>, options: FieldOptions<any> & { blur: true }): FieldFormBlur
-	(key: FormKey<T>, options: FieldOptions<any> & { readonly: true }): FieldFormReadonly
-	(key: FormKey<T>, options?: FieldOptions<any>): FieldFormChange
+	(key: FormKey<T>, options: FieldOptions & { blur: true }): FieldFormBlur
+	(key: FormKey<T>, options: FieldOptions & { readonly: true }): FieldFormReadonly
+	(key: FormKey<T>, options?: FieldOptions): FieldFormChange
 };
 
 export type FieldFormReturn<Value = any, Name = string> = FieldFormReadonly<Value, Name> | FieldFormBlur<Value, Name> | FieldFormChange<Value, Name>;
 
-export type ProduceNewStateOptions = {
+export type SplitterOptions = {
 	/**
 	 * Method to make sure some keys are not triggering error
 	 */
 	filterKeysError?: (key: string) => boolean
-	/**
-	 * Forces form validation regardless of conditions
-	 */
-	forceValidation?: boolean
-	/**
-	 * If `false` will not check `touches` and not call `onTouch` from options
-	 * 
-	 * @default true
-	 */
-	triggerTouched?: boolean
-	/**
-	 * Validates form if new form values are different from previous form values
-	 * 
-	 * @default true
-	 */
-	validate?: boolean
 };
 
-export type ProduceNewStateOptionsHistory = ProduceNewStateOptions;
+export type ProduceNewStateOptionsHistory = SplitterOptions;
 
-export type ResetOptions = ProduceNewStateOptions & {
+export type ResetOptions = SplitterOptions & {
 	/**
 	 * On reset, `touches` will be cleared
 	 * 
@@ -225,30 +208,16 @@ export type ResetOptions = ProduceNewStateOptions & {
 	clearTouched?: boolean
 };
 
-export type FieldOptions<Value = any> = {
+export type FieldOptions = {
 	/**
 	 * Turns the field from a onChange to onBlur
 	 */
 	blur?: boolean
 	/**
-	 * Changes the value on change.
-	 * 
-	 * @example
-	 * ```Typescript
-	 * 
-	 * <input {
-	 * 		...field('test', {
-	 * 			onChange: (value) => `More Info ${value}`
-	 * 		})
-	 * }/>
-	 * ```
-	 */
-	onChange?: (value: Value) => any
-	/**
 	 * Disables `onChange` method
 	 */
 	readOnly?: boolean
-} & ProduceNewStateOptions;
+} & SplitterOptions;
 
 export type OnFunctionChange<T extends Record<string, any>, Result = void> = ((form: T) => Result) | ((form: T) => Promise<Result>);
 
@@ -289,7 +258,7 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * changeValue('name', 'Rimuru Tempest', { validate: true })
 	 * ```
 	 */
-	changeValue: (key: FormKey<T>, value: T[FormKey<T>], produceOptions?: FieldOptions<any> | undefined) => void
+	changeValue: (key: FormKey<T>, value: T[FormKey<T>], produceOptions?: FieldOptions | undefined) => void
 	/**
 	 * Context mainly for use in `FormProvider/Controller`, basically returns {@link UseFormReturn}
 	 */
@@ -405,7 +374,7 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	handleSubmit: <K = void>(
 		onValid: SubmitHandler<T, K>, 
 		onInvalid?: ValidateSubmission<T> | undefined
-	) => (e?: FormEvent<HTMLFormElement> | React.MouseEvent) => Promise<K | undefined>
+	) => (e?: FormEvent<HTMLFormElement> | React.MouseEvent<any, React.MouseEvent> | React.BaseSyntheticEvent) => Promise<K | undefined>
 	/**
 	 * Method to verify if `key` has errors
 	 * 
@@ -436,27 +405,6 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 */
 	isValid: boolean
 	/**
-	 * Unlike reset, `merge` will merge a new partial form to the new form
-	 * 
-	 * @param mergedForm - partial form state
-	 * @example 
-	 * ```Typescript
-	 * const {
-	 *   merge
-	 * } = useForm(
-	 *	 {
-	 * 		name: 'Rimuru',
-	 * 		age: '40'
-	 *	 }
-	 * )
-	 * ...
-	 * merge({
-	 * 		age: '39'
-	 * })
-	 * ```
-	 */
-	merge: (mergedForm: Partial<T>) => void
-	/**
 	 * Returns a method to change key value
 	 * 
 	 * @param key - key from `form` state
@@ -479,7 +427,7 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * <input onChange={onChange('name')} />
 	 * ```
 	 */
-	onChange: (key: FormKey<T>, fieldOptions?: FieldOptions<T[FormKey<T>]> | undefined) => (value: T[FormKey<T>]) => void
+	onChange: (key: FormKey<T>, fieldOptions?: FieldOptions | undefined) => (value: T[FormKey<T>]) => void
 	/**
 	 * Resets form state
 	 * 
@@ -562,7 +510,7 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * Method to make multiple changes in one render
 	 * 
 	 * @param cb - method that receives the `form`
-	 * @param produceOptions - {@link ProduceNewStateOptions}
+	 * @param produceOptions - {@link SplitterOptions}
 	 * @example
 	 * ```Typescript
 	 * const {
@@ -579,7 +527,7 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * ...
 	 * ```
 	 */
-	triggerChange: (cb: OnFunctionChange<T, void>, produceOptions?: ProduceNewStateOptions | undefined) => void
+	triggerChange: (cb: OnFunctionChange<T, void>, produceOptions?: SplitterOptions | undefined) => void
 	/**
 	 * Manually force Controller component to update.
 	 * 

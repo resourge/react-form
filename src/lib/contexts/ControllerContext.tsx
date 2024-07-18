@@ -14,9 +14,7 @@ export const ControllerContext = createContext<ControllerContextObject<any>>(nul
 
 export const useControllerContext = <
 	T extends Record<string, any>
->(): ControllerContextObject<T> => {
-	return useContext(ControllerContext);
-};
+>(): ControllerContextObject<T> => useContext(ControllerContext);
 
 const useControllerBase = <
 	T extends Record<string, any>
@@ -32,14 +30,6 @@ const useControllerBase = <
 	return context as unknown as ControllerContextObject<T>;
 };
 
-export const useControllerName = <
-	T extends Record<string, any>
->(): string => {
-	return useControllerBase<T>().name;
-};
-
 export const useController = <
 	T extends Record<string, any>
->(): FormContextObject<T> => {
-	return useControllerBase<T>().context;
-};
+>(): FormContextObject<T> => useControllerBase<T>().context;

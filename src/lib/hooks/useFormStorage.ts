@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/prefer-function-type */
 import { useEffect, useRef } from 'react';
 
-import { type FormKey, type FormOptions, type UseFormReturn } from '../types';
-import { type State } from '../types/formTypes';
+import { type FormOptions, type UseFormReturn } from '../types';
 import { deserialize, serialize } from '../utils';
 
 import { useForm } from './useForm';
@@ -84,7 +83,7 @@ export function useFormStorage<T extends Record<string, any>>(
 		}
 	}
 
-	const onStorageError = options?.onStorageError ?? (() => {});
+	const onStorageError = options.onStorageError ?? (() => {});
 	const version = options.version ?? '1.0.0';
 
 	const formResult = useForm<T>(
@@ -92,30 +91,30 @@ export function useFormStorage<T extends Record<string, any>>(
 		defaultValue as any,
 		{
 			...options,
-			onChange: (state) => {
-				if ( options?.onChange ) {
-					options?.onChange(state);
+			onChange: (form, formState) => {
+				if ( options.onChange ) {
+					options.onChange(form, formState);
 				}
-				Promise.resolve(options.storage.setItem(
-					options.uniqueId,
-					JSON.stringify({
-						version,
-						serializedState: serialize(state)
-					})
-				))
-				.catch((e) => {
-					onStorageError(e); 
-				});
+				Promise.resolve(
+					options.storage.setItem(
+						options.uniqueId,
+						JSON.stringify({
+							version,
+							serializedState: {
+								form: serialize(form)
+							}
+						})
+					)
+				)
+				.catch(onStorageError);
 			},
-			onSubmit: (state) => {
-				if ( options?.onSubmit ) {
-					options?.onSubmit(state);
+			onSubmit: (form, formState) => {
+				if ( options.onSubmit ) {
+					options.onSubmit(form, formState);
 				}
-				if ( (options?.shouldClearAfterSubmit ?? true) ) {
+				if ( options.shouldClearAfterSubmit ?? true ) {
 					Promise.resolve(options.storage.removeItem(options.uniqueId))
-					.catch((e) => {
-						onStorageError(e); 
-					});
+					.catch(onStorageError);
 				}
 			}
 		}
@@ -126,33 +125,30 @@ export function useFormStorage<T extends Record<string, any>>(
 
 		if ( storageState ) {
 			const { version: storageVersion, serializedState } = JSON.parse(storageState) as { 
-				serializedState: string
+				serializedState: { form: string }
 				version: string 
 			};
-			const state = deserialize<State<T>>(serializedState);
+			const deserializeForm = deserialize<T>(serializedState.form);
 			
 			if ( storageVersion === version ) {
-				Object.keys(state.form)
-				.forEach((key) => {
-					formResult.updateController(key as FormKey<T>);
+				formResult.triggerChange((form) => {
+					Object.keys(deserializeForm)
+					.forEach((key) => {
+						form[key as keyof typeof form] = deserializeForm[key as keyof typeof form];
+					});
 				});
-
-				(formResult as UseFormReturn<T> & { _setFormState: (state: State<T>) => void })
-				._setFormState(state);
 			}
 			else {
 				Promise.resolve(options.storage.removeItem(options.uniqueId))
-				.catch((e) => {
-					onStorageError(e); 
-				});
+				.catch(onStorageError);
 			}
 		}
 	};
 
 	useEffect(() => {
-		if ( options?.autoSyncWithStorage ?? true ) {
+		if ( options.autoSyncWithStorage ?? true ) {
 			(async () => {
-				const onLoading = options?.onLoading ?? (() => {});
+				const onLoading = options.onLoading ?? (() => {});
 				onLoading(true);
 				try {
 					await restoreFromStorage();

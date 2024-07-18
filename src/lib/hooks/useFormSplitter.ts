@@ -5,7 +5,7 @@ import { useControllerContext } from '../contexts/ControllerContext';
 import { type FormContextObject, useFormContext } from '../contexts/FormContext';
 import { type FormKey } from '../types/FormKey';
 import { type PathValue } from '../types/PathValue';
-import { type ProduceNewStateOptions, type UseFormReturn } from '../types/formTypes';
+import { type SplitterOptions, type UseFormReturn } from '../types/formTypes';
 import { filterObjectByKey } from '../utils/utils';
 
 import { useGetterSetter } from './useGetterSetter';
@@ -29,7 +29,7 @@ export type FormSplitterResult<
 				setParentValue: (value: PathValue<T, K>) => void
 			) => Promise<void>
 		), 
-		produceOptions?: ProduceNewStateOptions | undefined
+		produceOptions?: SplitterOptions | undefined
 	) => void
 };
 
@@ -70,15 +70,13 @@ export function useFormSplitter<
 		}
 	}
 
-	const getKey = (key: string): any => {
-		return `${_formFieldKey}${key ? (key.includes('[') ? key : `.${key}`) : ''}` as FormKey<PathValue<T, K>>;
-	};
+	const getKey = (key: string): any => `${_formFieldKey}${key ? (key.includes('[') ? key : `.${key}`) : ''}` as FormKey<PathValue<T, K>>; ;
 
 	const filterKeysError = (key: string) => key.includes(_formFieldKey) || _formFieldKey.includes(key);
 
 	const getterSetter = useGetterSetter();
 
-	const result: FormSplitterResult<T, K> = {
+	return {
 		get form() {
 			return context.getValue(_formFieldKey);
 		},
@@ -99,15 +97,11 @@ export function useFormSplitter<
 			onInvalid
 		) => context.handleSubmit(
 			() => onValid(context.getValue(_formFieldKey)), 
-			(errors, error) => {
-				return Object.keys(filterObjectByKey(errors, _formFieldKey)).length === 0 && (onInvalid ? onInvalid(filterObjectByKey(errors, _formFieldKey), error) : true);
-			},
+			(errors, error) => Object.keys(filterObjectByKey(errors, _formFieldKey)).length === 0 && (onInvalid ? onInvalid(filterObjectByKey(errors, _formFieldKey), error) : true),
 			// @ts-expect-error I want this to be able to only occur inside FormSplitter
 			filterKeysError
 		),
-		watch: (key, method) => {
-			context.watch(key !== 'submit' ? getKey(key) : key, method as WatchMethod<any>); 
-		},
+		watch: (key, method) => context.watch(key !== 'submit' ? getKey(key) : key, method as WatchMethod<any>),
 		field: (key, options) => context.field(getKey(key), options) as any,
 		getErrors: (key, options) => context.getErrors(getKey(key), options),
 		hasError: (key, options) => context.hasError(getKey(key), options),
@@ -119,10 +113,6 @@ export function useFormSplitter<
 		},
 		getValue: (key) => context.getValue(getKey(key)),
 		context: context.context,
-		merge: (mergedForm) => {
-			getterSetter.set(_formFieldKey, context.form, mergedForm);
-			context.merge(mergedForm);
-		},
 		onChange: (key, fieldOptions) => (value) => {
 			context.onChange(getKey(key), {
 				...fieldOptions,
@@ -160,7 +150,5 @@ export function useFormSplitter<
 		updateController: (key) => {
 			context.updateController(getKey(key)); 
 		}
-	};
-
-	return result;
+	} as FormSplitterResult<T, K>;
 }

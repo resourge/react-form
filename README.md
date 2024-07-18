@@ -157,11 +157,6 @@ const hasUsernameError = hasError('username');
 ```
 - `isTouched`: Indicates whether any form field has been interacted with by the user.
 - `isValid`: Indicates whether the form currently holds valid data, validating all form field values.
-- `merge(mergedForm: Partial<Record<string, any>>, resetOptions?: ResetOptions): void`: Merges a partial form state into the current form state, with optional resetting of form options.
-```tsx
-// Merge a partial form state into the current form state
-merge({ email: 'john@example.com' });
-```
 - `onChange(key: string, fieldOptions?: FieldOptions): (value: any) => void`: Generates a callback function to manage changes to a specific form field.
 ```tsx
 // Generate a callback function to handle changes to the 'password' field

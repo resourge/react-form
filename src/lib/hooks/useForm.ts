@@ -3,42 +3,76 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 /* eslint-disable @typescript-eslint/no-invalid-void-type */
 import {
+	type ChangeEvent,
 	type FormEvent,
 	useRef,
-	type MouseEvent,
-	type ChangeEvent,
 	useState
 } from 'react';
 
 import observeChanges from 'on-change';
 
-import { type FormContextObject } from '../contexts/FormContext';
-import { type FormErrors } from '../types';
+import { type FieldForm, type FormErrors, type ResetMethod } from '../types';
 import { type FormKey } from '../types/FormKey';
 import { type ValidationErrors } from '../types/errorsTypes';
 import {
-	type OnFunctionChange,
-	type ValidateSubmission,
-	type SubmitHandler,
 	type FieldFormReturn,
-	type ProduceNewStateOptions,
 	type FieldOptions,
-	type ResetOptions,
 	type FormOptions,
+	type OnFunctionChange,
+	type SplitterOptions,
+	type SubmitHandler,
 	type UseFormReturn,
-	type Touches,
-	type ProduceNewStateOptionsHistory,
-	type State
+	type ValidateSubmission
 } from '../types/formTypes';
+import { booleanCompare } from '../utils/comparationUtils';
 import { formatErrors } from '../utils/createFormErrors';
-import { executeWatch } from '../utils/produceNewStateUtils';
 import { shallowClone } from '../utils/shallowClone';
-import { getKeyFromPaths, isClass } from '../utils/utils';
+import { filterKeys, getKeyFromPaths, isClass } from '../utils/utils';
 
-import { useChangedKeys } from './useChangedKeys';
 import { useErrors } from './useErrors';
 import { useGetterSetter } from './useGetterSetter';
+import { useTouches } from './useTouches';
 import { useWatch } from './useWatch';
+
+/**
+ * Validates the form
+ * @param state Current State
+ * @returns New validated state
+ */
+const validateState = <T extends Record<string, any>>(
+	form: T,
+	changedKeys: Array<FormKey<T>>,
+	validate: FormOptions<T>['validate']
+): FormErrors<T> | Promise<FormErrors<T>> => {
+	const onSuccess = (errors: void | ValidationErrors): FormErrors<T> => {
+		if ( errors && errors.length ) {
+			// eslint-disable-next-line @typescript-eslint/no-throw-literal, @typescript-eslint/only-throw-error
+			throw errors;
+		}
+
+		return {};
+	};
+	const onError = (err: any) => {
+		const errors = formatErrors<T>(err as ValidationErrors);
+
+		return errors;
+	};
+
+	try {
+		const result = validate && validate(form, changedKeys);
+
+		if ( result instanceof Promise ) {
+			return result
+			.then(onSuccess)
+			.catch(onError);
+		}
+
+		return onSuccess(result);
+	}
+	catch ( err ) {
+		return onError(err);
+	}
+};
 
 export function useForm<T extends Record<string, any>>(
 	defaultValue: { new(): T }, 
@@ -54,373 +88,248 @@ export function useForm<T extends Record<string, any>>(
 ): UseFormReturn<T>;
 export function useForm<T extends Record<string, any>>(
 	defaultValue: T | (() => T) | ({ new(): T }), 
-	options?: FormOptions<T>
+	options: FormOptions<T> = {}
 ): UseFormReturn<T> {
+	const _state = useState(0);
+	const forceUpdate = () => _state[1]((x) => x + 1);
+
 	// #region State
-	const [state, setState] = useState<State<T>>(() => ({
-		form: typeof defaultValue === 'function' 
-			? (
-				isClass(defaultValue) 
-					? new (defaultValue as new () => T)() 
-					: (defaultValue as () => T)()
-			) : shallowClone(defaultValue),
-		errors: {},
-		touches: {}
-	}));
 
+	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+	const stateRef = useRef<T>(undefined!);
+	if ( !stateRef.current ) {
+		stateRef.current = (() => {
+			return observeChanges(
+				typeof defaultValue === 'function' 
+					? (
+						isClass(defaultValue) 
+							? new (defaultValue as new () => T)() 
+							: (defaultValue as () => T)()
+					) : shallowClone(defaultValue),
+				async (
+					paths,
+					value,
+					previousValue
+				) => {
+					// @ts-expect-error // Paths are array, but on-change doesn't see it like that
+					const key = getKeyFromPaths<T>(paths);
+
+					if ( key && typeof getterSetter.get(key, stateRef.current) !== 'function' ) {
+						options.onTouch && options.onTouch(
+							key, 
+							value,
+							previousValue
+						);
+
+						const didTouch = typeof value === 'boolean' 
+							// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+							? booleanCompare(previousValue as boolean, value)
+							: previousValue !== value;
+
+						updateTouches(key, ((touchesRef.current[key] ?? false) || didTouch));
+
+						if ( didTouch ) {
+							if ( watchedRefs.current.size ) {
+								for (const [watchedKey, method] of watchedRefs.current) {
+									if ( watchedKey === key ) {
+										const res = method(stateRef.current);
+
+										if ( res instanceof Promise ) {
+										// eslint-disable-next-line no-await-in-loop
+											await res;
+										}
+									}
+								}
+							}
+
+							if ( options.onChange ) {
+								options.onChange(
+									stateRef.current,
+									{
+										errors: errorRef.current,
+										touches: touchesRef.current
+									}
+								);
+							}
+
+							if ( !splitterOptionsRef.current.preventStateUpdate ) {
+								forceUpdate();
+							}
+						}
+					}
+				},
+				{
+					pathAsArray: true,
+					details: true
+				}
+			);
+		})();
+	}
+	// #endregion State
 	const firstSubmitRef = useRef(false);
-
-	const stateRef = useRef<State<T>>(state);
-	stateRef.current = state;
+	const splitterOptionsRef = useRef<SplitterOptions & { preventStateUpdate?: boolean }>({});
 
 	const {
-		form, errors, touches 
-	} = state;
+		changedKeys, touchesRef, updateTouches
+	} = useTouches<T>();
 
-	const setFormState = (newState: State<T>) => {
-		clearCacheErrors();
+	const {
+		errorRef,
+		hasError,
+		getErrors,
+		clearCacheErrors,
+		updateErrors,
+		validateForm
+	} = useErrors({
+		changedKeys,
+		canValidate: (options.validateOnlyAfterFirstSubmit ? firstSubmitRef.current : true),
+		validate: () => {
+			const validateStateResult = validateState(
+				stateRef.current,
+				changedKeys,
+				options.validate
+			);
 
-		new Set([
-			...Object.keys(newState.errors)
-			.filter(
-				(key) => !Object.keys(stateRef.current.errors)
-				.includes(key)
-			),
-			...Object.keys(newState.touches)
-			.filter(
-				(key) => !Object.keys(stateRef.current.touches)
-				.includes(key)
+			if ( validateStateResult instanceof Promise ) {
+			// validateStateResult = await validateStateResult;
+				return validateStateResult.then((errors) => {
+					return filterKeys<T>(
+						errors,
+						touchesRef.current,
+						splitterOptionsRef.current.filterKeysError 
+					);
+				});
+			}
+
+			return filterKeys<T>(
+				validateStateResult,
+				touchesRef.current,
+				splitterOptionsRef.current.filterKeysError 
+			);
+		},
+		onErrors(errors) {
+			const errorRefKeys = Object.keys(errorRef.current);
+
+			clearCacheErrors();
+
+			new Set(
+				Object.keys(errors)
+				.filter((key) => !errorRefKeys.includes(key))
 			)
-		])
-		.forEach((key) => {
-			updateController(key as FormKey<T>);
-		});
+			.forEach((key) => {
+				updateTouches(key as FormKey<T>);
+			});
 
-		setState({
-			form: newState.form,
-			errors: newState.errors,
-			touches: newState.touches 
-		});
-	};
-	// #endregion State
+			forceUpdate();
+		},
+		touches: touchesRef.current
+	});
 
 	const getterSetter = useGetterSetter<T>();
 
 	const {
 		watch,
-		hasWatchingKeys,
-		onWatch,
+		watchedRefs,
 		onSubmitWatch
-	} = useWatch();
+	} = useWatch<T>();
 
-	const {
-		hasError,
-		getErrors,
-		clearCacheErrors
-	} = useErrors(stateRef);
-
-	const [changedKeys, updateController] = useChangedKeys<T>(touches);
-
-	/**
-	 * Validates the form
-	 * @param state Current State
-	 * @returns New validated state
-	 */
-	const validateState = (state: State<T>): State<T> | Promise<State<T>> => {
-		const onSuccess = (errors: void | ValidationErrors) => {
-			if ( errors && errors.length ) {
-				// eslint-disable-next-line @typescript-eslint/no-throw-literal, @typescript-eslint/only-throw-error
-				throw errors;
-			}
-
-			return { 
-				form: state.form,
-				errors: {},
-				touches: state.touches
-			};
-		};
-		const onError = (err: any) => {
-			const errors = formatErrors<T>(err as ValidationErrors);
-
-			return { 
-				form: state.form,
-				errors,
-				touches: state.touches
-			};
-		};
-
-		try {
-			const result = options?.validate && options?.validate(state.form, [...changedKeys.current] as Array<FormKey<T>>);
-
-			if ( result instanceof Promise ) {
-				return result
-				.then(onSuccess)
-				.catch(onError);
-			}
-
-			return onSuccess(result);
-		}
-		catch ( err ) {
-			return onError(err);
-		}
-	};
-
-	// #region Submit
 	/**
 	 * Handles the form submit
 	 */
-	async function onSubmit<K = void>(
+	const handleSubmit = <K = void>(
 		onValid: SubmitHandler<T, K>,
 		onInvalid?: ValidateSubmission<T>,
-		filterKeysError?: (key: string) => boolean,
-		e?: FormEvent<HTMLFormElement> | MouseEvent<any, MouseEvent>
-	): Promise<K | undefined> {
-		const { form, touches } = stateRef.current;
-		if ( e ) {
-			e.preventDefault();
-			e.persist();
-		}
-
-		firstSubmitRef.current = true;
-
-		const proms = onSubmitWatch.current();
-
-		const { errors: _errors } = await Promise.resolve(validateState(stateRef.current));
-
-		const errors = filterKeysError ? Object.entries(_errors)
-		.reduce<FormErrors<T>>((errors, [key, value]) => {
-			if ( touches[key as FormKey<T>] || filterKeysError(key) ) {
-				errors[key as FormKey<T>] = value as string[];
+		filterKeysError?: (key: string) => boolean
+	) => async (e?: FormEvent<HTMLFormElement> | React.MouseEvent<any, React.MouseEvent> | React.BaseSyntheticEvent) => {
+		splitterOptionsRef.current.filterKeysError = filterKeysError;
+		try {
+			if ( e ) {
+				e.preventDefault();
+				e.persist();
 			}
-			return errors;
-		}, {}) : _errors;
 
-		const hasError = Object.keys(errors).length;
+			firstSubmitRef.current = true;
 
-		let _touches: Touches<T> = {};
-		if ( hasError ) {
-			_touches = {
-				...touches 
-			};
+			const errors = await validateForm();
 
-			Object.keys(errors)
-			.filter((key) => !filterKeysError || filterKeysError(key))
-			.forEach((key) => {
-				_touches[key as keyof Touches<T>] = true;
-			});
-		}
+			if ( options.onSubmit ) {
+				options.onSubmit(
+					stateRef.current, 
+					{
+						errors: errorRef.current,
+						touches: touchesRef.current
+					}
+				);
+			}
 
-		setFormState({
-			form,
-			errors,
-			touches: _touches
-		});
-
-		if ( options?.onSubmit ) {
-			options?.onSubmit({
-				form,
-				errors,
-				touches: _touches
-			});
-		}
-
-		if ( hasError ) {
-			if ( onInvalid ) {
-				const canGoOn = await Promise.resolve(onInvalid(errors, errors));
+			if ( Object.keys(errors).length ) {
+				const canGoOn = onInvalid
+					? await Promise.resolve(onInvalid(errors, errors))
+					: false;
 
 				if ( !canGoOn ) {
 					return await Promise.reject(errors);
 				}
 			}
-			else {
-				return await Promise.reject(errors);
-			}
-		}
 		
-		const result = await onValid(form);
+			const result = await onValid(stateRef.current);
 
-		await proms(form);
+			await onSubmitWatch(stateRef.current);
 
-		return result;
-	}
-
-	function handleSubmit<K = void>(
-		onValid: SubmitHandler<T, K>,
-		onInvalid?: ValidateSubmission<T>,
-		filterKeysError?: (key: string) => boolean
-	) {
-		return (e?: FormEvent<HTMLFormElement> | MouseEvent<any, MouseEvent>) => 
-			onSubmit<K>(
-				onValid,
-				onInvalid,
-				filterKeysError,
-				e
-			);
-	}
-	// #endregion Submit
+			return result;
+		}
+		finally {
+			splitterOptionsRef.current = {};
+		}
+	};
 
 	// #region State
-
-	/**
-	 * Main function that validates form changes.
-	 * All changes made on the from will be validated here 
-	 * 
-	 * @param cb Function that is going to change the from
-	 * @param produceOptions
-	 * @returns Return the new State(form and errors) or a Promise of the new State
-	 */
-	const produceNewState = (
-		cb: OnFunctionChange<T>, 
-		produceOptions?: ProduceNewStateOptionsHistory & ResetOptions
-	): void | Promise<void> => {
-		const oldState = stateRef.current;
-		const newState: State<T> = {
-			form: oldState.form,
-			errors: {
-				...oldState.errors 
-			},
-			touches: {
-				...oldState.touches 
-			}
-		};
-
-		changedKeys.current.clear();
-
-		const proxy = observeChanges(
-			newState.form,
-			(
-				paths,
-				value,
-				previousValue
-			) => {
-				// @ts-expect-error // Paths are array, but on-change doesn't see it like that
-				const key = getKeyFromPaths<T>(paths);
-
-				if ( 
-					key 
-					&& !(produceOptions?.triggerTouched === false)
-					&& typeof getterSetter.get(key, newState.form) !== 'function'
-				) {
-					options?.onTouch && options?.onTouch(
-						key, 
-						value,
-						previousValue
-					);
-
-					const didTouch = typeof value === 'boolean' 
-						// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-						? Boolean(`${previousValue})` !== `${value}`) 
-						: previousValue !== value;
-	
-					newState.touches[key] = ((newState.touches[key] ?? false) || didTouch);
-
-					updateController(key as FormKey<T>);
-				}
-			},
-			{
-				pathAsArray: true,
-				details: true
-			}
-		);
-
-		const result = cb(proxy);
-
-		const executeNewWatch = () => {
-			executeWatch({
-				changedKeys,
-				hasWatchingKeys,
-				onWatch,
-				proxy,
-				newState,
-				unsubscribe: () => observeChanges.unsubscribe(proxy),
-				validateState,
-				setFormData: (form) => {
-					setState({
-						form,
-						errors: stateRef.current.errors,
-						touches: stateRef.current.touches
-					});
-				},
-				setFormState: (newState) => {
-					newState.errors = produceOptions?.filterKeysError 
-						? Object.entries(newState.errors)
-						.reduce<FormErrors<T>>((errors, [key, value]) => {
-							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-							if ( newState.touches[key as FormKey<T>] || produceOptions?.filterKeysError!(key as FormKey<T>) ) {
-								errors[key as FormKey<T>] = value as string[];
-							}
-							return errors;
-						}, {}) 
-						: newState.errors;
-						
-					setFormState(newState);
-				},
-				options,
-				produceOptions,
-				validateDefault: (options?.validateOnlyAfterFirstSubmit ? firstSubmitRef.current : undefined)
-			});
-		};
-
-		if ( result instanceof Promise ) {
-			return result
-			.then(() => {
-				executeNewWatch();
-			});
-		}
-
-		executeNewWatch();
-	};
-
-	const reset = async (
-		newFrom: Partial<T>, 
-		resetOptions?: ResetOptions
+	const reset: ResetMethod<T> = (
+		newFrom, 
+		resetOptions = {}
 	) => {
-		const options: ResetOptions = {
-			clearTouched: true,
-			...(resetOptions ?? {})
-		};
+		splitterOptionsRef.current = resetOptions;
 
-		const result = produceNewState(
-			(form: T) => {
-				(Object.keys(newFrom) as Array<keyof T>)
-				.forEach((key) => {
-					form[key as keyof T] = newFrom[key] as T[keyof T];
-				});
-			}, 
-			options
-		);
+		splitterOptionsRef.current.preventStateUpdate = true;
 
-		if ( result instanceof Promise ) {
-			await result;
-		}
-	};
-
-	const triggerChange = (cb: OnFunctionChange<T>, produceOptions?: ProduceNewStateOptions) => {
-		produceNewState(cb, produceOptions);
-	};
-
-	const merge = (mergedForm: Partial<T>) => {
-		triggerChange((form: T) => {
-			Object.keys(mergedForm)
-			.forEach((key: unknown) => {
-				form[key as keyof T] = mergedForm[key as keyof T] as T[keyof T];
-			});
+		(Object.keys(newFrom) as Array<keyof T>)
+		.forEach((key) => {
+			stateRef.current[key as keyof T] = newFrom[key] as T[keyof T];
 		});
+
+		if ( resetOptions.clearTouched ?? true ) {
+			clearCacheErrors();
+			touchesRef.current = {};
+		}
+		forceUpdate();
+
+		splitterOptionsRef.current = {};
+	};
+
+	const triggerChange = async (cb: OnFunctionChange<T>, produceOptions: SplitterOptions = {}) => {
+		splitterOptionsRef.current = produceOptions;
+		try {
+			splitterOptionsRef.current.preventStateUpdate = true;
+			await Promise.resolve(cb(stateRef.current));
+			forceUpdate();
+		}
+		finally {
+			splitterOptionsRef.current = {};
+		}
 	};
 
 	const resetTouch = () => {
-		setFormState({
-			form: stateRef.current.form,
-			errors: stateRef.current.errors,
-			touches: {}
-		});
+		clearCacheErrors();
+		touchesRef.current = {};
+
+		forceUpdate();
 	};
 	// #endregion State
 
 	// #region Form elements
 	const onChange = (
 		key: FormKey<T>, 
-		fieldOptions?: FieldOptions<T[FormKey<T>]>
+		fieldOptions: FieldOptions = {}
 	) => (value: T[FormKey<T>] | ChangeEvent) => {
 		let _value: T[FormKey<T>] = value as T[FormKey<T>];
 
@@ -430,29 +339,30 @@ export function useForm<T extends Record<string, any>>(
 			_value = target.value as T[FormKey<T>];
 		}
 
-		if ( fieldOptions && fieldOptions.onChange ) {
-			_value = fieldOptions.onChange(_value);
+		const nativeEvent = value && (value as ChangeEvent<HTMLInputElement>).nativeEvent;
+
+		const nativeValue = nativeEvent ? (nativeEvent as unknown as { text: any }).text : undefined;
+
+		if (nativeValue !== undefined) {
+			_value = nativeValue;
 		}
 
-		triggerChange(
-			(form: T) => {
-				getterSetter.set(key, form, _value);
-			}, 
-			fieldOptions
-		);
+		splitterOptionsRef.current = fieldOptions;
+
+		getterSetter.set(key, stateRef.current, _value);
+
+		splitterOptionsRef.current = {};
 	};
 
-	const getValue = (key: FormKey<T>): any => {
-		return getterSetter.get(key, stateRef.current.form);
-	};
+	const getValue = (key: FormKey<T>) => getterSetter.get(key, stateRef.current);
 
-	const field = (
+	const field = ((
 		key: FormKey<T>, 
-		fieldOptions?: FieldOptions<T>
+		fieldOptions: FieldOptions = {}
 	): FieldFormReturn => {
 		const value = getValue(key);
 
-		if ( fieldOptions?.blur ) {
+		if ( fieldOptions.blur ) {
 			return {
 				name: key,
 				onBlur: onChange(key, fieldOptions),
@@ -460,7 +370,7 @@ export function useForm<T extends Record<string, any>>(
 			};
 		}
 
-		if ( fieldOptions?.readOnly ) {
+		if ( fieldOptions.readOnly ) {
 			return {
 				name: key,
 				readOnly: true,
@@ -473,15 +383,13 @@ export function useForm<T extends Record<string, any>>(
 			onChange: onChange(key, fieldOptions),
 			value
 		};
-	};
+	}) as FieldForm<T>;
 
 	const changeValue = (
 		key: FormKey<T>, 
 		value: T[FormKey<T>], 
-		produceOptions?: FieldOptions<any>
-	) => {
-		onChange(key, produceOptions)(value);
-	};
+		produceOptions?: FieldOptions
+	) => onChange(key, produceOptions)(value);
 	// #endregion Form elements
 
 	// #region Errors
@@ -490,40 +398,23 @@ export function useForm<T extends Record<string, any>>(
 			errors: string[]
 			path: FormKey<T>
 		}>
-	) => {
-		const {
-			errors, form, touches 
-		} = stateRef.current;
-		const _errors = formatErrors(newErrors, errors);
-
-		setFormState({
-			form,
-			errors: _errors,
-			touches
-		});
-	};
-
+	) => updateErrors(formatErrors(newErrors, errorRef.current));
 	// #endregion Errors
-	const getFormRef = useRef<UseFormReturn<T>>();
 
-	const result: any = {
-		form,
+	return {
+		form: stateRef.current,
 		get context() {
-			return getFormRef.current as FormContextObject<T>;
+			return this;
 		},
-		errors,
+		errors: errorRef.current,
 		get isValid(): boolean {
-			return Object.keys(errors).length === 0;
+			return Object.keys(this.errors).length === 0;
 		},
-		touches,
-		get isTouched( ) {
-			return Object.keys(touches).length !== 0;
+		touches: touchesRef.current,
+		get isTouched() {
+			return Object.keys(this.touches).length !== 0;
 		},
-
-		changedKeys,
-
 		// #region Form actions
-
 		field,
 		triggerChange,
 		handleSubmit,
@@ -532,20 +423,27 @@ export function useForm<T extends Record<string, any>>(
 		hasError,
 		getErrors,
 
+		// @ts-expect-error changedKeys for UseFormReturnController
+		changedKeys,
+
 		reset,
-		merge,
 		onChange,
 		changeValue,
 		getValue,
 
 		resetTouch,
 		watch,
-		updateController,
-		_setFormState: setState
+		updateController: (key) => {
+			updateTouches(key, true);
+		},
 		// #endregion Form actions
+		toJSON() {
+			return {
+				...this,
+				get context() {
+					return 'To Prevent circular dependency';
+				}
+			};
+		}
 	};
-
-	getFormRef.current = result;
-
-	return result;
 }
