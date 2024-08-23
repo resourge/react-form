@@ -1,61 +1,129 @@
-import { useEffect } from 'react';
+/* import onChange from 'on-change';
 
-import { useForm } from './lib';
+import { observeObject } from './lib/utils/objectObject/objectObject';
 
-function App() {
-	const {
-		form, field, changeValue, errors, watch, context
-	} = useForm({
-		name: '',
-		age: 10,
-		email: ''
-	}, {
-		validate: async (form) => {
-			console.log('validating', JSON.stringify(form));
-			await (new Promise((resolve) => setTimeout(resolve, 500)));
-			return [
+// Example usage:
+
+// Custom Class
+class Person {
+	constructor(name, age) {
+		this.name = name;
+		this.age = age;
+	}
+
+	greet() {
+		console.log(`Hello, my name is ${this.name}`);
+	}
+}
+
+// Circular Reference Example
+const data = {
+	asd: new ArrayBuffer(10),
+	name: 'John',
+	age: 30,
+	birthday: new Date('1990-01-01'),
+	address: {
+		city: 'New York',
+		zip: 10001,
+		cate: {
+			test: 10,
+			test1: [
 				{
-					path: 'name',
-					error: 'qwe'
+					test: 10,
+					test1: {
+						test: 10
+					}
 				}
-			];
+			]
 		}
-	});
+	},
+	hobbies: ['reading', 'traveling'],
+	hobbiesS: new Set(['reading', 'traveling']),
+	hobbies2: new Set(['2', '2']),
+	hobbiesM: new Map([['reading', 'traveling']]),
+	friends: [
+		{
+			name: 'Alice',
+			age: 25 
+		},
+		{
+			name: 'Bob',
+			age: 27 
+		}
+	],
+	person: new Person('Alice', 25),
 
-	watch('age', (form) => {
-		form.age = form.age * 10;
-	});
+	file: new File([], 'test.txt')
+};
 
+// Creating a circular reference
+data.self = data;
+
+// Circular Reference Example
+const data2 = {
+	asd: new ArrayBuffer(10),
+	name: 'John',
+	age: 30,
+	birthday: new Date('1990-01-01'),
+	address: {
+		city: 'New York',
+		zip: 10001,
+		cate: {
+			test: 10,
+			test1: [
+				{
+					test: 10,
+					test1: {
+						test: 10
+					}
+				}
+			]
+		}
+	},
+	hobbies: ['reading', 'traveling'],
+	hobbiesS: new Set(['reading', 'traveling']),
+	hobbies2: new Set(['2', '2']),
+	hobbiesM: new Map([['reading', 'traveling']]),
+	friends: [
+		{
+			name: 'Alice',
+			age: 25 
+		},
+		{
+			name: 'Bob',
+			age: 27 
+		}
+	],
+	person: new Person('Alice', 25),
+	test() {
+		this.friends[0].age = 30;
+	},
+	file: new File([], 'test.txt')
+};
+
+// Creating a circular reference
+data2.self = data;
+
+const watchedData = observeObject(
+	data, 
+	(prop) => {
+		console.log('[Property]', prop);
+	}
+);
+
+watchedData.hobbiesS.add('test');
+console.log('hobbiesS', watchedData.hobbiesS);
+watchedData.hobbiesS = new Set(['asd']);
+watchedData.hobbiesS.add('test');
+// watchedData.hobbies2.add('test2');
+
+// watchedData.hobbiesS = new Set(['1']);
+ */
+function App() {
 	return (
-		<form action="">
-			<div>
-				App
-				name: 
-				{ form.name } 
-				{ ' ' }
-				<br />
-				age: 
-				{ form.age } 
-				{ ' ' }
-				<br />
-				email: 
-				{ form.email } 
-				{ ' ' }
-				<br />
-				<input
-					value={form.name}
-					onChange={(e) => {
-						form.name = e.currentTarget.value;
-
-						// await (new Promise((resolve) => setTimeout(resolve, 500)));
-
-						form.email = form.name;
-						form.age = Math.random();
-					}}
-				/>
-				<button formAction="" />
-			</div>
-		</form>
+		<div>
+			App
+		</div>
 	);
 }
 

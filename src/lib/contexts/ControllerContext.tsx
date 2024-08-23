@@ -1,5 +1,7 @@
 import { createContext, useContext } from 'react';
 
+import { IS_DEV } from '../utils/constants';
+
 import { type FormContextObject } from './FormContext';
 
 export type ControllerContextObject<
@@ -21,7 +23,7 @@ const useControllerBase = <
 >(): ControllerContextObject<T> => {
 	const context = useControllerContext();
 
-	if ( process.env.NODE_ENV === 'development' ) {
+	if ( IS_DEV ) {
 		if ( !context ) {
 			throw new Error('useControllerContext can only be used in the context of a <Controller> component.');
 		}

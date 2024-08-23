@@ -19,38 +19,26 @@ export type FormErrors<T extends Record<string, any>> = {
 	[K in FormKey<T>]?: string[]
 };
 
-export type HasErrorOptions<T extends Record<string, any>> = {
+export type HasErrorOptions = {
 	/**
 	 * When true only returns if the key was `touched` (@default true)
 	 */
 	onlyOnTouch?: boolean
-	/**
-	 * Array containing other keys to also validate on touch
-	 */
-	onlyOnTouchKeys?: Array<FormKey<T>>
 	/**
 	 * Includes children errors to define if is true or false (@default true)
 	 */
 	strict?: boolean
 };
 
-export type GetErrorsOptions<T extends Record<string, any>> = {
+export type GetErrorsOptions = {
 	/**
 	 * Includes the children errors on the array (@default true)
 	 */
 	includeChildsIntoArray?: boolean
 	/**
-	 * Includes `key` in children paths (@default false)
-	 */
-	includeKeyInChildErrors?: boolean
-	/**
 	 * When true only returns if the key was `touched` (@default true)
 	 */
 	onlyOnTouch?: boolean
-	/**
-	 * Array containing other keys to also validate on touch
-	 */
-	onlyOnTouchKeys?: Array<FormKey<T>>
 	/**
 	 * Includes children errors as objects into array. (@default true)
 	 * 
@@ -60,7 +48,7 @@ export type GetErrorsOptions<T extends Record<string, any>> = {
 	strict?: boolean
 };
 
-export type GetErrors<T extends Record<string, any>> = string[] & FormErrors<T>;
+export type GetErrors = string[];
 
 export type ResetMethod<T extends Record<string, any>> = (newFrom: Partial<T>, resetOptions?: ResetOptions | undefined) => void;
 
@@ -78,22 +66,6 @@ export type FormOptions<T extends Record<string, any>> = {
 	 * Triggers when form is submitted
 	 */
 	onSubmit?: (form: T, state: FormState<T>) => Promise<void> | void
-	/**
-	 * Method called every time a value is changed
-	 * 
-	 * @example 
-	 * ```Typescript
-	 * const { ... } = useForm(
-	 *	 {
-	 * 		name: 'Rimuru'
-	 *	 },
-	 *   {
-	 * 		onTouch: (key) => { }
-	 * 	 }
-	 * )
-	 * ```
-	 */
-	onTouch?: (key: FormKey<T>, value: unknown, previousValue: unknown) => void
 	/**
 	 * Method to validate form.
 	 * Usually with some kind of validator.
@@ -124,7 +96,7 @@ export type FormOptions<T extends Record<string, any>> = {
 	 * or if {@link FieldOptions#validate}/{@link SplitterOptions#validate} is set `true`.
 	 * 
 	 * * Note: {@link FieldOptions#validate} takes priority over global {@link FormOptions#validateOnlyAfterFirstSubmit}
-	 * @default false
+	 * @default true
 	 */
 	validateOnlyAfterFirstSubmit?: boolean
 };
@@ -325,7 +297,7 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * ///
 	 * ```
 	 */
-	getErrors: <Model extends Record<string, any> = T>(key: FormKey<T>, options?: GetErrorsOptions<T>) => GetErrors<Model>
+	getErrors: (key: FormKey<T>, options?: GetErrorsOptions) => GetErrors
 	/**
 	 * Return the value for the matched key
 	 * 
@@ -395,7 +367,7 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * ///
 	 * ```
 	 */
-	hasError: (key: FormKey<T>, options?: HasErrorOptions<T>) => boolean
+	hasError: (key: FormKey<T>, options?: HasErrorOptions) => boolean
 	/**
 	 * Form touches state, by default is false if `touches` are undefined or an empty object
 	 */

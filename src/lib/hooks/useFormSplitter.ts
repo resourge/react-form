@@ -5,7 +5,8 @@ import { useControllerContext } from '../contexts/ControllerContext';
 import { type FormContextObject, useFormContext } from '../contexts/FormContext';
 import { type FormKey } from '../types/FormKey';
 import { type PathValue } from '../types/PathValue';
-import { type SplitterOptions, type UseFormReturn } from '../types/formTypes';
+import { type UseFormReturn } from '../types/formTypes';
+import { IS_DEV } from '../utils/constants';
 import { filterObjectByKey } from '../utils/utils';
 
 import { useGetterSetter } from './useGetterSetter';
@@ -14,24 +15,11 @@ import { type WatchMethod } from './useWatch';
 export type FormSplitterResult<
 	T extends Record<string, any>,
 	K = FormKey<T>
-> = Omit<UseFormReturn<PathValue<T, K>>, 'context' | 'triggerChange'> 
-& Pick<UseFormReturn<T>, 'context'> 
+> = Omit<UseFormReturn<PathValue<T, K>>, 'context'>
 & {
-	triggerChange: (
-		cb: (
-			(
-				form: PathValue<T, K>, 
-				setParentValue: (value: PathValue<T, K>) => void
-			) => void
-		) | (
-			(
-				form: PathValue<T, K>, 
-				setParentValue: (value: PathValue<T, K>) => void
-			) => Promise<void>
-		), 
-		produceOptions?: SplitterOptions | undefined
-	) => void
-};
+	context: UseFormReturn<T>['context']
+	splitterContext: FormSplitterResult<T, K>
+}; 
 
 /**
  * Hook to create a splitter form. Serves to create a form for the specific "formFieldKey"
@@ -64,13 +52,13 @@ export function useFormSplitter<
 		context = useFormContext<any>();
 	}
 
-	if ( process.env.NODE_ENV === 'development' ) {
+	if ( IS_DEV ) {
 		if ( !_formFieldKey ) {
 			throw new Error('\'formFieldKey\' undefined can only used inside a Controller component.');
 		}
 	}
 
-	const getKey = (key: string): any => `${_formFieldKey}${key ? (key.includes('[') ? key : `.${key}`) : ''}` as FormKey<PathValue<T, K>>; ;
+	const getKey = (key: string): any => `${_formFieldKey}${key ? (key.startsWith('[') ? key : `.${key}`) : ''}` as FormKey<PathValue<T, K>>; ;
 
 	const filterKeysError = (key: string) => key.includes(_formFieldKey) || _formFieldKey.includes(key);
 
@@ -105,20 +93,15 @@ export function useFormSplitter<
 		field: (key, options) => context.field(getKey(key), options) as any,
 		getErrors: (key, options) => context.getErrors(getKey(key), options),
 		hasError: (key, options) => context.hasError(getKey(key), options),
-		changeValue: (key, value, options) => {
-			context.changeValue(getKey(key), value, {
-				...options,
-				filterKeysError
-			}); 
-		},
+		changeValue: (key, value, options) => context.changeValue(getKey(key), value, {
+			...options,
+			filterKeysError
+		}),
 		getValue: (key) => context.getValue(getKey(key)),
-		context: context.context,
-		onChange: (key, fieldOptions) => (value) => {
-			context.onChange(getKey(key), {
-				...fieldOptions,
-				filterKeysError
-			})(value); 
-		},
+		onChange: (key, fieldOptions) => (value) => context.onChange(getKey(key), {
+			...fieldOptions,
+			filterKeysError
+		})(value),
 		reset: (newFrom, resetOptions) => {
 			getterSetter.set(_formFieldKey, context.form, newFrom);
 			return context.reset(newFrom, {
@@ -131,24 +114,28 @@ export function useFormSplitter<
 		triggerChange: (
 			cb,
 			produceOptions
-		) => {
-			context.triggerChange(
-				(form: T) => {
-					return cb(
-						getterSetter.get(_formFieldKey, form), 
-						(targetValue) => {
-							getterSetter.set(_formFieldKey, form, targetValue);
-						}
-					);
-				}, 
-				{
-					...produceOptions,
-					filterKeysError
+		) => context.triggerChange(
+			(form: T) => cb(getterSetter.get(_formFieldKey, form)), 
+			{
+				...produceOptions,
+				filterKeysError
+			}
+		),
+		updateController: (key) => context.updateController(getKey(key)),
+		toJSON() {
+			return {
+				...this,
+				get splitterContext() {
+					return 'To Prevent circular dependency';
+				},
+				get context() {
+					return 'To Prevent circular dependency';
 				}
-			);
+			};
 		},
-		updateController: (key) => {
-			context.updateController(getKey(key)); 
-		}
+		get splitterContext() {
+			return this;
+		},
+		context: context.context
 	} as FormSplitterResult<T, K>;
 }

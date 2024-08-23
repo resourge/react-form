@@ -173,14 +173,11 @@ function App() {
 		watch,
 		reset,
 		handleSubmit
-	} = useFormStorage<AppTest>(
+	} = useFormStorage(
 		AppTest,
 		{
 			uniqueId: 'something',
 			validate: () => {
-				throw new Error()
-			},
-			onErrors: () => {
 				return [
 					{
 						path: 'rafael',

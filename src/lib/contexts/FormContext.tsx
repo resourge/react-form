@@ -1,6 +1,7 @@
 import { createContext, useContext } from 'react';
 
 import { type UseFormReturn } from '../types/formTypes';
+import { IS_DEV } from '../utils/constants';
 
 import { ControllerContext } from './ControllerContext';
 
@@ -11,7 +12,7 @@ export const FormContext = createContext<FormContextObject<Record<string, any>> 
 export const useFormContext = <T extends object>(): UseFormReturn<T> => {
 	const context = useContext(FormContext) as unknown as UseFormReturn<T>;
 
-	if ( process.env.NODE_ENV === 'development' ) {
+	if ( IS_DEV ) {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const controllerContext = useContext(ControllerContext);
 

@@ -18,7 +18,7 @@ const external = [
 	...Object.keys(peerDependencies),
 	...Object.keys(dependencies),
 	...Object.keys(devDependencies)
-].filter((key) => key !== 'on-change')
+]
 
 const packagesNames = packages.map((pack) => pack.name);
 

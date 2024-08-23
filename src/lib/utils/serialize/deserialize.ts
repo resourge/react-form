@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { IS_DEV } from '../constants';
+
 import { SerializePrototypes } from './SerializePrototypes';
 import { ClassRegisterError } from './errors/ClassRegisterError';
 import { type SerializeMetaType, type DeserializeContext } from './types';
@@ -99,7 +101,7 @@ function deserializeMeta(value: SerializeMetaType, context: DeserializeContext) 
 	if ( value && typeof value === 'object' ) {
 		const fn = DeserializeFunctions[value.prototype];
 
-		if ( process.env.NODE_ENV === 'development' ) {
+		if ( IS_DEV ) {
 			if ( !fn ) {
 				throw new ClassRegisterError(value.prototype);
 			}

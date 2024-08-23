@@ -92,9 +92,6 @@ Callback function triggered whenever the form state changes. It receives the cur
 `onSubmit`
 Upon successful form submission, this callback function is invoked, receiving the form data as its argument.
 
-`onTouch`
-When a form field is interacted with—focused and then blurred—this callback function is triggered. It takes the field key, current value, and previous value as arguments.
-
 `validate`
 Designed for custom validation of form fields, this function takes the form data and an array of changed keys as arguments. It returns and empty array for success, an array of error messages, or throws errors if validation fails.
 

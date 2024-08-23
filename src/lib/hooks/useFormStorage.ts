@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 
 import { type FormOptions, type UseFormReturn } from '../types';
 import { deserialize, serialize } from '../utils';
+import { IS_DEV } from '../utils/constants';
 
 import { useForm } from './useForm';
 
@@ -75,7 +76,7 @@ export function useFormStorage<T extends Record<string, any>>(
 	defaultValue: T | (() => T) | ({ new(): T }), 
 	options: FormStorageOptions<T>
 ): UseFormStorageReturn<T> {
-	if ( process.env.NODE_ENV === 'development' ) {
+	if ( IS_DEV ) {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const uniqueIdRef = useRef(options.uniqueId);
 		if ( options.uniqueId !== uniqueIdRef.current ) {

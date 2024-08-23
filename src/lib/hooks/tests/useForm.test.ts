@@ -1,6 +1,6 @@
 import { act } from 'react';
 
-import { renderHook } from '@testing-library/react';
+import { renderHook, waitFor } from '@testing-library/react';
 import {
 	describe,
 	it,
@@ -17,14 +17,14 @@ interface FormData {
 }
 
 describe('useForm', () => {
-	const defaultValues: FormData = {
+	const getDefaultValues = (): FormData => ({
 		name: '',
 		age: 0 
-	};
+	});
 
 	// Test field function
 	it('should return correct field props', () => {
-		const { result } = renderHook(() => useForm(defaultValues));
+		const { result } = renderHook(() => useForm(getDefaultValues()));
 
 		const fieldProps = result.current.field('name');
 
@@ -37,7 +37,7 @@ describe('useForm', () => {
 
 	// Test getErrors function
 	it('should return errors for the form', async () => {
-		const { result } = renderHook(() => useForm(defaultValues));
+		const { result } = renderHook(() => useForm(getDefaultValues()));
 
 		act(() => {
 			result.current.setError([
@@ -57,7 +57,7 @@ describe('useForm', () => {
 
 	// Test getValue function
 	it('should return current value of a specific field', () => {
-		const { result } = renderHook(() => useForm(defaultValues));
+		const { result } = renderHook(() => useForm(getDefaultValues()));
 
 		act(() => {
 			result.current.changeValue('name', 'Jane Doe');
@@ -68,7 +68,7 @@ describe('useForm', () => {
 
 	// Test hasError function
 	it('should check if a field has an error', async () => {
-		const { result } = renderHook(() => useForm(defaultValues));
+		const { result } = renderHook(() => useForm(getDefaultValues()));
 
 		act(() => {
 			result.current.setError([
@@ -91,7 +91,7 @@ describe('useForm', () => {
 
 	// Test onChange function
 	it('should update form value on change', () => {
-		const { result } = renderHook(() => useForm(defaultValues));
+		const { result } = renderHook(() => useForm(getDefaultValues()));
 
 		act(() => {
 			result.current.onChange('name')('Jane Doe');
@@ -100,9 +100,38 @@ describe('useForm', () => {
 		expect(result.current.form.name).toBe('Jane Doe');
 	});
 
+	// Test reset function
+	it('should reset', async () => {
+		const { result } = renderHook(() => useForm(getDefaultValues()));
+
+		act(() => {
+			result.current.changeValue('name', 'Jane Doe');
+		});
+
+		await waitFor(() => {
+			expect(result.current.form.name).toBe('Jane Doe');
+		});
+
+		act(() => {
+			result.current.reset({
+				name: '',
+				age: 10
+			});
+			
+			result.current.triggerChange((form) => {
+				form.age = 100;
+			});
+		});
+
+		await waitFor(() => {
+			expect(result.current.form.name).toBe('');
+		});
+		expect(result.current.form.age).toBe(100);
+	});
+
 	// Test resetTouch function
 	it('should reset touch state for a field', () => {
-		const { result } = renderHook(() => useForm(defaultValues));
+		const { result } = renderHook(() => useForm(getDefaultValues()));
 
 		act(() => {
 			result.current.changeValue('name', 'Jane Doe');
@@ -117,7 +146,7 @@ describe('useForm', () => {
 
 	// Test setError function
 	it('should set error for a specific field', () => {
-		const { result } = renderHook(() => useForm(defaultValues));
+		const { result } = renderHook(() => useForm(getDefaultValues()));
 
 		act(() => {
 			result.current.setError([
@@ -135,7 +164,7 @@ describe('useForm', () => {
 
 	// Test triggerChange function
 	it('should trigger change event for a specific field', () => {
-		const { result } = renderHook(() => useForm(defaultValues));
+		const { result } = renderHook(() => useForm(getDefaultValues()));
 
 		act(() => {
 			result.current.triggerChange((form) => form.name = 'Jane Doe');
@@ -146,7 +175,7 @@ describe('useForm', () => {
 
 	// Test watch function
 	it('should watch changes to a field', async () => {
-		const { result } = renderHook(() => useForm(defaultValues));
+		const { result } = renderHook(() => useForm(getDefaultValues()));
 
 		const watchFn = vi.fn();
 
@@ -204,7 +233,8 @@ describe('useForm', () => {
 		};
 
 		const { result } = renderHook(() => useForm(initialValues, {
-			validate 
+			validate,
+			validateOnlyAfterFirstSubmit: false
 		}));
 
 		act(() => {
@@ -279,7 +309,7 @@ describe('useForm', () => {
 		expect(result.current.form.name).toBe('Jane');
 	});
 
-	it('should validate form and set errors', () => {
+	it('should validate form and set errors', async () => {
 		const initialForm = {
 			name: 'John',
 			age: 30 
@@ -297,7 +327,8 @@ describe('useForm', () => {
 		const { result } = renderHook(() => useForm(
 			initialForm, 
 			{
-				validate: mockValidation 
+				validate: mockValidation,
+				validateOnlyAfterFirstSubmit: false
 			}
 		));
 
@@ -308,7 +339,9 @@ describe('useForm', () => {
 			});
 		});
 
+		await waitFor(() => {
 		// Verify if errors are set
-		expect(result.current.errors.name).toContain('Name is required');
+			expect(result.current.errors.name).toContain('Name is required');
+		});
 	});
 });

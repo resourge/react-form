@@ -17,6 +17,9 @@ export {
 	useForm, useFormSplitter, useFormStorage 
 } from './hooks';
 export {
+	setupJsonForm, type SetupJsonFormConfig, type SetupJsonFormProps 
+} from './setupJsonForm';
+export {
 	type FieldForm,
 	type FieldFormBlur,
 	type FieldFormChange,

@@ -1,3 +1,5 @@
+import { expect, test } from 'vitest';
+
 import { deserialize, registerClass } from '../deserialize';
 import { serialize } from '../serialize';
 
