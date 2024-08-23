@@ -19,7 +19,7 @@ export type SetupJsonFormConfig<Ref> = {
 		ref: React.ForwardedRef<Ref>
 	) => JSX.Element
 	validate: (schema: unknown) => FormOptions<Record<string, any>>['validate']
-	getInitialData?: (schema: unknown) => unknown
+	getInitialData?: <T = unknown>(schema: T) => unknown
 } & Omit<FormOptions<Record<string, any>>, 'validate'>;
 
 export function setupJsonForm<Ref>({
