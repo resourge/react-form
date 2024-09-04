@@ -7,6 +7,7 @@
 ## Features
 
 - `Form State Management`: Easily manage form state and data using the `useForm` hook, providing a convenient interface for handling form inputs, validation, and submission.
+- `Reactive Form State`: The form state is fully reactive, meaning any direct changes to the form trigger automatic updates across your components, ensuring your UI always reflects the current state.
 - `Automatic Storage Synchronization`: Using `useFormStorage` automatically synchronize form data with storage solutions such as `localStorage` or `AsyncStorage` to persist user input's across sessions.
 - `Performance Optimization`: Improve rendering performance for large forms with the `Controller` component, which updates only when relevant form fields change.
 - `Context-based Architecture`: Leverage the power of react context to provide form state and data to nested components with the `FormProvider` component.
@@ -55,6 +56,11 @@ const MyFormComponent = () => {
     password: ''
   });
 
+  const changeUserNameToDefault = () => {
+	// Direct changes to form are reactive, meaning it will trigger an update to the sate
+	form.username = 'Default User'
+  }
+
   const onSubmit = handleSubmit(async () => {
     // handle form submission logic
   });
@@ -63,6 +69,7 @@ const MyFormComponent = () => {
     <form onSubmit={onSubmit}>
       <input {...field('username')} />
       <input {...field('password')} />
+      <button onClick={changeUserNameToDefault}>Change Username to default</button>
       <button type="submit">Submit</button>
       {hasError('username') && getErrors('username').map((error) => <span key={error}>{error}</span>)}
       {hasError('password') && getErrors('username').map((error) => <span key={error}>{error}</span>)}
@@ -94,7 +101,6 @@ Upon successful form submission, this callback function is invoked, receiving th
 
 `validate`
 Designed for custom validation of form fields, this function takes the form data and an array of changed keys as arguments. It returns and empty array for success, an array of error messages, or throws errors if validation fails.
-
 
 `validateOnlyAfterFirstSubmit`
 Flag indicating whether to perform validation only after the first form submission attempt. If set to true, validation will be triggered only after the first submission attempt.
@@ -173,11 +179,6 @@ resetTouch();
 ```tsx
 // Set custom errors for the 'email' field
 setError([{ path: 'email', errors: ['Invalid email address'] }]);
-```
-- `touches`: Represents the touch state of each form field, where keys denote form field names and values indicate whether the field has been touched.
-```tsx
-// Check if the 'password' field has been touched
-const passwordTouched = touches['password'];
 ```
 - `triggerChange(cb: OnFunctionChange, produceOptions?: ProduceNewStateOptions): void`: Enables simultaneous changes to the form state within a single render cycle, accepting a callback function to modify the state and optional options for customization.
 ```tsx
