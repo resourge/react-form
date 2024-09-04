@@ -1,3 +1,18 @@
+# [1.26.0](https://github.com/resourge/react-form/compare/v1.25.0...v1.26.0) (2024-09-04)
+
+
+### Bug Fixes
+
+* **setupjsonform:** fix type ([23f32c4](https://github.com/resourge/react-form/commit/23f32c44ed1f1d35688ef89fb32c7888609b9fbf))
+* **useerror:** fix sometimes not updating the error ([85896d2](https://github.com/resourge/react-form/commit/85896d225fbfa30860efabc17ae3c5735e1b44fb))
+* **useform:** fix handleSubmit not triggering update to show errors ([e8ba390](https://github.com/resourge/react-form/commit/e8ba39064e151fe0f66622f30b82141c32564e31))
+
+
+### Features
+
+* **useform:** change form from useForm to reactive ([c8a32e5](https://github.com/resourge/react-form/commit/c8a32e5851a399331b3ddb1b1d9fb5c5608d70ab))
+* **useform:** make form reactive ([b978e6e](https://github.com/resourge/react-form/commit/b978e6e5083319a2476b1296c4d29e456cbdf274))
+
 # [1.25.0](https://github.com/resourge/react-form/compare/v1.24.8...v1.25.0) (2024-07-08)
 
 
