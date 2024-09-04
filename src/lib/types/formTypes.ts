@@ -19,17 +19,6 @@ export type FormErrors<T extends Record<string, any>> = {
 	[K in FormKey<T>]?: string[]
 };
 
-export type HasErrorOptions = {
-	/**
-	 * When true only returns if the key was `touched` (@default true)
-	 */
-	onlyOnTouch?: boolean
-	/**
-	 * Includes children errors to define if is true or false (@default true)
-	 */
-	strict?: boolean
-};
-
 export type GetErrorsOptions = {
 	/**
 	 * Includes the children errors on the array (@default true)
@@ -52,20 +41,15 @@ export type GetErrors = string[];
 
 export type ResetMethod<T extends Record<string, any>> = (newFrom: Partial<T>, resetOptions?: ResetOptions | undefined) => void;
 
-export type FormState<T extends Record<string, any>> = {
-	errors: FormErrors<T>
-	touches: Touches<T>
-};
-
 export type FormOptions<T extends Record<string, any>> = {
 	/**
 	 * Triggers when form is changed
 	 */
-	onChange?: (form: T, state: FormState<T>) => Promise<void> | void
+	onChange?: (form: T, errors: FormErrors<T>) => Promise<void> | void
 	/**
 	 * Triggers when form is submitted
 	 */
-	onSubmit?: (form: T, state: FormState<T>) => Promise<void> | void
+	onSubmit?: (form: T, errors: FormErrors<T>) => Promise<void> | void
 	/**
 	 * Method to validate form.
 	 * Usually with some kind of validator.
@@ -351,7 +335,7 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * Method to verify if `key` has errors
 	 * 
 	 * @param key - key from `form` state
-	 * @param options - {@link HasErrorOptions}
+	 * @param options - {@link GetErrorsOptions}
 	 * @returns `true` for error on form
 	 * @example
 	 * ```Typescript
@@ -367,7 +351,7 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * ///
 	 * ```
 	 */
-	hasError: (key: FormKey<T>, options?: HasErrorOptions) => boolean
+	hasError: (key: FormKey<T>, options?: GetErrorsOptions) => boolean
 	/**
 	 * Form touches state, by default is false if `touches` are undefined or an empty object
 	 */

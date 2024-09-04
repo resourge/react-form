@@ -1,9 +1,5 @@
 import { type FormErrors } from '../types/formTypes';
 
-export function booleanCompare(a: boolean = false, b: boolean = false) {
-	return Boolean(Number(a) - Number(b));
-}
-
 export function arrayOfStringCompare(arr1: string[] = [], arr2: string[] = []) {
 	if (arr1.length !== arr2.length) {
 		return false;

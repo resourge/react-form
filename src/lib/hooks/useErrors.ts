@@ -2,50 +2,54 @@ import { type MutableRefObject, useRef } from 'react';
 
 import { type FormKey } from '../types/FormKey';
 import {
+	type SplitterOptions,
 	type FormErrors,
 	type GetErrors,
-	type GetErrorsOptions,
-	type HasErrorOptions,
-	type Touches
+	type GetErrorsOptions
 } from '../types/formTypes';
 import { deepCompare } from '../utils/comparationUtils';
-
-import { type CacheType } from './useTouches';
-
-const checkIfCanCheckError = (
-	key: string,
-	touches: Touches<any>,
-	onlyOnTouch?: boolean
-) => {
-	return !onlyOnTouch 
-		|| ( onlyOnTouch && Boolean(touches[key]) );
-};
+import { filterObject } from '../utils/utils';
 
 export const useErrors = <T extends Record<string, any>>(
 	{
-		validate, touchesRef, changedKeys, canValidate, updateTouches, setCache, forceUpdate
+		validate, touchesRef, changedKeys, canValidate, updateTouches, forceUpdate, splitterOptionsRef
 	}: {
 		canValidate: boolean
 		changedKeys: Array<FormKey<T>>
 		forceUpdate: () => void
-		setCache: <ReturnValue extends CacheType>(key: string, type: string, cb: () => ReturnValue) => ReturnValue
-		touchesRef: MutableRefObject<Touches<T>>
-		updateTouches: (key: FormKey<T>) => void
+		splitterOptionsRef: React.MutableRefObject<SplitterOptions & {
+			preventStateUpdate?: boolean
+		}>
+		touchesRef: MutableRefObject<Record<string, object>>
+		updateTouches: (keys: FormKey<T>) => void
 		validate: () => FormErrors<T> | Promise<FormErrors<T>>
 	}
 ) => {
 	const errorRef = useRef<FormErrors<T>>({} as FormErrors<T>);
-	const setErrors = (errors: FormErrors<T>, keys = Object.keys(errors)) => {
-		Object.keys(errorRef.current)
-		.filter((key) => !keys.includes(key))
-		.forEach((key) => updateTouches(key));
-		errorRef.current = errors;
-	};
+	const cacheErrors = useRef<WeakMap<object, GetErrors>>(new WeakMap());
 	const isValidatingFormRef = useRef(false);
 
+	const setErrors = (errors: FormErrors<T>) => {
+		const keys = Object.keys(errors);
+		
+		Object.keys(
+			filterObject(
+				errorRef.current, 
+				splitterOptionsRef.current.filterKeysError
+			)
+		)
+		.filter((key) => !keys.includes(key))
+		.forEach(updateTouches);
+
+		errorRef.current = errors;
+	};
+
 	const updateErrors = (errors: FormErrors<T>) => { 
+		const newErrors = filterObject(errors, splitterOptionsRef.current.filterKeysError);
+		
 		const oldTouches = Object.keys(touchesRef.current);
-		const newTouches = Object.keys(errors)
+
+		const newTouches = Object.keys(newErrors)
 		.filter((key) => {
 			updateTouches(key as FormKey<T>);
 			return !oldTouches.includes(key);
@@ -53,9 +57,9 @@ export const useErrors = <T extends Record<string, any>>(
 
 		if (
 			newTouches.length > 0
-			|| !deepCompare(errors, errorRef.current)
+			|| !deepCompare(newErrors, errorRef.current)
 		) { 
-			setErrors(errors);
+			setErrors(newErrors);
 			forceUpdate();
 			return true;
 		}
@@ -84,73 +88,43 @@ export const useErrors = <T extends Record<string, any>>(
 		}
 	}
 
-	const hasError = (
-		key: FormKey<T>, 
-		options: HasErrorOptions = {}
-	): boolean => {
-		return setCache<boolean>(
-			key, 
-			'has',
-			() => {
-				const onlyOnTouch = options.onlyOnTouch ?? true;
-
-				if ( checkIfCanCheckError(key, touchesRef.current, onlyOnTouch) ? Boolean(errorRef.current[key]) : false ) {
-					return true;
-				}
-				else if ( !( options.strict ?? true ) ) {
-					const regex = new RegExp(`^${key.replace('[', '\\[').replace(']', '\\]')}`, 'g');
-	
-					return Object.keys(errorRef.current)
-					.some((errorKey) => {
-						if ( checkIfCanCheckError(errorKey, touchesRef.current, onlyOnTouch) ) {
-							return regex.test(errorKey);
-						}
-						return false;
-					});
-				}
-
-				return false;
-			}
-		);
-	};
-
 	function getErrors<Model extends Record<string, any> = T>(
 		key: FormKey<Model>, 
 		options: GetErrorsOptions = {}
 	): GetErrors {
-		return setCache<GetErrors>(
-			key, 
-			'get',
-			() => {
-				const _strict = options.strict ?? true;
-				const includeChildsIntoArray = options.includeChildsIntoArray ?? false;
-
-				const getErrors = (key: FormKey<Model>): GetErrors => {
-					if ( checkIfCanCheckError(key, touchesRef.current, ( options.onlyOnTouch ?? true )) ) {
-						return [...errorRef.current[key] ?? []];
-					}
-					return [];
-				};
-
-				const newErrors = getErrors(key);
-
-				if ( !( includeChildsIntoArray ? false : _strict ) ) {
-					Object.keys(errorRef.current)
-					.forEach((errorKey: string) => {
-						if ( errorKey.includes(key) && errorKey !== key ) {
-							newErrors.push(...getErrors(errorKey));
-						}
-					});
-				}
-
-				return newErrors;
+		if ( touchesRef.current[key] === undefined ) {
+			if ( options.onlyOnTouch ?? true ) {
+				return [];
 			}
-		);
+			touchesRef.current[key] = {};
+		}
+		let newErrors = cacheErrors.current.get(touchesRef.current[key]);
+		if ( !newErrors ) {
+			const {
+				strict = true,
+				includeChildsIntoArray = false
+			} = options;
+
+			newErrors = errorRef.current[key] ?? [];
+
+			if ( !( includeChildsIntoArray ? false : strict ) ) {
+				Object.keys(errorRef.current)
+				.forEach((errorKey) => {
+					if ( errorKey.includes(key) && errorKey !== key ) {
+						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+						newErrors!.push(...(errorRef.current[errorKey] ?? []));
+					}
+				});
+			}
+
+			cacheErrors.current.set(touchesRef.current[key], newErrors);
+		}
+
+		return newErrors;
 	}
 
 	return {
 		errorRef,
-		hasError,
 		getErrors,
 		updateErrors,
 		validateForm

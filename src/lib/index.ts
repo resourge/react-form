@@ -31,7 +31,6 @@ export {
 	type FormOptions,
 	type GetErrors,
 	type GetErrorsOptions,
-	type HasErrorOptions,
 	type OnErrors,
 	type OnFunctionChange,
 	type SplitterOptions,

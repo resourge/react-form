@@ -92,9 +92,9 @@ export function useFormStorage<T extends Record<string, any>>(
 		defaultValue as any,
 		{
 			...options,
-			onChange: (form, formState) => {
+			onChange: (form, errors) => {
 				if ( options.onChange ) {
-					options.onChange(form, formState);
+					options.onChange(form, errors);
 				}
 				Promise.resolve(
 					options.storage.setItem(
@@ -109,9 +109,9 @@ export function useFormStorage<T extends Record<string, any>>(
 				)
 				.catch(onStorageError);
 			},
-			onSubmit: (form, formState) => {
+			onSubmit: (form, errors) => {
 				if ( options.onSubmit ) {
-					options.onSubmit(form, formState);
+					options.onSubmit(form, errors);
 				}
 				if ( options.shouldClearAfterSubmit ?? true ) {
 					Promise.resolve(options.storage.removeItem(options.uniqueId))

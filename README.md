@@ -50,7 +50,7 @@ npm install @resourge/react-form --save
 import { useForm } from '@resourge/react-form';
 
 const MyFormComponent = () => {
-  const { form, handleSubmit, field, errors } = useForm({
+  const { form, handleSubmit, field, getErrors, hasError } = useForm({
     username: '',
     password: ''
   });
@@ -64,8 +64,8 @@ const MyFormComponent = () => {
       <input {...field('username')} />
       <input {...field('password')} />
       <button type="submit">Submit</button>
-      {errors.username && <span>{errors.username}</span>}
-      {errors.password && <span>{errors.password}</span>}
+      {hasError('username') && getErrors('username').map((error) => <span key={error}>{error}</span>)}
+      {hasError('password') && getErrors('username').map((error) => <span key={error}>{error}</span>)}
     </form>
   );
 };
@@ -147,7 +147,7 @@ const submitHandler = handleSubmit(
   }
 );
 ```
-- `hasError(key: string, options?: HasErrorOptions): boolean`: Checks if a specified form field contains errors, considering specified options.
+- `hasError(key: string, options?: GetErrorsOptions): boolean`: Checks if a specified form field contains errors, considering specified options.
 ```tsx
 // Check if the 'username' field has errors
 const hasUsernameError = hasError('username');
@@ -381,7 +381,7 @@ registerClass(UserData);
 
 // Use useFormStorage hook
 const MyForm = () => {
-  const { formData, handleChange, handleSubmit } = useFormStorage<UserData>(
+  const { formData, handleSubmit, field } = useFormStorage<UserData>(
     UserData,
     {
       storage: localStorage,
@@ -399,9 +399,11 @@ const MyForm = () => {
   );
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input type="text" name="name" value={formData.name} onChange={handleChange} />
-      <input type="email" name="email" value={formData.email} onChange={handleChange} />
+    <form onSubmit={handleSubmit(() => {
+		....
+	})}>
+      <input type="text" { ...field('name') }/>
+      <input type="email" { ...field('email') }/>
       <button type="submit">Submit</button>
     </form>
   );

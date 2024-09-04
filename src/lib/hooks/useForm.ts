@@ -9,9 +9,14 @@ import {
 	useState
 } from 'react';
 
-import { type FieldForm, type FormErrors, type ResetMethod } from '../types';
+import {
+	type FieldForm,
+	type FormErrors,
+	type GetErrorsOptions,
+	type ResetMethod
+} from '../types';
 import { type FormKey } from '../types/FormKey';
-import { type ValidationWithErrors, type ValidationErrors } from '../types/errorsTypes';
+import { type ValidationErrors, type ValidationWithErrors } from '../types/errorsTypes';
 import {
 	type FieldFormReturn,
 	type FieldOptions,
@@ -23,11 +28,11 @@ import {
 	type ValidateSubmission
 } from '../types/formTypes';
 import { formatErrors } from '../utils/createFormErrors';
-import { observeObject } from '../utils/observeObject/observeObject';
-import { filterKeys, isClass } from '../utils/utils';
+import { isClass } from '../utils/utils';
 
 import { useErrors } from './useErrors';
 import { useGetterSetter } from './useGetterSetter';
+import { useProxy } from './useProxy';
 import { useTouches } from './useTouches';
 import { useWatch } from './useWatch';
 
@@ -87,90 +92,66 @@ export function useForm<T extends Record<string, any>>(
 
 	// #region State
 
-	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-	const stateRef = useRef<T>(undefined!);
-	
-	if ( !stateRef.current ) {
-		stateRef.current = (() => {
-			return observeObject(
-				typeof defaultValue === 'function' 
-					? (
-						isClass(defaultValue) 
-							? new (defaultValue as new () => T)() 
-							: (defaultValue as () => T)()
-					) : defaultValue,
-				async (key) => {
-					updateTouches(key);
+	const stateRef = useProxy<T>(
+		() => (
+			typeof defaultValue === 'function' 
+				? (
+					isClass(defaultValue) 
+						? new (defaultValue as new () => T)() 
+						: (defaultValue as () => T)()
+				) : defaultValue
+		),
+		async (key) => {
+			updateTouches(key);
 
-					if ( watchedRefs.current.size ) {
-						for (const [watchedKey, method] of watchedRefs.current) {
-							if ( watchedKey === key ) {
-								const res = method(stateRef.current);
+			if ( watchedRefs.current.size ) {
+				for (const [watchedKey, method] of watchedRefs.current) {
+					if ( watchedKey === key ) {
+						const res = method(stateRef.current);
 
-								if ( res instanceof Promise ) {
-									// eslint-disable-next-line no-await-in-loop
-									await res;
-								}
-							}
+						if ( res instanceof Promise ) {
+							// eslint-disable-next-line no-await-in-loop
+							await res;
 						}
 					}
-
-					if ( options.onChange ) {
-						options.onChange(
-							stateRef.current,
-							{
-								errors: errorRef.current,
-								touches: touchesRef.current
-							}
-						);
-					}
-
-					if ( !splitterOptionsRef.current.preventStateUpdate ) {
-						forceUpdate();
-					}
 				}
-			);
-		})();
-	}
+			}
+
+			if ( options.onChange ) {
+				options.onChange(
+					stateRef.current,
+					errorRef.current
+				);
+			}
+
+			if ( !splitterOptionsRef.current.preventStateUpdate ) {
+				forceUpdate();
+			}
+		}
+	);
+
 	// #endregion State
 	const firstSubmitRef = useRef(false);
 	const splitterOptionsRef = useRef<SplitterOptions & { preventStateUpdate?: boolean }>({});
 
 	const {
-		changedKeys, touchesRef, updateTouches, clearTouches, setCache
+		changedKeys, touchesRef, updateTouches, clearTouches
 	} = useTouches<T>();
 
 	const {
 		errorRef,
-		hasError,
 		getErrors,
 		updateErrors,
 		validateForm
 	} = useErrors({
 		changedKeys,
-		setCache,
 		canValidate: (options.validateOnlyAfterFirstSubmit !== false ? firstSubmitRef.current : true),
-		validate: () => {
-			const validateStateResult = validateState(
-				stateRef.current,
-				changedKeys,
-				options.validate
-			);
-
-			if ( validateStateResult instanceof Promise ) {
-				return validateStateResult.then((errors) => {
-					return filterKeys<T>(
-						errors,
-						splitterOptionsRef.current.filterKeysError 
-					);
-				});
-			}
-
-			return filterKeys<T>(
-				validateStateResult,
-				splitterOptionsRef.current.filterKeysError 
-			);
-		},
+		splitterOptionsRef,
+		validate: () => validateState(
+			stateRef.current,
+			changedKeys,
+			options.validate
+		),
 		updateTouches,
 		touchesRef,
 		forceUpdate
@@ -206,10 +187,7 @@ export function useForm<T extends Record<string, any>>(
 			if ( options.onSubmit ) {
 				options.onSubmit(
 					stateRef.current, 
-					{
-						errors: errorRef.current,
-						touches: touchesRef.current
-					}
+					errorRef.current
 				);
 			}
 
@@ -387,7 +365,7 @@ export function useForm<T extends Record<string, any>>(
 		get isValid(): boolean {
 			return Object.keys(this.errors).length === 0;
 		},
-		touches: touchesRef.current,
+		touches: touchesRef.current as any,
 		get isTouched() {
 			return Object.keys(this.touches).length !== 0;
 		},
@@ -397,7 +375,10 @@ export function useForm<T extends Record<string, any>>(
 		handleSubmit,
 
 		setError,
-		hasError,
+		hasError: (
+			key: FormKey<T>, 
+			options: GetErrorsOptions = {}
+		): boolean => getErrors(key, options).length > 0,
 		getErrors,
 
 		// @ts-expect-error changedKeys for UseFormReturnController
@@ -410,9 +391,7 @@ export function useForm<T extends Record<string, any>>(
 
 		resetTouch,
 		watch,
-		updateController: (key) => {
-			updateTouches(key);
-		},
+		updateController: (key) => updateTouches(key),
 		// #endregion Form actions
 		toJSON() {
 			return {
