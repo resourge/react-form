@@ -141,9 +141,8 @@ export function useFormStorage<T extends Record<string, any>>(
 			const deserializeForm = deserialize<T>(serializedState.form);
 
 			formResult.triggerChange((form) => {
-				for (const key of Object.keys(deserializeForm) as Array<keyof T>) {
-					form[key] = deserializeForm[key];
-				}
+				(Object.keys(deserializeForm) as Array<keyof T>)
+				.forEach((key) => form[key] = deserializeForm[key]);
 			});
 		}
 		else {

@@ -36,7 +36,7 @@ export const useGetterSetter = <T extends Record<string, any>>() => {
 	const getterSetter = useRef<GetterSetter<T>>(new Map());
 
 	const checkGetterSetter = (key: FormKey<T>) => {
-		if ( !getterSetter.current.has(key) ) {
+		if ( getterSetter.current.has(key) ) {
 			return;
 		}
 		

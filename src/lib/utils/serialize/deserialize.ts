@@ -24,6 +24,7 @@ const DeserializeFunctions: Record<string, (value: SerializeMetaType, context: D
 	},
 	[SerializePrototypes.Set]: (value: SerializeMetaType, context: DeserializeContext) => new Set(deserializeArray((value.value as any[]), context)),
 	[SerializePrototypes.Map]: (value: SerializeMetaType, context: DeserializeContext) => new Map(deserializeArray((value.value as any[]), context)),
+	[SerializePrototypes.Object]: (value: SerializeMetaType, context: DeserializeContext) => deserializeValues(value, context, {}),
 	[SerializePrototypes.Array]: (value: SerializeMetaType, context: DeserializeContext) => deserializeArray((value.value as any[]), context),
 	[SerializePrototypes.Repeat]: (value: SerializeMetaType, context: DeserializeContext) => {
 		const key = value.repeatKey!;

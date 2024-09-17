@@ -55,16 +55,17 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 		return {
 			get(target: T, prop, receiver) {
 				// Handle changes to Date methods
-				const origMethod = Reflect.get(target, prop, receiver) as (...args: any[]) => any;
+				let origMethod = Reflect.get(target, prop, receiver) as (...args: any[]) => any;
 				
 				if ( typeof prop === 'symbol' || !origMethod ) {
 					return origMethod;
 				}
 
+				origMethod = origMethod.bind(target);
 				if (target instanceof Date && prop.toString().includes('set')) {
 					return function(...args: any[]) {
 						const oldValue = target.getTime();
-						const result = origMethod.apply(target, args);
+						const result = origMethod.call(target, args);
 						if (oldValue !== target.getTime()) {
 							onKeyTouch(key);
 						}

@@ -196,9 +196,8 @@ export function useForm<T extends Record<string, any>>(
 
 		splitterOptionsRef.current.preventStateUpdate = true;
 
-		for (const key of Object.keys(newFrom) as Array<keyof T>) {
-			stateRef.current[key as keyof T] = newFrom[key] as T[keyof T];
-		}
+		(Object.keys(newFrom) as Array<keyof T>)
+		.forEach((key) => stateRef.current[key as keyof T] = newFrom[key] as T[keyof T]);
 
 		if ( resetOptions.clearTouched ?? true ) {
 			clearTouches();
