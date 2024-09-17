@@ -6,18 +6,10 @@ import { ClassRegisterError } from './errors/ClassRegisterError';
 import { type SerializeMetaType, type DeserializeContext } from './types';
 
 const DeserializeFunctions: Record<string, (value: SerializeMetaType, context: DeserializeContext) => any> = {
-	[SerializePrototypes.Date]: (value: SerializeMetaType) => {
-		return new Date(value.value as string);
-	},
-	[SerializePrototypes.BigInt]: (value: SerializeMetaType) => {
-		return BigInt(value.value as string);
-	},
-	[SerializePrototypes.RegExp]: (value: SerializeMetaType) => {
-		return new RegExp(value.value.value as string, value.value.flags as string);
-	},
-	[SerializePrototypes.Url]: (value: SerializeMetaType) => {
-		return new URL(value.value as URL);
-	},
+	[SerializePrototypes.Date]: (value: SerializeMetaType) => new Date(value.value as string),
+	[SerializePrototypes.BigInt]: (value: SerializeMetaType) => BigInt(value.value as string),
+	[SerializePrototypes.RegExp]: (value: SerializeMetaType) => new RegExp(value.value.value as string, value.value.flags as string),
+	[SerializePrototypes.Url]: (value: SerializeMetaType) => new URL(value.value as URL),
 	[SerializePrototypes.Error]: (value: SerializeMetaType) => {
 		const error = new Error(
 			value.value.message as string,
@@ -30,18 +22,9 @@ const DeserializeFunctions: Record<string, (value: SerializeMetaType, context: D
 
 		return error;
 	},
-	[SerializePrototypes.Set]: (value: SerializeMetaType, context: DeserializeContext) => {
-		return new Set(deserializeArray((value.value as any[]), context));
-	},
-	[SerializePrototypes.Map]: (value: SerializeMetaType, context: DeserializeContext) => {
-		return new Map(deserializeArray((value.value as any[]), context));
-	},
-	[SerializePrototypes.Object]: (value: SerializeMetaType, context: DeserializeContext) => {
-		return deserializeValues(value, context, {});
-	},
-	[SerializePrototypes.Array]: (value: SerializeMetaType, context: DeserializeContext) => {
-		return deserializeArray((value.value as any[]), context);
-	},
+	[SerializePrototypes.Set]: (value: SerializeMetaType, context: DeserializeContext) => new Set(deserializeArray((value.value as any[]), context)),
+	[SerializePrototypes.Map]: (value: SerializeMetaType, context: DeserializeContext) => new Map(deserializeArray((value.value as any[]), context)),
+	[SerializePrototypes.Array]: (value: SerializeMetaType, context: DeserializeContext) => deserializeArray((value.value as any[]), context),
 	[SerializePrototypes.Repeat]: (value: SerializeMetaType, context: DeserializeContext) => {
 		const key = value.repeatKey!;
 
@@ -58,14 +41,12 @@ const DeserializeFunctions: Record<string, (value: SerializeMetaType, context: D
 };
 
 function deserializeValues(serializedMeta: SerializeMetaType, context: DeserializeContext, initialVal: Record<any, any>) {
-	const obj = initialVal;
-
 	for (const key in serializedMeta.value) {
 		const v = deserializeMeta((serializedMeta.value as Record<any, SerializeMetaType>)[key], context);
-		obj[key] = v === 'undefined' ? undefined : v;
+		initialVal[key] = v === 'undefined' ? undefined : v;
 	} 
 
-	return obj;
+	return initialVal;
 }
 
 function deserializeArray(serializedMeta: any[], context: DeserializeContext) {

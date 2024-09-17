@@ -30,13 +30,13 @@ export const useWatch = <T extends Record<string, any>>(): UseWatchReturn<T> => 
 
 	const onSubmitWatch = async (form: T) => {
 		await Promise.all(
-			Array.from(submitWatchRefs.current.values())
-			.map((method) => Promise.resolve(method(form)))
+			Array.from(submitWatchRefs.current)
+			.map((method) => method(form))
 		);
 	};
 
 	return {
-		watch: watch as unknown as UseWatchReturn<T>['watch'],
+		watch,
 		onSubmitWatch,
 		watchedRefs
 	};

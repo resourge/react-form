@@ -6,7 +6,7 @@ import { type SerializeCache, type SerializeMetaType } from './types';
 function serializeMeta(
 	obj: any, 
 	cache: SerializeCache
-): SerializeMetaType | any {
+): SerializeMetaType | any {  
 	switch ( typeof obj ) {
 		case 'boolean':
 		case 'string':
@@ -40,22 +40,19 @@ function serializeMeta(
 			if (obj instanceof Set) {
 				return {
 					prototype: SerializePrototypes.Set,
-					value: Array.from(obj.values(), (val) => serializeMeta(val, cache))
+					value: Array.from(obj, (val) => serializeMeta(val, cache))
 				};
 			}
 			if (obj instanceof Map) {
 				return {
 					prototype: SerializePrototypes.Map,
-					value: Array.from(
-						obj.entries(), 
-						(val) => serializeMeta(val, cache)
-					)
+					value: Array.from(obj, (val) => serializeMeta(val, cache))
 				};
 			}
 			if (obj instanceof RegExp) {
 				return {
 					value: {
-						value: obj.toString().slice(1, -1 - (obj.flags.length)),
+						value: obj.source,
 						flags: obj.flags
 					},
 					prototype: SerializePrototypes.RegExp
@@ -88,15 +85,15 @@ function serializeObj(
 	obj: Record<string, any>, 
 	serializeCache: SerializeCache
 ): SerializeMetaType {
-	const serializeCacheValue = serializeCache.get(obj);
-	if ( serializeCacheValue ) {
-		if ( !serializeCacheValue.used ) {
-			serializeCacheValue.used = true;
+	const cacheValue = serializeCache.get(obj);
+	if ( cacheValue ) {
+		if ( !cacheValue.used ) {
+			cacheValue.used = true;
 
-			serializeCache.set(obj, serializeCacheValue);
+			serializeCache.set(obj, cacheValue);
 		}
 		return {
-			repeatKey: serializeCacheValue.index,
+			repeatKey: cacheValue.index,
 			prototype: SerializePrototypes.Repeat
 		};
 	}
@@ -114,7 +111,7 @@ function serializeObj(
 	}
 
 	const objSerializeMeta: SerializeMetaType = {
-		prototype: SerializePrototypes[objName] ?? objName,
+		prototype: prototype ?? objName,
 		value: {}
 	};
 

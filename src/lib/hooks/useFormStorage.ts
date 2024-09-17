@@ -76,16 +76,24 @@ export function useFormStorage<T extends Record<string, any>>(
 	defaultValue: T | (() => T) | ({ new(): T }), 
 	options: FormStorageOptions<T>
 ): UseFormStorageReturn<T> {
+	const {
+		storage,
+		uniqueId,
+		autoSyncWithStorage = true,
+		onLoading = () => {},
+		onStorageError = () => {},
+		shouldClearAfterSubmit = true,
+		version = '1.0.0',
+		onChange,
+		onSubmit
+	} = options;
 	if ( IS_DEV ) {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const uniqueIdRef = useRef(options.uniqueId);
-		if ( options.uniqueId !== uniqueIdRef.current ) {
+		const uniqueIdRef = useRef(uniqueId);
+		if ( uniqueId !== uniqueIdRef.current ) {
 			throw new Error('uniqueId must be a static value');
 		}
 	}
-
-	const onStorageError = options.onStorageError ?? (() => {});
-	const version = options.version ?? '1.0.0';
 
 	const formResult = useForm<T>(
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
@@ -93,12 +101,10 @@ export function useFormStorage<T extends Record<string, any>>(
 		{
 			...options,
 			onChange: (form, errors) => {
-				if ( options.onChange ) {
-					options.onChange(form, errors);
-				}
+				onChange?.(form, errors);
 				Promise.resolve(
-					options.storage.setItem(
-						options.uniqueId,
+					storage.setItem(
+						uniqueId,
 						JSON.stringify({
 							version,
 							serializedState: {
@@ -110,11 +116,9 @@ export function useFormStorage<T extends Record<string, any>>(
 				.catch(onStorageError);
 			},
 			onSubmit: (form, errors) => {
-				if ( options.onSubmit ) {
-					options.onSubmit(form, errors);
-				}
-				if ( options.shouldClearAfterSubmit ?? true ) {
-					Promise.resolve(options.storage.removeItem(options.uniqueId))
+				onSubmit?.(form, errors);
+				if ( shouldClearAfterSubmit ) {
+					Promise.resolve(storage.removeItem(uniqueId))
 					.catch(onStorageError);
 				}
 			}
@@ -122,34 +126,35 @@ export function useFormStorage<T extends Record<string, any>>(
 	);
 
 	const restoreFromStorage = async () => {
-		const storageState = await Promise.resolve(options.storage.getItem(options.uniqueId));
+		const storageState = await Promise.resolve(storage.getItem(uniqueId));
 
-		if ( storageState ) {
-			const { version: storageVersion, serializedState } = JSON.parse(storageState) as { 
-				serializedState: { form: string }
-				version: string 
-			};
-			const deserializeForm = deserialize<T>(serializedState.form);
+		if (!storageState) {
+			return;
+		};
+
+		const { version: storageVersion, serializedState } = JSON.parse(storageState) as { 
+			serializedState: { form: string }
+			version: string 
+		};
 			
-			if ( storageVersion === version ) {
-				formResult.triggerChange((form) => {
-					Object.keys(deserializeForm)
-					.forEach((key) => {
-						form[key as keyof typeof form] = deserializeForm[key as keyof typeof form];
-					});
-				});
-			}
-			else {
-				Promise.resolve(options.storage.removeItem(options.uniqueId))
-				.catch(onStorageError);
-			}
+		if ( storageVersion === version ) {
+			const deserializeForm = deserialize<T>(serializedState.form);
+
+			formResult.triggerChange((form) => {
+				for (const key of Object.keys(deserializeForm) as Array<keyof T>) {
+					form[key] = deserializeForm[key];
+				}
+			});
+		}
+		else {
+			Promise.resolve(storage.removeItem(uniqueId))
+			.catch(onStorageError);
 		}
 	};
 
 	useEffect(() => {
-		if ( options.autoSyncWithStorage ?? true ) {
+		if ( autoSyncWithStorage ) {
 			(async () => {
-				const onLoading = options.onLoading ?? (() => {});
 				onLoading(true);
 				try {
 					await restoreFromStorage();

@@ -21,7 +21,7 @@ export const useTouches = <T extends Record<string, any>>() => {
 
 	return {
 		touchesRef,
-		changedKeys: Array.from(changedKeys.current.values()),
+		changedKeys: Array.from(changedKeys.current),
 		updateTouches,
 		clearTouches
 	};

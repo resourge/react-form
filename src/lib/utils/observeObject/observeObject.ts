@@ -1,7 +1,7 @@
 type OnKeyTouch = (key: string) => void;
 
 function isObjectOrArray(value: any): value is object {
-	return typeof value === 'object';
+	return value !== null && typeof value === 'object';
 }
 
 function isBuiltinWithMutableMethods(value: any) {
@@ -13,16 +13,16 @@ function isBuiltinWithMutableMethods(value: any) {
 		|| ArrayBuffer.isView(value);
 }
 
-function setProperty(target: any, property: string, value: any, receiver: any, previous: any) { // eslint-disable-line max-params
-	if (previous !== undefined ) {
-		return Reflect.set(target, property, value, receiver);
-	}
-
-	return Reflect.set(target, property, value);
+function isBuiltinWithoutMutableMethods(value: any) {
+	return value === null
+		|| typeof value !== 'object'
+		|| value instanceof RegExp;
 }
 
-function isBuiltinWithoutMutableMethods(value: any) {
-	return (isObjectOrArray(value) ? value === null : typeof value !== 'function') || value instanceof RegExp;
+function setProperty(target: any, property: string, value: any, receiver: any, previous: any) { // eslint-disable-line max-params
+	return previous !== undefined
+		? Reflect.set(target, property, value, receiver)
+		: Reflect.set(target, property, value);
 }
 
 const TARGET_VALUE = Symbol('TargetValue');
@@ -30,6 +30,20 @@ const TARGET_VALUE = Symbol('TargetValue');
 const getTargetValue = (value: any) => value
 	? (value[TARGET_VALUE] ?? value)
 	: value;
+
+/**
+ * Constructs a key for the property based on the target type and key.
+ */
+function constructKey<T extends object | Date | Map<any, any> | Set<any> | WeakMap<any, any>>(
+	target: T, 
+	prop: string | symbol, 
+	key: string
+): string {
+	const _prop = String(prop);
+	return key 
+		? `${key}${Array.isArray(target) ? `[${_prop}]` : `.${_prop}`}` 
+		: _prop;
+}
 
 function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | WeakMap<any, any>>(
 	target: T, 
@@ -41,72 +55,65 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 		return {
 			get(target: T, prop, receiver) {
 				// Handle changes to Date methods
-				let origMethod = Reflect.get(target, prop, receiver) as (...args: any[]) => any;
+				const origMethod = Reflect.get(target, prop, receiver) as (...args: any[]) => any;
 				
-				if ( typeof prop === 'symbol' ) {
+				if ( typeof prop === 'symbol' || !origMethod ) {
 					return origMethod;
 				}
 
-				if ( origMethod ) {
-					origMethod = origMethod.bind(target);
-					if ( typeof origMethod === 'function' ) {
-						if ( target instanceof Date ) {
-							if ( prop.toString().includes('set') ) {
-								return function(...args: any[]) {
-									const oldValue = target.getTime();
-
-									const result = origMethod.apply(target, args);
-									if (oldValue !== target.getTime()) {
-										onKeyTouch(key);
-									}
-									return result;
-								};
-							}
+				if (target instanceof Date && prop.toString().includes('set')) {
+					return function(...args: any[]) {
+						const oldValue = target.getTime();
+						const result = origMethod.apply(target, args);
+						if (oldValue !== target.getTime()) {
+							onKeyTouch(key);
 						}
-						else {
-							if ( prop === 'add' ) {
-								return function(...args: any[]) {
-									const hasValue = (target as Map<any, any>).has(args[0]);
+						return result;
+					};
+				}
 
-									const result = origMethod.apply(target, args);
-									if (!hasValue) {
-										onKeyTouch(key);
-									}
-									return result;
-								};
-							}
-							if ( prop === 'set' ) {
-								return function(...args: any[]) {
-									const oldValue = (target as Map<any, any>).get(args[0]);
+				if ( typeof origMethod === 'function' ) {
+					if ( prop === 'add' ) {
+						return function(...args: any[]) {
+							const hasValue = (target as Map<any, any>).has(args[0]);
 
-									const result = origMethod.apply(target, args);
-									if ( !Object.is(oldValue, args[1]) ) {
-										onKeyTouch(key);
-									}
-									return result;
-								};
+							const result = origMethod.apply(target, args);
+							if (!hasValue) {
+								onKeyTouch(key);
 							}
-							if ( prop === 'delete' ) {
-								return function(...args: any[]) {
-									const result = origMethod.apply(target, args);
-									if (result) {
-										onKeyTouch(key);
-									}
-									return result;
-								};
-							}
-							if ( prop === 'clear' ) {
-								return function() {
-									const oldSize = (target as Map<any, any>).size;
+							return result;
+						};
+					}
+					if ( prop === 'set' ) {
+						return function(...args: any[]) {
+							const oldValue = (target as Map<any, any>).get(args[0]);
 
-									const result = origMethod.apply(target);
-									if (oldSize !== (target as Map<any, any>).size) {
-										onKeyTouch(key);
-									}
-									return result;
-								};
+							const result = origMethod.apply(target, args);
+							if ( !Object.is(oldValue, args[1]) ) {
+								onKeyTouch(key);
 							}
-						}
+							return result;
+						};
+					}
+					if ( prop === 'delete' ) {
+						return function(...args: any[]) {
+							const result = origMethod.apply(target, args);
+							if (result) {
+								onKeyTouch(key);
+							}
+							return result;
+						};
+					}
+					if ( prop === 'clear' ) {
+						return function() {
+							const oldSize = (target as Map<any, any>).size;
+
+							const result = origMethod.apply(target);
+							if (oldSize !== (target as Map<any, any>).size) {
+								onKeyTouch(key);
+							}
+							return result;
+						};
 					}
 				}
 				return origMethod;
@@ -114,34 +121,21 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 		};
 	}
 
-	function constructKey(prop: string | Symbol): string {
-		const _prop = String(prop);
-		return !key ? _prop : `${key}${Array.isArray(target) ? `[${_prop}]` : `.${_prop}`}`;
-	}
 	return {
 		get(target, prop, receiver) {
-			if (typeof prop === 'symbol') {
-				if ( prop === TARGET_VALUE ) {
-					return target;
-				}
+			if (typeof prop === 'symbol' && prop === TARGET_VALUE ) {
+				return target;
 			}
 
 			const value: any = Reflect.get(target, prop, receiver);
-			if ( 
-				(
-					isObjectOrArray(value) 
-					|| isBuiltinWithMutableMethods(value)
-				)
-				&& !isBuiltinWithoutMutableMethods(value)
-			) {
+			if ( isObjectOrArray(value) && !isBuiltinWithoutMutableMethods(value) ) {
 				const reflectTarget = value[TARGET_VALUE as keyof typeof value];
-				const source = reflectTarget ?? value;
 
 				return getProxy(
-					source, 
+					reflectTarget ?? value, 
 					onKeyTouch,
 					cache, 
-					constructKey(prop)
+					constructKey(target, prop, key)
 				);
 			}
 
@@ -153,10 +147,16 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 			const reflectTarget = target[TARGET_VALUE as keyof typeof target] ?? target;
 			const previous = reflectTarget[prop as keyof typeof reflectTarget];
 
-			const success = setProperty(reflectTarget, prop.toString(), value, receiver, previous);
+			const success = setProperty(
+				reflectTarget, 
+				prop.toString(), 
+				value, 
+				receiver, 
+				previous
+			);
 
 			if ( success && !Object.is(previous, value) ) {
-				onKeyTouch(constructKey(prop));
+				onKeyTouch(constructKey(target, prop, key));
 			}
 
 			return success;
@@ -165,7 +165,7 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 			const success = Reflect.deleteProperty(target, prop);
 
 			if ( success ) {
-				onKeyTouch(constructKey(prop));
+				onKeyTouch(constructKey(target, prop, key));
 			}
 
 			return success;

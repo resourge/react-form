@@ -1,5 +1,10 @@
 import { type FormErrors } from '../types/formTypes';
-
+/**
+ * Compares two arrays of strings for equality.
+ * @param arr1 - First array.
+ * @param arr2 - Second array.
+ * @returns True if arrays are equal, otherwise false.
+ */
 export function arrayOfStringCompare(arr1: string[] = [], arr2: string[] = []) {
 	if (arr1.length !== arr2.length) {
 		return false;
@@ -13,6 +18,12 @@ export function arrayOfStringCompare(arr1: string[] = [], arr2: string[] = []) {
 	return true;
 }
 
+/**
+ * Deeply compares two FormErrors objects.
+ * @param obj1 - First FormErrors object.
+ * @param obj2 - Second FormErrors object.
+ * @returns True if both objects are deeply equal, otherwise false.
+ */
 export function deepCompare<T extends Record<string, any>>(
 	obj1: FormErrors<T>,
 	obj2: FormErrors<T>

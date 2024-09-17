@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/prefer-promise-reject-errors */
 /* eslint-disable @typescript-eslint/prefer-function-type */
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
@@ -46,7 +47,7 @@ const validateState = <T extends Record<string, any>>(
 	changedKeys: Array<FormKey<T>>,
 	validate: FormOptions<T>['validate']
 ): FormErrors<T> | Promise<FormErrors<T>> => {
-	const onSuccess = (errors: void | ValidationErrors): FormErrors<T> => {
+	const handleSuccess = (errors: void | ValidationErrors): FormErrors<T> => {
 		if ( errors && errors.length ) {
 			// eslint-disable-next-line @typescript-eslint/no-throw-literal, @typescript-eslint/only-throw-error
 			throw errors;
@@ -56,15 +57,11 @@ const validateState = <T extends Record<string, any>>(
 	};
 
 	try {
-		const result = validate && validate(form, changedKeys);
+		const result = validate?.(form, changedKeys);
 
-		if ( result instanceof Promise ) {
-			return result
-			.then(onSuccess)
-			.catch(formatErrors);
-		}
-
-		return onSuccess(result);
+		return result instanceof Promise
+			? result.then(handleSuccess).catch(formatErrors)
+			: handleSuccess(result);
 	}
 	catch ( err ) {
 		return formatErrors(err as ValidationErrors);
@@ -87,10 +84,8 @@ export function useForm<T extends Record<string, any>>(
 	defaultValue: T | (() => T) | ({ new(): T }), 
 	options: FormOptions<T> = {}
 ): UseFormReturn<T> {
-	const _state = useState(0);
-	const forceUpdate = () => _state[1]((x) => x + 1);
-
-	// #region State
+	const [_, setState] = useState(0);
+	const forceUpdate = () => setState((x) => x + 1);
 
 	const stateRef = useProxy<T>(
 		() => (
@@ -117,12 +112,7 @@ export function useForm<T extends Record<string, any>>(
 				}
 			}
 
-			if ( options.onChange ) {
-				options.onChange(
-					stateRef.current,
-					errorRef.current
-				);
-			}
+			options.onChange?.(stateRef.current, errorRef.current);
 
 			if ( !splitterOptionsRef.current.preventStateUpdate ) {
 				forceUpdate();
@@ -130,7 +120,6 @@ export function useForm<T extends Record<string, any>>(
 		}
 	);
 
-	// #endregion State
 	const firstSubmitRef = useRef(false);
 	const splitterOptionsRef = useRef<SplitterOptions & { preventStateUpdate?: boolean }>({});
 
@@ -165,9 +154,6 @@ export function useForm<T extends Record<string, any>>(
 		onSubmitWatch
 	} = useWatch<T>();
 
-	/**
-	 * Handles the form submit
-	 */
 	const handleSubmit = <K = void>(
 		onValid: SubmitHandler<T, K>,
 		onInvalid?: ValidateSubmission<T>,
@@ -175,21 +161,11 @@ export function useForm<T extends Record<string, any>>(
 	) => async (e?: FormEvent<HTMLFormElement> | React.MouseEvent<any, React.MouseEvent> | React.BaseSyntheticEvent) => {
 		splitterOptionsRef.current.filterKeysError = filterKeysError;
 		try {
-			if ( e ) {
-				e.preventDefault();
-				e.persist();
-			}
-
+			e?.preventDefault?.();
 			firstSubmitRef.current = true;
 
 			const errors = await validateForm();
-
-			if ( options.onSubmit ) {
-				options.onSubmit(
-					stateRef.current, 
-					errorRef.current
-				);
-			}
+			options.onSubmit?.(stateRef.current, errorRef.current);
 
 			if ( Object.keys(errors).length ) {
 				const canGoOn = onInvalid
@@ -212,7 +188,6 @@ export function useForm<T extends Record<string, any>>(
 		}
 	};
 
-	// #region State
 	const reset: ResetMethod<T> = (
 		newFrom, 
 		resetOptions = {}
@@ -221,10 +196,9 @@ export function useForm<T extends Record<string, any>>(
 
 		splitterOptionsRef.current.preventStateUpdate = true;
 
-		(Object.keys(newFrom) as Array<keyof T>)
-		.forEach((key) => {
+		for (const key of Object.keys(newFrom) as Array<keyof T>) {
 			stateRef.current[key as keyof T] = newFrom[key] as T[keyof T];
-		});
+		}
 
 		if ( resetOptions.clearTouched ?? true ) {
 			clearTouches();
@@ -246,14 +220,6 @@ export function useForm<T extends Record<string, any>>(
 		}
 	};
 
-	const resetTouch = () => {
-		clearTouches();
-
-		forceUpdate();
-	};
-	// #endregion State
-
-	// #region Form elements
 	const onChange = (
 		key: FormKey<T>, 
 		fieldOptions: FieldOptions = {}
@@ -262,15 +228,7 @@ export function useForm<T extends Record<string, any>>(
 
 		const target = value && (value as ChangeEvent<HTMLInputElement>).currentTarget;
 
-		if ( 
-			target 
-			&& target.tagName 
-			&& (
-				target.tagName.toLocaleUpperCase() === 'INPUT' 
-				|| target.tagName.toLocaleUpperCase() === 'TEXTAREA'
-				|| target.tagName.toLocaleUpperCase() === 'SELECT'
-			) 
-		) {
+		if (target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName.toUpperCase())) {
 			_value = target.value as T[FormKey<T>];
 		}
 
@@ -307,11 +265,7 @@ export function useForm<T extends Record<string, any>>(
 					// @ts-expect-error fieldOptions if going to change splitterOptionsRef, and that is where preventStateUpdate is going
 					preventStateUpdate: true
 				}),
-				onBlur: () => {
-					if ( touchesRef.current[key] ) {
-						forceUpdate();
-					}
-				},
+				onBlur: () => touchesRef.current[key] && forceUpdate(),
 				defaultValue: value
 			};
 		}
@@ -331,31 +285,6 @@ export function useForm<T extends Record<string, any>>(
 		};
 	}) as FieldForm<T>;
 
-	const changeValue = (
-		key: FormKey<T>, 
-		value: T[FormKey<T>], 
-		produceOptions?: FieldOptions
-	) => onChange(key, produceOptions)(value);
-	// #endregion Form elements
-
-	// #region Errors
-	const setError = (
-		newErrors: Array<{
-			errors: string[]
-			path: FormKey<T>
-		}>
-	) => updateErrors(
-		formatErrors([
-			...Object.entries(errorRef.current)
-			.map(([path, errors]) => ({
-				path,
-				errors
-			})) as ValidationWithErrors[],
-			...newErrors
-		])
-	);
-	// #endregion Errors
-
 	return {
 		form: stateRef.current,
 		get context() {
@@ -363,22 +292,31 @@ export function useForm<T extends Record<string, any>>(
 		},
 		errors: errorRef.current,
 		get isValid(): boolean {
-			return Object.keys(this.errors).length === 0;
+			return !Object.keys(errorRef.current).length;
 		},
 		touches: touchesRef.current as any,
 		get isTouched() {
-			return Object.keys(this.touches).length !== 0;
+			return !!Object.keys(touchesRef.current).length;
 		},
-		// #region Form actions
 		field,
 		triggerChange,
 		handleSubmit,
-
-		setError,
-		hasError: (
-			key: FormKey<T>, 
-			options: GetErrorsOptions = {}
-		): boolean => getErrors(key, options).length > 0,
+		setError: (
+			newErrors: Array<{
+				errors: string[]
+				path: FormKey<T>
+			}>
+		) => updateErrors(
+			formatErrors([
+				...Object.entries(errorRef.current)
+				.map(([path, errors]) => ({
+					path,
+					errors
+				})) as ValidationWithErrors[],
+				...newErrors
+			])
+		),
+		hasError: (key: FormKey<T>, options: GetErrorsOptions = {}): boolean => !!getErrors(key, options).length,
 		getErrors,
 
 		// @ts-expect-error changedKeys for UseFormReturnController
@@ -386,12 +324,20 @@ export function useForm<T extends Record<string, any>>(
 
 		reset,
 		onChange,
-		changeValue,
+		changeValue: (
+			key: FormKey<T>, 
+			value: T[FormKey<T>], 
+			produceOptions?: FieldOptions
+		) => onChange(key, produceOptions)(value),
 		getValue,
 
-		resetTouch,
+		resetTouch: () => {
+			clearTouches();
+
+			forceUpdate();
+		},
 		watch,
-		updateController: (key) => updateTouches(key),
+		updateController: updateTouches,
 		// #endregion Form actions
 		toJSON() {
 			return {

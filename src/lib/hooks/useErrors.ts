@@ -30,15 +30,16 @@ export const useErrors = <T extends Record<string, any>>(
 	const isValidatingFormRef = useRef(false);
 
 	const setErrors = (errors: FormErrors<T>) => {
-		const keys = Object.keys(errors);
+		const errorKeys = Object.keys(errors);
 		
+		// Clear old errors for keys that no longer have errors
 		Object.keys(
 			filterObject(
 				errorRef.current, 
 				splitterOptionsRef.current.filterKeysError
 			)
 		)
-		.filter((key) => !keys.includes(key))
+		.filter((key) => !errorKeys.includes(key))
 		.forEach(updateTouches);
 
 		errorRef.current = errors;
@@ -56,8 +57,7 @@ export const useErrors = <T extends Record<string, any>>(
 		});
 
 		if (
-			newTouches.length > 0
-			|| !deepCompare(newErrors, errorRef.current)
+			newTouches.length || !deepCompare(newErrors, errorRef.current)
 		) { 
 			setErrors(newErrors);
 			forceUpdate();
@@ -81,7 +81,7 @@ export const useErrors = <T extends Record<string, any>>(
 
 		if ( res instanceof Promise ) {
 			isValidatingFormRef.current = true;
-			res.then((err) => updateErrors(err));
+			res.then(updateErrors);
 		}
 		else {
 			setErrors(res);
@@ -92,13 +92,13 @@ export const useErrors = <T extends Record<string, any>>(
 		key: FormKey<Model>, 
 		options: GetErrorsOptions = {}
 	): GetErrors {
-		if ( touchesRef.current[key] === undefined ) {
-			if ( options.onlyOnTouch ?? true ) {
-				return [];
-			}
-			touchesRef.current[key] = {};
+		if (!touchesRef.current[key] && (options.onlyOnTouch ?? true)) {
+			return [];
 		}
+
+		touchesRef.current[key] = touchesRef.current[key] ?? {};
 		let newErrors = cacheErrors.current.get(touchesRef.current[key]);
+
 		if ( !newErrors ) {
 			const {
 				strict = true,

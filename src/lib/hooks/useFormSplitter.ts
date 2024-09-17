@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
 import { useControllerContext } from '../contexts/ControllerContext';
-import { type FormContextObject, useFormContext } from '../contexts/FormContext';
+import { useFormContext } from '../contexts/FormContext';
 import { type FormKey } from '../types/FormKey';
 import { type PathValue } from '../types/PathValue';
 import { type UseFormReturn } from '../types/formTypes';
@@ -41,16 +41,9 @@ export function useFormSplitter<
 	formFieldKey?: K
 ): FormSplitterResult<T, K> {
 	const controllerContext = useControllerContext<any>();
-	let context: FormContextObject<any>;
-	let _formFieldKey = formFieldKey!;
-	if ( controllerContext ) {
-		context = controllerContext.context;
-		_formFieldKey = formFieldKey ?? controllerContext.name as K;
-	}
-	else {
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		context = useFormContext<any>();
-	}
+	// eslint-disable-next-line react-hooks/rules-of-hooks
+	const context = controllerContext?.context ?? useFormContext<any>();
+	const _formFieldKey = formFieldKey ?? (controllerContext?.name as K);
 
 	if ( IS_DEV ) {
 		if ( !_formFieldKey ) {
@@ -75,17 +68,17 @@ export function useFormSplitter<
 			return filterObjectByKey(context.touches, _formFieldKey);
 		},
 		get isTouched() {
-			return Object.keys(this.touches).length > 0;
+			return !!Object.keys(this.touches).length;
 		},
 		get isValid() {
-			return Object.keys(this.errors).length === 0;
+			return !Object.keys(this.errors).length;
 		},
 		handleSubmit: (
 			onValid, 
 			onInvalid
 		) => context.handleSubmit(
 			() => onValid(context.getValue(_formFieldKey)), 
-			(errors, error) => Object.keys(filterObjectByKey(errors, _formFieldKey)).length === 0 && (onInvalid ? onInvalid(filterObjectByKey(errors, _formFieldKey), error) : true),
+			(errors, error) => !Object.keys(filterObjectByKey(errors, _formFieldKey)).length && (onInvalid ? onInvalid(filterObjectByKey(errors, _formFieldKey), error) : true),
 			// @ts-expect-error I want this to be able to only occur inside FormSplitter
 			filterKeysError
 		),

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { memo } from 'react';
 
 import { ControllerContext } from '../contexts/ControllerContext';
@@ -61,15 +62,18 @@ export const Controller = memo(function Controller({
 		</ControllerContext.Provider>
 	);
 }, (prevProps, nextProps) => {
-	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-	const isSameDeps = !nextProps.deps || (nextProps.deps && nextProps.deps.length === 0) || Boolean(nextProps.deps && prevProps.deps && nextProps.deps.some((dep, index) => dep === prevProps.deps![index]));
+	const isSameDeps = !nextProps.deps 
+		|| (
+			prevProps.deps 
+			&& nextProps.deps.length === prevProps.deps.length
+			&& nextProps.deps.every((dep, index) => dep === prevProps.deps![index])
+		)!;
 
-	// This is so "changedKeys" will only be visible
-	// with types to the controller 
+	// Determine if any of the changed keys are related to the name prop
 	const shouldUpdate = (nextProps.context as UseFormReturnController<Record<string, any>>)
 	.changedKeys.some((key) => key.includes(nextProps.name) || nextProps.name.includes(key));
 
 	return (
-		prevProps.name === nextProps.name && !(shouldUpdate) && isSameDeps
+		prevProps.name === nextProps.name && !shouldUpdate && isSameDeps
 	);
 }) as <T extends Record<string, any>>(props: ControllerProps<T>) => JSX.Element;

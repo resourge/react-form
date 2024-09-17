@@ -25,7 +25,7 @@ export type GetterSetter<T extends object> = Map<string, {
 	set: FormSetValue<T>
 }>;
 
-const maxLimitOfGetterSetter = 10000;
+const MAX_LIMIT_GETTER_SETTER = 10000;
 
 /**
  * To get and set form values
@@ -37,15 +37,19 @@ export const useGetterSetter = <T extends Record<string, any>>() => {
 
 	const checkGetterSetter = (key: FormKey<T>) => {
 		if ( !getterSetter.current.has(key) ) {
-			if ( getterSetter.current.size > maxLimitOfGetterSetter ) {
-				const firstElementKey: string = getterSetter.current.keys()
-				.next().value;
-				if ( firstElementKey ) {
-					getterSetter.current.delete(firstElementKey);
-				}
-			}
-			getterSetter.current.set(key, createGetterSetter(key));
+			return;
 		}
+		
+		// Ensure the cache doesn't exceed the limit
+		if ( getterSetter.current.size > MAX_LIMIT_GETTER_SETTER ) {
+			// Remove the first (oldest) element in the Map
+			const firstElementKey: string | undefined = getterSetter.current.keys()
+			.next().value;
+			if ( firstElementKey ) {
+				getterSetter.current.delete(firstElementKey);
+			}
+		}
+		getterSetter.current.set(key, createGetterSetter(key));
 	};
 
 	const set = (key: FormKey<T>, form: T, value: any) => {

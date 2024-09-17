@@ -1,18 +1,11 @@
 import { type FormKey } from '../types/FormKey';
 
 /**
- * determines if a variable is a class definition instead of a function
+ * Determines if a variable is a class definition instead of a function.
  */
-export function isClass(x: any) {
-	if ( typeof x === 'function' ) {
-		const prototype = Object.getOwnPropertyDescriptor(x, 'prototype');
-
-		if ( prototype ) { 
-			return !prototype.writable;
-		}
-	}
-
-	return false;
+export function isClass(x: any): x is new (...args: any[]) => any {
+	return typeof x === 'function' 
+		&& Object.getOwnPropertyDescriptor(x, 'prototype')?.writable === false;
 }
 
 /**
@@ -24,7 +17,7 @@ export const filterObject = <T extends Record<string, any>>(
 ): T => filterKey
 	? Object.fromEntries(
 		Object.entries(obj)
-		.filter(([key]) => filterKey(key as FormKey<T>))
+		.filter(([key]) => filterKey(key))
 	) as T
 	: obj;
 

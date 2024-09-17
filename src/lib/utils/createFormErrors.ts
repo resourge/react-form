@@ -1,4 +1,4 @@
-import { type ValidationError, type ValidationErrors, type ValidationWithErrors } from '../types/errorsTypes';
+import { type ValidationErrors } from '../types/errorsTypes';
 import { type FormErrors } from '../types/formTypes';
 
 export const formatErrors = <T extends Record<string, any>> (
@@ -12,7 +12,7 @@ export const formatErrors = <T extends Record<string, any>> (
 			obj[path] = [];
 		}
 
-		obj[path].push(...(value as ValidationError).error !== undefined ? [(value as ValidationError).error] : (value as ValidationWithErrors).errors);
+		obj[path].push(...'error' in value ? [value.error] : value.errors);
 
 		obj[path] = Array.from(new Set(obj[path]));
 
