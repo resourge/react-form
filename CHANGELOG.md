@@ -1,3 +1,10 @@
+## [1.26.1](https://github.com/resourge/react-form/compare/v1.26.0...v1.26.1) (2024-09-17)
+
+
+### Performance Improvements
+
+* **project:** improve readability, optimize and reduce code ([980bc1b](https://github.com/resourge/react-form/commit/980bc1b6e0a5bbfee45bb44420c1e898000da23b))
+
 # [1.26.0](https://github.com/resourge/react-form/compare/v1.25.0...v1.26.0) (2024-09-04)
 
 
