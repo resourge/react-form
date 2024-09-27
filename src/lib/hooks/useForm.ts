@@ -124,8 +124,10 @@ export function useForm<T extends Record<string, any>>(
 	const splitterOptionsRef = useRef<SplitterOptions & { preventStateUpdate?: boolean }>({});
 
 	const {
-		changedKeys, touchesRef, updateTouches, clearTouches
+		changedKeysRef, touchesRef, updateTouches, clearTouches
 	} = useTouches<T>();
+
+	const changedKeys = Array.from(changedKeysRef.current);
 
 	const {
 		errorRef,
@@ -138,7 +140,7 @@ export function useForm<T extends Record<string, any>>(
 		splitterOptionsRef,
 		validate: () => validateState(
 			stateRef.current,
-			changedKeys,
+			Array.from(changedKeysRef.current),
 			options.validate
 		),
 		updateTouches,
@@ -163,6 +165,9 @@ export function useForm<T extends Record<string, any>>(
 		try {
 			e?.preventDefault?.();
 			firstSubmitRef.current = true;
+
+			// This serves so onlyOnTouch validations still work on handleSubmit
+			changedKeysRef.current.add('*');
 
 			const errors = await validateForm();
 			options.onSubmit?.(stateRef.current, errorRef.current);
