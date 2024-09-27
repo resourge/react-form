@@ -1,3 +1,10 @@
+# [1.27.0](https://github.com/resourge/react-form/compare/v1.26.1...v1.27.0) (2024-09-27)
+
+
+### Features
+
+* **useform:** on submit, validate will also include * on changedKeys for validation ([4694884](https://github.com/resourge/react-form/commit/469488439f19488259a834100658ec25740b82cb))
+
 ## [1.26.1](https://github.com/resourge/react-form/compare/v1.26.0...v1.26.1) (2024-09-17)
 
 
