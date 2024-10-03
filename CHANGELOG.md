@@ -1,3 +1,10 @@
+## [1.27.1](https://github.com/resourge/react-form/compare/v1.27.0...v1.27.1) (2024-10-03)
+
+
+### Bug Fixes
+
+* **observeobject:** fix not working with File ([2c9c5af](https://github.com/resourge/react-form/commit/2c9c5afc30c400395442be449a9d4a0f519ada9d))
+
 # [1.27.0](https://github.com/resourge/react-form/compare/v1.26.1...v1.27.0) (2024-09-27)
 
 
