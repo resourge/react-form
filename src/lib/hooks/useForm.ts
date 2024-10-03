@@ -127,7 +127,7 @@ export function useForm<T extends Record<string, any>>(
 		changedKeysRef, touchesRef, updateTouches, clearTouches
 	} = useTouches<T>();
 
-	const changedKeys = Array.from(changedKeysRef.current);
+	const changedKeys = Array.from<string>(changedKeysRef.current);
 
 	const {
 		errorRef,

@@ -128,7 +128,7 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 				return target;
 			}
 
-			const value: any = Reflect.get(target, prop, receiver);
+			const value = target instanceof File ? Reflect.get(target, prop) : Reflect.get(target, prop, receiver);
 			if ( isObjectOrArray(value) && !isBuiltinWithoutMutableMethods(value) ) {
 				const reflectTarget = value[TARGET_VALUE as keyof typeof value];
 
