@@ -1,3 +1,10 @@
+# [1.28.0](https://github.com/resourge/react-form/compare/v1.27.1...v1.28.0) (2024-10-07)
+
+
+### Features
+
+* **useform:** change getter and setter to be done in the proxy ([f4788e3](https://github.com/resourge/react-form/commit/f4788e3b43b61a0db55cee98a9e92790a4b959a9))
+
 ## [1.27.1](https://github.com/resourge/react-form/compare/v1.27.0...v1.27.1) (2024-10-03)
 
 
