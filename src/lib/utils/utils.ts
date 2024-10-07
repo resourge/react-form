@@ -13,7 +13,7 @@ export function isClass(x: any): x is new (...args: any[]) => any {
  */
 export const filterObject = <T extends Record<string, any>>(
 	obj: T, 
-	filterKey?: (filterKey: FormKey<T>) => boolean
+	filterKey?: (filterKey: FormKey<T> | string) => boolean
 ): T => filterKey
 	? Object.fromEntries(
 		Object.entries(obj)

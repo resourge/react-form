@@ -10,9 +10,9 @@ export const useTouches = <T extends Record<string, any>>() => {
 		touchesRef.current = {};
 	};
 	
-	const updateTouches = (key: FormKey<T>) => {
+	const updateTouches = (key: FormKey<T> | string) => {
 		touchesRef.current[key] = {};
-		changedKeysRef.current.add(key);
+		changedKeysRef.current.add(key as FormKey<T>);
 	};
 	
 	useEffect(() => {

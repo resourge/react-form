@@ -9,7 +9,6 @@ import { type UseFormReturn } from '../types/formTypes';
 import { IS_DEV } from '../utils/constants';
 import { filterObjectByKey } from '../utils/utils';
 
-import { useGetterSetter } from './useGetterSetter';
 import { type WatchMethod } from './useWatch';
 
 export type FormSplitterResult<
@@ -55,8 +54,6 @@ export function useFormSplitter<
 
 	const filterKeysError = (key: string) => key.includes(_formFieldKey) || _formFieldKey.includes(key);
 
-	const getterSetter = useGetterSetter();
-
 	return {
 		get form() {
 			return context.getValue(_formFieldKey);
@@ -96,8 +93,9 @@ export function useFormSplitter<
 			filterKeysError
 		})(value),
 		reset: (newFrom, resetOptions) => {
-			getterSetter.set(_formFieldKey, context.form, newFrom);
-			return context.reset(newFrom, {
+			return context.reset({
+				[_formFieldKey]: newFrom
+			}, {
 				...resetOptions,
 				filterKeysError
 			});
@@ -108,7 +106,7 @@ export function useFormSplitter<
 			cb,
 			produceOptions
 		) => context.triggerChange(
-			(form: T) => cb(getterSetter.get(_formFieldKey, form)), 
+			(form: T) => cb(form[_formFieldKey]), 
 			{
 				...produceOptions,
 				filterKeysError

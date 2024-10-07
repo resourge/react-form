@@ -33,9 +33,6 @@ export type RecursiveKeyOf<TObj extends object, TraversedTypes = TObj> = {
 	[TKey in keyof TObj & (string | number)]: RecursiveKeyOfHandleValue<TObj[TKey], ToString<TKey>, TraversedTypes>;
 }[keyof TObj & (string | number)];
 
-export type FormKey<T extends Record<string, any> | any[]> = LiteralUnion<
-	T extends Array<infer E>
-		? RecursiveKeyOfHandleValue<E, `[${number}]`, number>
-		: RecursiveKeyOf<T>, 
-	string
->;
+export type FormKey<T extends Record<string, any> | any[]> = T extends Array<infer E>
+	? RecursiveKeyOfHandleValue<E, `[${number}]`, number>
+	: RecursiveKeyOf<T>;

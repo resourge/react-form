@@ -32,7 +32,6 @@ import { formatErrors } from '../utils/createFormErrors';
 import { isClass } from '../utils/utils';
 
 import { useErrors } from './useErrors';
-import { useGetterSetter } from './useGetterSetter';
 import { useProxy } from './useProxy';
 import { useTouches } from './useTouches';
 import { useWatch } from './useWatch';
@@ -97,7 +96,7 @@ export function useForm<T extends Record<string, any>>(
 				) : defaultValue
 		),
 		async (key) => {
-			updateTouches(key);
+			updateTouches(key as FormKey<T>);
 
 			if ( watchedRefs.current.size ) {
 				for (const [watchedKey, method] of watchedRefs.current) {
@@ -127,7 +126,7 @@ export function useForm<T extends Record<string, any>>(
 		changedKeysRef, touchesRef, updateTouches, clearTouches
 	} = useTouches<T>();
 
-	const changedKeys = Array.from<string>(changedKeysRef.current);
+	const changedKeys = Array.from<FormKey<T>>(changedKeysRef.current);
 
 	const {
 		errorRef,
@@ -148,8 +147,6 @@ export function useForm<T extends Record<string, any>>(
 		forceUpdate
 	});
 
-	const getterSetter = useGetterSetter<T>();
-
 	const {
 		watch,
 		watchedRefs,
@@ -167,7 +164,7 @@ export function useForm<T extends Record<string, any>>(
 			firstSubmitRef.current = true;
 
 			// This serves so onlyOnTouch validations still work on handleSubmit
-			changedKeysRef.current.add('*');
+			changedKeysRef.current.add('*' as FormKey<T>);
 
 			const errors = await validateForm();
 			options.onSubmit?.(stateRef.current, errorRef.current);
@@ -248,12 +245,12 @@ export function useForm<T extends Record<string, any>>(
 
 		splitterOptionsRef.current = fieldOptions;
 
-		getterSetter.set(key, stateRef.current, _value);
+		stateRef.current[key] = _value;
 
 		splitterOptionsRef.current = {};
 	};
 
-	const getValue = (key: FormKey<T>) => getterSetter.get(key, stateRef.current);
+	const getValue = (key: FormKey<T>) => stateRef.current[key];
 
 	const field = ((
 		key: FormKey<T>, 

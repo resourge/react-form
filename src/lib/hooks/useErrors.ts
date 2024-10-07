@@ -21,7 +21,7 @@ export const useErrors = <T extends Record<string, any>>(
 			preventStateUpdate?: boolean
 		}>
 		touchesRef: MutableRefObject<Record<string, object>>
-		updateTouches: (keys: FormKey<T>) => void
+		updateTouches: (keys: FormKey<T> | string) => void
 		validate: () => FormErrors<T> | Promise<FormErrors<T>>
 	}
 ) => {
@@ -112,7 +112,7 @@ export const useErrors = <T extends Record<string, any>>(
 				.forEach((errorKey) => {
 					if ( errorKey.includes(key) && errorKey !== key ) {
 						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-						newErrors!.push(...(errorRef.current[errorKey] ?? []));
+						newErrors!.push(...(errorRef.current[errorKey as FormKey<T>] ?? []) );
 					}
 				});
 			}

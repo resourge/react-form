@@ -1,3 +1,5 @@
+import { IS_DEV } from '../constants';
+
 type OnKeyTouch = (key: string) => void;
 
 function isObjectOrArray(value: any): value is object {
@@ -27,9 +29,7 @@ function setProperty(target: any, property: string, value: any, receiver: any, p
 
 const TARGET_VALUE = Symbol('TargetValue');
 
-const getTargetValue = (value: any) => value
-	? (value[TARGET_VALUE] ?? value)
-	: value;
+const getTargetValue = (value: any) => (value?.[TARGET_VALUE] ?? value);
 
 /**
  * Constructs a key for the property based on the target type and key.
@@ -43,6 +43,59 @@ function constructKey<T extends object | Date | Map<any, any> | Set<any> | WeakM
 	return key 
 		? `${key}${Array.isArray(target) ? `[${_prop}]` : `.${_prop}`}` 
 		: _prop;
+}
+
+function getDeepPath<T>({
+	prop, receiver, target, onKeyTouch, cache
+}: {
+	cache: WeakMap<any, any>
+	onKeyTouch: OnKeyTouch
+	prop: any
+	target: any
+	receiver?: any
+}): {
+		prop: string
+		receiver: any
+		target: T
+	} {
+	if (typeof prop === 'string' && prop.includes('.')) {
+		const parts = prop.split(/\.|\[|\]/).filter(Boolean);
+		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+		const lastKey = parts.pop()!;
+
+		const proxy = getProxy(
+			target, 
+			onKeyTouch,
+			cache
+		);
+
+		const _receiver = proxy[parts.join('.')];
+
+		try {
+			return {
+				target: _receiver[TARGET_VALUE],
+				prop: lastKey,
+				receiver: _receiver
+			};
+		}
+		catch {
+			if ( IS_DEV ) {
+				const error = new TypeError(`Cannot read properties of undefined (reading '${lastKey}') of ${parts.join('.')}`);
+
+				if ( error.stack ) {
+					error.stack = error.stack.substring(error.stack.indexOf('at Object.set'));
+				}
+
+				throw error;
+			}
+		}
+	}
+
+	return {
+		target,
+		prop: prop as string,
+		receiver
+	};
 }
 
 function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | WeakMap<any, any>>(
@@ -123,10 +176,22 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 	}
 
 	return {
-		get(target, prop, receiver) {
-			if (typeof prop === 'symbol' && prop === TARGET_VALUE ) {
-				return target;
+		get(_target, _prop, _receiver) {
+			if (typeof _prop === 'symbol' && _prop === TARGET_VALUE ) {
+				return _target;
 			}
+
+			const {
+				prop,
+				receiver,
+				target
+			} = getDeepPath<T>({
+				target: _target,
+				cache,
+				onKeyTouch,
+				prop: _prop,
+				receiver: _receiver
+			});
 
 			const value = target instanceof File ? Reflect.get(target, prop) : Reflect.get(target, prop, receiver);
 			if ( isObjectOrArray(value) && !isBuiltinWithoutMutableMethods(value) ) {
@@ -136,13 +201,25 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 					reflectTarget ?? value, 
 					onKeyTouch,
 					cache, 
-					constructKey(target, prop, key)
+					constructKey(target, _prop, key)
 				);
 			}
 
 			return value;
 		},
-		set(target, prop, value, receiver) {
+		set(_target, _prop, value, _receiver) {
+			const {
+				target,
+				prop,
+				receiver
+			} = getDeepPath<any>({
+				prop: _prop,
+				receiver: _receiver,
+				target: _target,
+				onKeyTouch,
+				cache
+			});
+
 			value = getTargetValue(value);
 
 			const reflectTarget = target[TARGET_VALUE as keyof typeof target] ?? target;
@@ -157,16 +234,26 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 			);
 
 			if ( success && !Object.is(previous, value) ) {
-				onKeyTouch(constructKey(target, prop, key));
+				onKeyTouch(constructKey(target, _prop, key));
 			}
 
 			return success;
 		},
-		deleteProperty(target, prop) {
+		deleteProperty(_target, _prop) {
+			const {
+				target,
+				prop
+			} = getDeepPath<object>({
+				prop: _prop,
+				target: _target,
+				onKeyTouch,
+				cache
+			});
+
 			const success = Reflect.deleteProperty(target, prop);
 
 			if ( success ) {
-				onKeyTouch(constructKey(target, prop, key));
+				onKeyTouch(constructKey(target, _prop, key));
 			}
 
 			return success;
