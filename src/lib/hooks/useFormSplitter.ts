@@ -12,13 +12,18 @@ import { filterObjectByKey } from '../utils/utils';
 import { type WatchMethod } from './useWatch';
 
 export type FormSplitterResult<
+	O extends Record<string, any>,
+	T extends Record<string, any>
+> = Omit<UseFormReturn<T>, 'context'>
+& {
+	context: UseFormReturn<O>['context']
+	splitterContext: Omit<FormSplitterResult<O, T>, 'splitterContext'>
+}; 
+
+export type FormSplitterResultFormKey<
 	T extends Record<string, any>,
 	K = FormKey<T>
-> = Omit<UseFormReturn<PathValue<T, K>>, 'context'>
-& {
-	context: UseFormReturn<T>['context']
-	splitterContext: FormSplitterResult<T, K>
-}; 
+> = FormSplitterResult<T, PathValue<T, K>>; 
 
 /**
  * Hook to create a splitter form. Serves to create a form for the specific "formFieldKey"
@@ -28,17 +33,17 @@ export type FormSplitterResult<
 export function useFormSplitter<
 	T extends Record<string, any>,
 	K extends FormKey<T>
->(): FormSplitterResult<T, K>;
+>(): FormSplitterResultFormKey<T, K>;
 export function useFormSplitter<
 	T extends Record<string, any>,
 	K extends FormKey<T>
->(formFieldKey: K): FormSplitterResult<T, K>;
+>(formFieldKey: K): FormSplitterResultFormKey<T, K>;
 export function useFormSplitter<
 	T extends Record<string, any>,
 	K extends FormKey<T>
 >(
 	formFieldKey?: K
-): FormSplitterResult<T, K> {
+): FormSplitterResultFormKey<T, K> {
 	const controllerContext = useControllerContext<any>();
 	// eslint-disable-next-line react-hooks/rules-of-hooks
 	const context = controllerContext?.context ?? useFormContext<any>();
@@ -128,5 +133,5 @@ export function useFormSplitter<
 			return this;
 		},
 		context: context.context
-	} as FormSplitterResult<T, K>;
+	} as FormSplitterResultFormKey<T, K>;
 }

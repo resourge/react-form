@@ -58,7 +58,7 @@ function getDeepPath<T>({
 		receiver: any
 		target: T
 	} {
-	if (typeof prop === 'string' && prop.includes('.')) {
+	if (typeof prop === 'string' && (prop.includes('.') || prop.includes('['))) {
 		const parts = prop.split(/\.|\[|\]/).filter(Boolean);
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		const lastKey = parts.pop()!;

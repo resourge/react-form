@@ -5,12 +5,12 @@ import { useForm } from '../hooks';
 import { type FormOptions, type UseFormReturn } from '../types';
 
 export type SetupJsonFormProps<
-	FormSchema extends object, 
+	FormSchema extends object,
 	DefaultData extends Record<string, any>
-> = { 
+> = {
 	schema: FormSchema
-	initialData?: DefaultData 
-};
+	initialData?: DefaultData
+} & Omit<FormOptions<Record<string, any>>, 'validate'>;
 
 export type SetupJsonFormConfig<Ref> = {
 	render: (
@@ -20,37 +20,32 @@ export type SetupJsonFormConfig<Ref> = {
 	) => JSX.Element
 	validate: (schema: unknown) => FormOptions<Record<string, any>>['validate']
 	getInitialData?: <T = unknown>(schema: T) => unknown
-} & Omit<FormOptions<Record<string, any>>, 'validate'>;
+};
 
-export function setupJsonForm<Ref>({
-	render,
-	validate,
-	getInitialData,
-	...formProps
+export function setupJsonForm<
+	Ref,
+	Props extends SetupJsonFormProps<Record<string, any>, Record<string, any>>
+>({
+	render, validate, getInitialData 
 }: SetupJsonFormConfig<Ref>) {
-	return forwardRef<
-		Ref,
-		SetupJsonFormProps<Record<string, any>, Record<string, any>>
-	>(function JsonForm(props, ref) {
+	return forwardRef<Ref, Props>(function JsonForm(props, ref) {
 		const schemaValidation = useMemo(() => validate(props.schema), []);
 
 		const formReturn = useForm<Record<string, any>>(
-			() => props.initialData ?? (getInitialData ? getInitialData(props.schema) : ({} as Record<string, any>)),
+			() =>
+				props.initialData
+				?? (getInitialData
+					? getInitialData(props.schema)
+					: ({} as Record<string, any>)),
 			{
-				...formProps,
+				...props,
 				validate: schemaValidation
 			}
 		);
 
 		return (
 			<FormProvider context={formReturn.context}>
-				{
-					render(
-						props,
-						formReturn,
-						ref
-					)
-				}
+				{ render(props, formReturn, ref) }
 			</FormProvider>
 		);
 	});
