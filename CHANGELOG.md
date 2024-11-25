@@ -1,3 +1,10 @@
+## [1.28.1](https://github.com/resourge/react-form/compare/v1.28.0...v1.28.1) (2024-11-25)
+
+
+### Bug Fixes
+
+* **useform:** fix getValue not working when trying to access array element ([09fc540](https://github.com/resourge/react-form/commit/09fc54053c7a288c6d569d3b7474baf29f19aad7))
+
 # [1.28.0](https://github.com/resourge/react-form/compare/v1.27.1...v1.28.0) (2024-10-07)
 
 
