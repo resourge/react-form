@@ -1,3 +1,10 @@
+## [1.28.2](https://github.com/resourge/react-form/compare/v1.28.1...v1.28.2) (2024-11-27)
+
+
+### Bug Fixes
+
+* **useformsplitter:** fix context, remove splitterContext and add originalContext ([523ca4f](https://github.com/resourge/react-form/commit/523ca4f1b26cd375a18fbf978ac4a56f7ef1b55d))
+
 ## [1.28.1](https://github.com/resourge/react-form/compare/v1.28.0...v1.28.1) (2024-11-25)
 
 
