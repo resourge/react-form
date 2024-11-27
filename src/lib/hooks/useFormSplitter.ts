@@ -14,10 +14,9 @@ import { type WatchMethod } from './useWatch';
 export type FormSplitterResult<
 	O extends Record<string, any>,
 	T extends Record<string, any>
-> = Omit<UseFormReturn<T>, 'context'>
+> = UseFormReturn<T>
 & {
-	context: UseFormReturn<O>['context']
-	splitterContext: Omit<FormSplitterResult<O, T>, 'splitterContext'>
+	originalContext: UseFormReturn<O>['context']
 }; 
 
 export type FormSplitterResultFormKey<
@@ -129,9 +128,9 @@ export function useFormSplitter<
 				}
 			};
 		},
-		get splitterContext() {
+		originalContext: context.context,
+		get context() {
 			return this;
-		},
-		context: context.context
+		}
 	} as FormSplitterResultFormKey<T, K>;
 }
