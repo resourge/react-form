@@ -1,3 +1,10 @@
+## [1.28.4](https://github.com/resourge/react-form/compare/v1.28.3...v1.28.4) (2024-12-04)
+
+
+### Bug Fixes
+
+* **usefrom:** fix getErrors with includeChildsIntoArray not working as intended ([0da450a](https://github.com/resourge/react-form/commit/0da450ad2db695b809d89a6dcc157430ae74dbf9))
+
 ## [1.28.3](https://github.com/resourge/react-form/compare/v1.28.2...v1.28.3) (2024-12-04)
 
 
