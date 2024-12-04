@@ -1,3 +1,10 @@
+## [1.28.3](https://github.com/resourge/react-form/compare/v1.28.2...v1.28.3) (2024-12-04)
+
+
+### Bug Fixes
+
+* **useformsplitter:** fix useFormSplitter not outputing the correct errors ([2564e61](https://github.com/resourge/react-form/commit/2564e6133c618520cc1d7bde2992195d49e7d0f2))
+
 ## [1.28.2](https://github.com/resourge/react-form/compare/v1.28.1...v1.28.2) (2024-11-27)
 
 
