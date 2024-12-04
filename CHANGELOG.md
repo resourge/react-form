@@ -1,3 +1,10 @@
+## [1.28.6](https://github.com/resourge/react-form/compare/v1.28.5...v1.28.6) (2024-12-04)
+
+
+### Bug Fixes
+
+* **useerrors:** fix getErrors not working in some specific situations ([6eed814](https://github.com/resourge/react-form/commit/6eed8142d4a063d6100e606d45af744c5384ed1b))
+
 ## [1.28.5](https://github.com/resourge/react-form/compare/v1.28.4...v1.28.5) (2024-12-04)
 
 
