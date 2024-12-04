@@ -7,7 +7,7 @@ import { type FormKey } from '../types/FormKey';
 import { type PathValue } from '../types/PathValue';
 import { type UseFormReturn } from '../types/formTypes';
 import { IS_DEV } from '../utils/constants';
-import { filterObjectByKey } from '../utils/utils';
+import { checkIfKeysExist, filterObjectByKeyAndMap } from '../utils/utils';
 
 import { type WatchMethod } from './useWatch';
 
@@ -63,10 +63,10 @@ export function useFormSplitter<
 			return context.getValue(_formFieldKey);
 		},
 		get errors() {
-			return filterObjectByKey(context.errors, _formFieldKey);
+			return filterObjectByKeyAndMap(context.errors, _formFieldKey);
 		},
 		get touches() {
-			return filterObjectByKey(context.touches, _formFieldKey);
+			return filterObjectByKeyAndMap(context.touches, _formFieldKey);
 		},
 		get isTouched() {
 			return !!Object.keys(this.touches).length;
@@ -79,7 +79,7 @@ export function useFormSplitter<
 			onInvalid
 		) => context.handleSubmit(
 			() => onValid(context.getValue(_formFieldKey)), 
-			(errors, error) => !Object.keys(filterObjectByKey(errors, _formFieldKey)).length && (onInvalid ? onInvalid(filterObjectByKey(errors, _formFieldKey), error) : true),
+			(errors, error) => !checkIfKeysExist(errors, _formFieldKey) && (onInvalid ? onInvalid(filterObjectByKeyAndMap(errors, _formFieldKey), error) : true),
 			// @ts-expect-error I want this to be able to only occur inside FormSplitter
 			filterKeysError
 		),
