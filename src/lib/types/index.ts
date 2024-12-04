@@ -11,7 +11,6 @@ export type {
 	ResetOptions,
 	SubmitHandler,
 	ValidateSubmission,
-	GetErrors,
 	GetErrorsOptions,
 	UseFormReturn,
 	Touches,

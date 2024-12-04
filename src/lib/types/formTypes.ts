@@ -21,23 +21,14 @@ export type FormErrors<T extends Record<string, any>> = {
 
 export type GetErrorsOptions = {
 	/**
-	 * Includes the children errors on the array (@default true)
+	 * Includes the children errors on the array (@default false)
 	 */
 	includeChildsIntoArray?: boolean
 	/**
 	 * When true only returns if the key was `touched` (@default true)
 	 */
 	onlyOnTouch?: boolean
-	/**
-	 * Includes children errors as objects into array. (@default true)
-	 * 
-	 * Note: If `includeChildsIntoArray` is true `strict`
-	 * will by default be false
-	 */
-	strict?: boolean
 };
-
-export type GetErrors = string[];
 
 export type ResetMethod<T extends Record<string, any>> = (newFrom: Partial<T>, resetOptions?: ResetOptions | undefined) => void;
 
@@ -281,7 +272,7 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * ///
 	 * ```
 	 */
-	getErrors: (key: FormKey<T>, options?: GetErrorsOptions) => GetErrors
+	getErrors: (key: FormKey<T>, options?: GetErrorsOptions) => string[]
 	/**
 	 * Return the value for the matched key
 	 * 

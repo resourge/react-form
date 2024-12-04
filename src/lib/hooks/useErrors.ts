@@ -1,12 +1,7 @@
 import { type MutableRefObject, useRef } from 'react';
 
 import { type FormKey } from '../types/FormKey';
-import {
-	type SplitterOptions,
-	type FormErrors,
-	type GetErrors,
-	type GetErrorsOptions
-} from '../types/formTypes';
+import { type SplitterOptions, type FormErrors, type GetErrorsOptions } from '../types/formTypes';
 import { deepCompare } from '../utils/comparationUtils';
 import { filterObject } from '../utils/utils';
 
@@ -26,7 +21,7 @@ export const useErrors = <T extends Record<string, any>>(
 	}
 ) => {
 	const errorRef = useRef<FormErrors<T>>({} as FormErrors<T>);
-	const cacheErrors = useRef<WeakMap<object, GetErrors>>(new WeakMap());
+	const cacheErrors = useRef<WeakMap<object, string[]>>(new WeakMap());
 	const isValidatingFormRef = useRef(false);
 
 	const setErrors = (errors: FormErrors<T>) => {
@@ -90,42 +85,38 @@ export const useErrors = <T extends Record<string, any>>(
 
 	function getErrors<Model extends Record<string, any> = T>(
 		key: FormKey<Model>, 
-		options: GetErrorsOptions = {}
-	): GetErrors {
-		const {
-			strict = true,
+		{
+			onlyOnTouch = true,
 			includeChildsIntoArray = false
-		} = options;
+		}: GetErrorsOptions = {}
+	): string[] {
+		const keys = includeChildsIntoArray
+			? Object.keys(touchesRef.current)
+			.filter((touchKey) => touchKey !== key && touchKey.startsWith(key))
+			: [];
 
-		const isTouched = options.onlyOnTouch ?? true;
+		keys.push(key);
 
-		const shouldInclude = includeChildsIntoArray
-			? (
-				!Object.keys(touchesRef.current)
-				.some((touchKey) => touchKey === key || touchKey.startsWith(key)) 
-				&& isTouched
-			)
-			: !touchesRef.current[key] && isTouched;
-			
-		if ( shouldInclude ) {
+		let newErrors = keys
+		.flatMap((touchKey) => {
+			touchesRef.current[touchKey] ??= {};
+			return cacheErrors.current.get(touchesRef.current[touchKey]);
+		})
+		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+		.filter(Boolean) as string[];
+
+		if ( onlyOnTouch && newErrors.length === 0 ) {
 			return [];
 		}
 
-		touchesRef.current[key] = touchesRef.current[key] ?? {};
-		let newErrors = cacheErrors.current.get(touchesRef.current[key]);
-
-		if ( !newErrors ) {
-			newErrors = errorRef.current[key] ?? [];
-
-			if ( !( includeChildsIntoArray ? false : strict ) ) {
-				Object.keys(errorRef.current)
-				.forEach((errorKey) => {
-					if ( errorKey.includes(key) && errorKey !== key ) {
-						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-						newErrors!.push(...(errorRef.current[errorKey as FormKey<T>] ?? []) );
-					}
-				});
-			}
+		if ( !newErrors.length ) {
+			newErrors = (
+				includeChildsIntoArray 
+					? Object.keys(errorRef.current)
+					.filter((errorKey) => errorKey === key || errorKey.startsWith(key))
+					.flatMap((errorKey) => errorRef.current[errorKey as FormKey<T>] ?? [])
+					: (errorRef.current[key] ?? [])
+			);
 
 			cacheErrors.current.set(touchesRef.current[key], newErrors);
 		}

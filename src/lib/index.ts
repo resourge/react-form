@@ -30,7 +30,6 @@ export {
 	type FormErrors,
 	type FormKey,
 	type FormOptions,
-	type GetErrors,
 	type GetErrorsOptions,
 	type OnErrors,
 	type OnFunctionChange,
