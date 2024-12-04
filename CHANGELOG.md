@@ -1,3 +1,11 @@
+## [1.28.5](https://github.com/resourge/react-form/compare/v1.28.4...v1.28.5) (2024-12-04)
+
+
+### Bug Fixes
+
+* **setupjsonform:** fix generic type ([b20c8ef](https://github.com/resourge/react-form/commit/b20c8efbeb2fdeef05fbb461b903a5a764944139))
+* **useerrors:** fix getErrors not getting errors from the children ([afaaee5](https://github.com/resourge/react-form/commit/afaaee54eb5cd92f64e4e4b4f620d272f8e72866))
+
 ## [1.28.4](https://github.com/resourge/react-form/compare/v1.28.3...v1.28.4) (2024-12-04)
 
 
