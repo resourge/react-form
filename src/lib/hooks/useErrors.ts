@@ -92,7 +92,22 @@ export const useErrors = <T extends Record<string, any>>(
 		key: FormKey<Model>, 
 		options: GetErrorsOptions = {}
 	): GetErrors {
-		if (!touchesRef.current[key] && (options.onlyOnTouch ?? true)) {
+		const {
+			strict = true,
+			includeChildsIntoArray = false
+		} = options;
+
+		const isTouched = options.onlyOnTouch ?? true;
+
+		const shouldInclude = includeChildsIntoArray
+			? (
+				!Object.keys(touchesRef.current)
+				.some((touchKey) => touchKey === key || touchKey.startsWith(key)) 
+				&& isTouched
+			)
+			: !touchesRef.current[key] && isTouched;
+			
+		if ( shouldInclude ) {
 			return [];
 		}
 
@@ -100,11 +115,6 @@ export const useErrors = <T extends Record<string, any>>(
 		let newErrors = cacheErrors.current.get(touchesRef.current[key]);
 
 		if ( !newErrors ) {
-			const {
-				strict = true,
-				includeChildsIntoArray = false
-			} = options;
-
 			newErrors = errorRef.current[key] ?? [];
 
 			if ( !( includeChildsIntoArray ? false : strict ) ) {
