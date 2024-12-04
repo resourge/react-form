@@ -12,9 +12,12 @@ export type SetupJsonFormProps<
 	initialData?: DefaultData
 } & Omit<FormOptions<Record<string, any>>, 'validate'>;
 
-export type SetupJsonFormConfig<Ref> = {
+export type SetupJsonFormConfig<
+	Ref,
+	Props extends SetupJsonFormProps<Record<string, any>, Record<string, any>>
+> = {
 	render: (
-		props: any,
+		props: Props,
 		formContext: UseFormReturn<Record<string, any>>,
 		ref: React.ForwardedRef<Ref>
 	) => JSX.Element
@@ -27,7 +30,7 @@ export function setupJsonForm<
 	Props extends SetupJsonFormProps<Record<string, any>, Record<string, any>>
 >({
 	render, validate, getInitialData 
-}: SetupJsonFormConfig<Ref>) {
+}: SetupJsonFormConfig<Ref, Props>) {
 	return forwardRef<Ref, Props>(function JsonForm(props, ref) {
 		const schemaValidation = useMemo(() => validate(props.schema), []);
 
@@ -45,7 +48,7 @@ export function setupJsonForm<
 
 		return (
 			<FormProvider context={formReturn.context}>
-				{ render(props, formReturn, ref) }
+				{ render(props as Props, formReturn, ref) }
 			</FormProvider>
 		);
 	});
