@@ -21,7 +21,6 @@ export const useErrors = <T extends Record<string, any>>(
 	}
 ) => {
 	const errorRef = useRef<FormErrors<T>>({} as FormErrors<T>);
-	const cacheErrors = useRef<WeakMap<object, string[]>>(new WeakMap());
 	const isValidatingFormRef = useRef(false);
 
 	const setErrors = (errors: FormErrors<T>) => {
@@ -93,35 +92,25 @@ export const useErrors = <T extends Record<string, any>>(
 		const keys = includeChildsIntoArray
 			? Object.keys(touchesRef.current)
 			.filter((touchKey) => touchKey !== key && touchKey.startsWith(key))
+			.map((touchKey) => {
+				touchesRef.current[touchKey] ??= {};
+				return touchesRef.current[touchKey];
+			})
 			: [];
 
-		keys.push(key);
+		touchesRef.current[key] ??= {};
 
-		let newErrors = keys
-		.flatMap((touchKey) => {
-			touchesRef.current[touchKey] ??= {};
-			return cacheErrors.current.get(touchesRef.current[touchKey]);
-		})
-		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-		.filter(Boolean) as string[];
-
-		if ( onlyOnTouch && newErrors.length === 0 ) {
+		if ( onlyOnTouch && !touchesRef.current[key] && keys.length === 0 ) {
 			return [];
 		}
 
-		if ( !newErrors.length ) {
-			newErrors = (
-				includeChildsIntoArray 
-					? Object.keys(errorRef.current)
-					.filter((errorKey) => errorKey === key || errorKey.startsWith(key))
-					.flatMap((errorKey) => errorRef.current[errorKey as FormKey<T>] ?? [])
-					: (errorRef.current[key] ?? [])
-			);
-
-			cacheErrors.current.set(touchesRef.current[key], newErrors);
-		}
-
-		return newErrors;
+		return (
+			includeChildsIntoArray 
+				? Object.keys(errorRef.current)
+				.filter((errorKey) => errorKey === key || errorKey.startsWith(key))
+				.flatMap((errorKey) => errorRef.current[errorKey as FormKey<T>] ?? [])
+				: (errorRef.current[key] ?? [])
+		);
 	}
 
 	return {
