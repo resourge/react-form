@@ -158,7 +158,10 @@ describe('useForm', () => {
 		});
 
 		expect(result.current.errors).toEqual({
-			name: ['Name is required']
+			name: {
+				errors: ['Name is required'],
+				childErrors: ['Name is required']
+			}
 		});
 	});
 
@@ -241,7 +244,7 @@ describe('useForm', () => {
 			result.current.changeValue('age', 31);
 		});
 
-		expect(result.current.errors.name).toContain('Name is required');
+		expect(result.current.errors.name.errors).toContain('Name is required');
 	});
 
 	it('should handle form submission', async () => {
@@ -289,7 +292,7 @@ describe('useForm', () => {
 		expect(mockCallback).not.toHaveBeenCalled();
 
 		await vi.waitFor(() => {
-			expect(result.current.errors.name).toContain('Name is required');
+			expect(result.current.errors.name.errors).toContain('Name is required');
 		});
 	});
 
@@ -341,7 +344,7 @@ describe('useForm', () => {
 
 		await waitFor(() => {
 		// Verify if errors are set
-			expect(result.current.errors.name).toContain('Name is required');
+			expect(result.current.errors.name.errors).toContain('Name is required');
 		});
 	});
 });

@@ -28,8 +28,8 @@ import {
 	type UseFormReturn,
 	type ValidateSubmission
 } from '../types/formTypes';
-import { formatErrors } from '../utils/createFormErrors';
-import { isClass } from '../utils/utils';
+import { formatErrors } from '../utils/formatErrors';
+import { isClass, isObjectOrArray } from '../utils/utils';
 
 import { useErrors } from './useErrors';
 import { useProxy } from './useProxy';
@@ -45,27 +45,45 @@ const validateState = <T extends Record<string, any>>(
 	form: T,
 	changedKeys: Array<FormKey<T>>,
 	validate: FormOptions<T>['validate']
-): FormErrors<T> | Promise<FormErrors<T>> => {
-	const handleSuccess = (errors: void | ValidationErrors): FormErrors<T> => {
+): ValidationErrors | Promise<ValidationErrors> => {
+	const handleSuccess = (errors: void | ValidationErrors): ValidationErrors => {
 		if ( errors && errors.length ) {
 			// eslint-disable-next-line @typescript-eslint/no-throw-literal, @typescript-eslint/only-throw-error
 			throw errors;
 		}
 
-		return {};
+		return [];
 	};
 
 	try {
 		const result = validate?.(form, changedKeys);
 
 		return result instanceof Promise
-			? result.then(handleSuccess).catch(formatErrors)
+			? result.then(handleSuccess)
 			: handleSuccess(result);
 	}
 	catch ( err ) {
-		return formatErrors(err as ValidationErrors);
+		return err as ValidationErrors;
 	}
 };
+
+function deepObjectToMap(obj: any, parentKey: string = '', map = new Map<string, any>()) {
+	if ( isObjectOrArray(obj) ) {
+		if (Array.isArray(obj)) {
+			obj.forEach((item, index) => deepObjectToMap(item, `${parentKey}[${index}]`, map));
+		}
+		else {
+			Object.entries(obj)
+			.forEach(([key, value]) => deepObjectToMap(value, parentKey ? `${parentKey}.${key}` : key, map));
+		}
+	}
+
+	if ( parentKey ) {
+		map.set(parentKey, obj);
+	}
+
+	return map;
+}
 
 export function useForm<T extends Record<string, any>>(
 	defaultValue: { new(): T }, 
@@ -130,10 +148,11 @@ export function useForm<T extends Record<string, any>>(
 
 	const {
 		errorRef,
+		validationErrorsRef,
 		getErrors,
 		updateErrors,
 		validateForm
-	} = useErrors({
+	} = useErrors<T>({
 		changedKeys,
 		canValidate: (options.validateOnlyAfterFirstSubmit !== false ? firstSubmitRef.current : true),
 		splitterOptionsRef,
@@ -142,9 +161,10 @@ export function useForm<T extends Record<string, any>>(
 			Array.from(changedKeysRef.current),
 			options.validate
 		),
-		updateTouches,
 		touchesRef,
-		forceUpdate
+		forceUpdate,
+		updateTouches,
+		firstSubmitRef
 	});
 
 	const {
@@ -155,7 +175,7 @@ export function useForm<T extends Record<string, any>>(
 
 	const handleSubmit = <K = void>(
 		onValid: SubmitHandler<T, K>,
-		onInvalid?: ValidateSubmission<T>,
+		onInvalid?: ValidateSubmission,
 		filterKeysError?: (key: string) => boolean
 	) => async (e?: FormEvent<HTMLFormElement> | React.MouseEvent<any, React.MouseEvent> | React.BaseSyntheticEvent) => {
 		splitterOptionsRef.current.filterKeysError = filterKeysError;
@@ -171,7 +191,7 @@ export function useForm<T extends Record<string, any>>(
 
 			if ( Object.keys(errors).length ) {
 				const canGoOn = onInvalid
-					? await Promise.resolve(onInvalid(errors, errors))
+					? await Promise.resolve(onInvalid(formatErrors(errors)))
 					: false;
 
 				if ( !canGoOn ) {
@@ -307,16 +327,10 @@ export function useForm<T extends Record<string, any>>(
 				errors: string[]
 				path: FormKey<T>
 			}>
-		) => updateErrors(
-			formatErrors([
-				...Object.entries(errorRef.current)
-				.map(([path, errors]) => ({
-					path,
-					errors
-				})) as ValidationWithErrors[],
-				...newErrors
-			])
-		),
+		) => updateErrors([
+			...validationErrorsRef.current,
+			...newErrors
+		]),
 		hasError: (key: FormKey<T>, options: GetErrorsOptions = {}): boolean => !!getErrors(key, options).length,
 		getErrors,
 

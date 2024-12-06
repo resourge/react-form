@@ -15,9 +15,10 @@ export type Touches<T extends Record<string, any>> = {
 	[K in FormKey<T>]?: boolean
 };
 
-export type FormErrors<T extends Record<string, any>> = { 
-	[K in FormKey<T>]?: string[]
-};
+export type FormErrors = Record<string, {
+	childErrors: string[]
+	errors: string[]
+}>;
 
 export type GetErrorsOptions = {
 	/**
@@ -36,11 +37,11 @@ export type FormOptions<T extends Record<string, any>> = {
 	/**
 	 * Triggers when form is changed
 	 */
-	onChange?: (form: T, errors: FormErrors<T>) => Promise<void> | void
+	onChange?: (form: T, errors: FormErrors) => Promise<void> | void
 	/**
 	 * Triggers when form is submitted
 	 */
-	onSubmit?: (form: T, errors: FormErrors<T>) => Promise<void> | void
+	onSubmit?: (form: T, errors: FormErrors) => Promise<void> | void
 	/**
 	 * Method to validate form.
 	 * Usually with some kind of validator.
@@ -170,15 +171,11 @@ export type OnFunctionChange<T extends Record<string, any>, Result = void> = ((f
 
 export type SubmitHandler<T extends Record<string, any>, K = void> = (form: T) => K | Promise<K>;
 
-export type ValidateSubmission<T extends Record<string, any>> = (
+export type ValidateSubmission = (
 	/**
 	 * Form errors
 	 */
-	errors: FormErrors<T>, 
-	/** 
-	 * Original Error
-	 */
-	error: any
+	errors: FormErrors
 ) => boolean | Promise<boolean>;
 
 export interface UseFormReturn<T extends Record<string, any>> {
@@ -214,7 +211,7 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * Form errors
 	 * * Note: Depends on {@link FormOptions#validate}.
 	 */
-	errors: FormErrors<T>
+	errors: FormErrors
 	/**
 	 * Method to connect the form element to the key, by providing native attributes like `onChange`, `name`, etc
 	 * 
@@ -320,7 +317,7 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 */
 	handleSubmit: <K = void>(
 		onValid: SubmitHandler<T, K>, 
-		onInvalid?: ValidateSubmission<T> | undefined
+		onInvalid?: ValidateSubmission | undefined
 	) => (e?: FormEvent<HTMLFormElement> | React.MouseEvent<any, React.MouseEvent> | React.BaseSyntheticEvent) => Promise<K | undefined>
 	/**
 	 * Method to verify if `key` has errors

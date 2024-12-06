@@ -1,5 +1,9 @@
 import { type FormKey } from '../types/FormKey';
 
+export function isObjectOrArray(value: any): value is object {
+	return value !== null && typeof value === 'object';
+}
+
 /**
  * Determines if a variable is a class definition instead of a function.
  */

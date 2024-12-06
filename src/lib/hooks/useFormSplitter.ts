@@ -79,7 +79,7 @@ export function useFormSplitter<
 			onInvalid
 		) => context.handleSubmit(
 			() => onValid(context.getValue(_formFieldKey)), 
-			(errors, error) => !checkIfKeysExist(errors, _formFieldKey) && (onInvalid ? onInvalid(filterObjectByKeyAndMap(errors, _formFieldKey), error) : true),
+			(errors) => !checkIfKeysExist(errors, _formFieldKey) && (onInvalid ? onInvalid(filterObjectByKeyAndMap(errors, _formFieldKey)) : true),
 			// @ts-expect-error I want this to be able to only occur inside FormSplitter
 			filterKeysError
 		),

@@ -1,10 +1,7 @@
 import { IS_DEV } from '../constants';
+import { isObjectOrArray } from '../utils';
 
 type OnKeyTouch = (key: string) => void;
-
-function isObjectOrArray(value: any): value is object {
-	return value !== null && typeof value === 'object';
-}
 
 function isBuiltinWithMutableMethods(value: any) {
 	return value instanceof Date
