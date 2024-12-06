@@ -1,3 +1,10 @@
+## [1.28.7](https://github.com/resourge/react-form/compare/v1.28.6...v1.28.7) (2024-12-06)
+
+
+### Bug Fixes
+
+* **useerrors:** make it so, after firstSubmit all newErrors also appear ([2a29126](https://github.com/resourge/react-form/commit/2a2912691c4b8086ad4c37f2b6db31e503ee2790))
+
 ## [1.28.6](https://github.com/resourge/react-form/compare/v1.28.5...v1.28.6) (2024-12-04)
 
 
