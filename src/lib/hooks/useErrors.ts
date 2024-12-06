@@ -5,10 +5,11 @@ import { type ValidationErrors } from '../types/errorsTypes';
 import { type FormErrors, type GetErrorsOptions, type SplitterOptions } from '../types/formTypes';
 import { deepCompareValidationErrors } from '../utils/comparationUtils';
 import { formatErrors } from '../utils/formatErrors';
+import { filterObject } from '../utils/utils';
 
 export const useErrors = <T extends Record<string, any>>(
 	{
-		updateTouches, validate, touchesRef, 
+		updateTouches, validate,
 		changedKeys, canValidate, forceUpdate, 
 		splitterOptionsRef, firstSubmitRef
 	}: {
@@ -19,7 +20,6 @@ export const useErrors = <T extends Record<string, any>>(
 		splitterOptionsRef: MutableRefObject<SplitterOptions & {
 			preventStateUpdate?: boolean
 		}>
-		touchesRef: MutableRefObject<Record<string, object>>
 		updateTouches: (key: FormKey<T> | string) => void
 		validate: () => ValidationErrors | Promise<ValidationErrors>
 	}
@@ -28,7 +28,7 @@ export const useErrors = <T extends Record<string, any>>(
 	const validationErrorsRef = useRef<ValidationErrors>([]);
 	const isValidatingFormRef = useRef(false);
 
-	const setErrors = (errors: ValidationErrors, shouldUpdateTouches: boolean = false) => {
+	const setErrors = (errors: ValidationErrors) => {
 		if (
 			!deepCompareValidationErrors(errors, validationErrorsRef.current)
 		) {
@@ -36,30 +36,36 @@ export const useErrors = <T extends Record<string, any>>(
 
 			errorRef.current = formatErrors(errors);
 
-			if ( shouldUpdateTouches ) {
-				Object.keys(errorRef.current)
-				.forEach((path) => {
-					updateTouches(path);
-				});
-			}
-
 			return true;
 		}
 
 		return false;
 	};
 
-	const updateErrors = (errors: ValidationErrors, shouldUpdateTouches: boolean = false) => { 
+	const updateErrors = (errors: ValidationErrors) => { 
 		const newErrors = splitterOptionsRef.current.filterKeysError
 			? errors
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 			.filter(({ path }) => splitterOptionsRef.current.filterKeysError!(path))
 			: errors;
-
+	
+		const oldErrors = Object.keys(errorRef.current);
+		
 		if (
-			setErrors(newErrors, shouldUpdateTouches)
-		) { 
+			setErrors(newErrors)
+		) {
+			// Clear old errors for keys that no longer have errors
+			Object.keys(
+				filterObject(
+					errorRef.current, 
+					splitterOptionsRef.current.filterKeysError
+				)
+			)
+			.filter((key) => !oldErrors.some((path) => path === key))
+			.forEach(updateTouches);
+
 			forceUpdate();
+
 			return true;
 		}
 		return false;
@@ -68,7 +74,7 @@ export const useErrors = <T extends Record<string, any>>(
 	const validateForm = async () => {
 		const errors = await Promise.resolve(validate());
 
-		isValidatingFormRef.current = updateErrors(errors, true);
+		isValidatingFormRef.current = updateErrors(errors);
 
 		return errors;
 	};
@@ -85,26 +91,17 @@ export const useErrors = <T extends Record<string, any>>(
 			res.then(updateErrors);
 		}
 		else {
-			setErrors(res, firstSubmitRef.current);
+			setErrors(res);
 		}
 	}
 
 	function getErrors<Model extends Record<string, any> = T>(
 		key: FormKey<Model>, 
-		{
-			onlyOnTouch = true,
-			includeChildsIntoArray = false
-		}: GetErrorsOptions = {}
+		{ includeChildsIntoArray = false }: GetErrorsOptions = {}
 	): string[] {
 		const errors = errorRef.current[key];
 
-		if (
-			!errors
-			|| (
-				onlyOnTouch 
-				&& !touchesRef.current[key] 
-			)
-		) {
+		if ( !errors || !firstSubmitRef.current) {
 			return [];
 		}
 

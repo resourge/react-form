@@ -161,7 +161,6 @@ export function useForm<T extends Record<string, any>>(
 			Array.from(changedKeysRef.current),
 			options.validate
 		),
-		touchesRef,
 		forceUpdate,
 		updateTouches,
 		firstSubmitRef
