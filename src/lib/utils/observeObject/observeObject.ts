@@ -15,7 +15,9 @@ function isBuiltinWithMutableMethods(value: any) {
 function isBuiltinWithoutMutableMethods(value: any) {
 	return value === null
 		|| typeof value !== 'object'
-		|| value instanceof RegExp;
+		|| value instanceof RegExp
+		|| value instanceof File
+		|| value instanceof Blob;
 }
 
 function setProperty(target: any, property: string, value: any, receiver: any, previous: any) { // eslint-disable-line max-params
@@ -190,7 +192,7 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 				receiver: _receiver
 			});
 
-			const value = target instanceof File ? Reflect.get(target, prop) : Reflect.get(target, prop, receiver);
+			const value = Reflect.get(target, prop, receiver);
 			if ( isObjectOrArray(value) && !isBuiltinWithoutMutableMethods(value) ) {
 				const reflectTarget = value[TARGET_VALUE as keyof typeof value];
 
