@@ -1,3 +1,12 @@
+## [1.28.8](https://github.com/resourge/react-form/compare/v1.28.7...v1.28.8) (2025-01-09)
+
+
+### Bug Fixes
+
+* **observeobject:** stop observing File or blobs variavels ([be3d99b](https://github.com/resourge/react-form/commit/be3d99b1e80c0d90164948bc74be605e59f7b68d))
+* **useerrors:** on new errors update changedKeys ([ba9f70d](https://github.com/resourge/react-form/commit/ba9f70d0761aade48dc99b6996b65238618ebe69))
+* **useform:** fix setError not working as intended ([a01e9ed](https://github.com/resourge/react-form/commit/a01e9ed0b4679abd2f142a1bcaeeae286461d573))
+
 ## [1.28.7](https://github.com/resourge/react-form/compare/v1.28.6...v1.28.7) (2024-12-06)
 
 
