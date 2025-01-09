@@ -10,14 +10,9 @@ import {
 	useState
 } from 'react';
 
-import {
-	type FieldForm,
-	type FormErrors,
-	type GetErrorsOptions,
-	type ResetMethod
-} from '../types';
+import { type FieldForm, type GetErrorsOptions, type ResetMethod } from '../types';
 import { type FormKey } from '../types/FormKey';
-import { type ValidationErrors, type ValidationWithErrors } from '../types/errorsTypes';
+import { type ValidationErrors } from '../types/errorsTypes';
 import {
 	type FieldFormReturn,
 	type FieldOptions,
@@ -153,6 +148,7 @@ export function useForm<T extends Record<string, any>>(
 		updateErrors,
 		validateForm
 	} = useErrors<T>({
+		touchesRef,
 		changedKeys,
 		canValidate: (options.validateOnlyAfterFirstSubmit !== false ? firstSubmitRef.current : true),
 		splitterOptionsRef,
@@ -326,10 +322,18 @@ export function useForm<T extends Record<string, any>>(
 				errors: string[]
 				path: FormKey<T>
 			}>
-		) => updateErrors([
-			...validationErrorsRef.current,
-			...newErrors
-		]),
+		) => {
+			firstSubmitRef.current = true;
+
+			newErrors.forEach(({ path }) => {
+				touchesRef.current[path] = {};
+			});
+
+			updateErrors([
+				...validationErrorsRef.current,
+				...newErrors
+			]);
+		},
 		hasError: (key: FormKey<T>, options: GetErrorsOptions = {}): boolean => !!getErrors(key, options).length,
 		getErrors,
 

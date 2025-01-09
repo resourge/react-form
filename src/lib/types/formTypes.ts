@@ -25,10 +25,6 @@ export type GetErrorsOptions = {
 	 * Includes the children errors on the array (@default false)
 	 */
 	includeChildsIntoArray?: boolean
-	/**
-	 * When true only returns if the key was `touched` (@default true)
-	 */
-	onlyOnTouch?: boolean
 };
 
 export type ResetMethod<T extends Record<string, any>> = (newFrom: Partial<T>, resetOptions?: ResetOptions | undefined) => void;

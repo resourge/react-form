@@ -49,9 +49,7 @@ describe('useForm', () => {
 		});
 
 		await vi.waitFor(() => {
-			expect(result.current.getErrors('name', {
-				onlyOnTouch: false 
-			})).toEqual(['Name is required']);
+			expect(result.current.getErrors('name')).toEqual(['Name is required']);
 		});
 	});
 
@@ -80,13 +78,9 @@ describe('useForm', () => {
 		});
 
 		await vi.waitFor(() => {		
-			expect(result.current.hasError('name', {
-				onlyOnTouch: false 
-			})).toBe(true);
+			expect(result.current.hasError('name')).toBe(true);
 		});
-		expect(result.current.hasError('age', {
-			onlyOnTouch: false 
-		})).toBe(false);
+		expect(result.current.hasError('age')).toBe(false);
 	});
 
 	// Test onChange function

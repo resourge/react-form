@@ -11,7 +11,7 @@ export const useErrors = <T extends Record<string, any>>(
 	{
 		updateTouches, validate,
 		changedKeys, canValidate, forceUpdate, 
-		splitterOptionsRef, firstSubmitRef
+		splitterOptionsRef, firstSubmitRef, touchesRef
 	}: {
 		canValidate: boolean
 		changedKeys: Array<FormKey<T>>
@@ -20,6 +20,7 @@ export const useErrors = <T extends Record<string, any>>(
 		splitterOptionsRef: MutableRefObject<SplitterOptions & {
 			preventStateUpdate?: boolean
 		}>
+		touchesRef: React.MutableRefObject<Record<string, object>>
 		updateTouches: (key: FormKey<T> | string) => void
 		validate: () => ValidationErrors | Promise<ValidationErrors>
 	}
@@ -61,7 +62,7 @@ export const useErrors = <T extends Record<string, any>>(
 					splitterOptionsRef.current.filterKeysError
 				)
 			)
-			.filter((key) => !oldErrors.some((path) => path === key))
+			.filter((key) => !oldErrors.some((path) => path === key) && !touchesRef.current[key])
 			.forEach(updateTouches);
 
 			forceUpdate();
