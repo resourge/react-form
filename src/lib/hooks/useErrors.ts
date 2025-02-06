@@ -34,7 +34,7 @@ export const useErrors = <T extends Record<string, any>>(
 ) => {
 	const {
 		shouldUpdateErrorsRef, changedKeysRef, touchesRef, submitTouchesRef, 
-		updateTouches, clearTouches, setSubmitTouches
+		updateTouches, clearTouches, setSubmitTouches, hasTouch
 	} = useTouches<T>({
 		validationType,
 		filterKeysError: splitterOptionsRef.current.filterKeysError
@@ -136,6 +136,7 @@ export const useErrors = <T extends Record<string, any>>(
 		submitValidation,
 		updateTouches,
 		clearTouches,
-		setError
+		setError,
+		hasTouch
 	};
 };

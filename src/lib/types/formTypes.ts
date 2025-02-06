@@ -20,6 +20,13 @@ export type FormErrors = Record<string, {
 	errors: string[]
 }>;
 
+export type HasTouchOptions = {
+	/**
+	 * Includes the children touches (@default false)
+	 */
+	includeChilds?: boolean
+};
+
 export type GetErrorsOptions = {
 	/**
 	 * Includes the children errors on the array (@default false)
@@ -334,6 +341,27 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 */
 	hasError: (key: FormKey<T>, options?: GetErrorsOptions) => boolean
 	/**
+	 * Method to verify if `key` has being 'touched'
+	 * 
+	 * @param key - key from `form` state
+	 * @param options - {@link GetErrorsOptions}
+	 * @returns `true` for error on form
+	 * @example
+	 * ```Typescript
+	 * const {
+	 *   hasError
+	 * } = useForm(
+	 *	 {
+	 * 		name: 'Rimuru'
+	 *	 }
+	 * )
+	 * ...
+	 * hasTouche('name')
+	 * ///
+	 * ```
+	 */
+	hasTouch: (key: FormKey<T>, options?: HasTouchOptions) => boolean
+	/**
 	 * Form touches state, by default is false if `touches` are undefined or an empty object
 	 */
 	isTouched: boolean
@@ -438,11 +466,6 @@ export interface UseFormReturn<T extends Record<string, any>> {
 		errors: string[]
 		path: FormKey<T> 
 	}>) => void
-	/**
-	 * Form touches // { [form key]: boolean }
-	 * * Note: To be `touched` the system does a shallow comparison (ex: previousValue !== value)
-	 */
-	touches: Touches<T>
 	/**
 	 * Method to make multiple changes in one render
 	 * 

@@ -65,11 +65,10 @@ export function useFormSplitter<
 		get errors() {
 			return filterObjectByKeyAndMap(context.errors, _formFieldKey);
 		},
-		get touches() {
-			return filterObjectByKeyAndMap(context.touches, _formFieldKey);
-		},
 		get isTouched() {
-			return !!Object.keys(this.touches).length;
+			return context.hasTouch(_formFieldKey, {
+				includeChilds: true 
+			});
 		},
 		get isValid() {
 			return !Object.keys(this.errors).length;
@@ -103,6 +102,7 @@ export function useFormSplitter<
 			}
 		),
 		getValue: (key) => context.getValue(getKey(key)),
+		hasTouch: (key) => context.hasTouch(getKey(key)),
 		onChange: (key, fieldOptions) => (value) => context.onChange(
 			getKey(key), 
 			{

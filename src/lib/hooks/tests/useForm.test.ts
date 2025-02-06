@@ -156,7 +156,7 @@ describe('useForm', () => {
 			result.current.resetTouch();
 		});
 
-		expect(result.current.touches).toEqual({});
+		expect(result.current.hasTouch('name')).toBeFalsy();
 	});
 
 	// Test setError function

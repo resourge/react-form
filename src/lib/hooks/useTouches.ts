@@ -2,8 +2,8 @@ import { useEffect, useRef } from 'react';
 
 import { type FormKey } from '../types';
 import { type ValidationErrors } from '../types/errorsTypes';
-import { type FormValidationType } from '../types/formTypes';
-import { getErrorsFromValidationErrors, forEachPossibleKey } from '../utils/formatErrors';
+import { type HasTouchOptions, type FormValidationType } from '../types/formTypes';
+import { forEachPossibleKey, getErrorsFromValidationErrors } from '../utils/formatErrors';
 
 function setSubmittedFormPaths(
 	obj: any, 
@@ -52,6 +52,18 @@ export const useTouches = <T extends Record<string, any>>({ validationType, filt
 		touchesRef.current = {};
 		submitTouchesRef.current = new Set();
 	};
+
+	function hasTouch<Model extends Record<string, any> = T>(
+		key: FormKey<Model>, 
+		{ includeChilds = false }: HasTouchOptions = {}
+	): boolean {
+		return includeChilds 
+			? (
+				Object.keys(touchesRef)
+				.some((path) => path.includes(key) || key.includes(path))
+			)
+			: touchesRef.current[key];
+	}
 
 	const setSubmitTouches = (form: T, newErrors: ValidationErrors, previousErrors: ValidationErrors) => {
 		if ( validationType === 'onSubmit' ) {
@@ -109,6 +121,7 @@ export const useTouches = <T extends Record<string, any>>({ validationType, filt
 		changedKeysRef,
 		updateTouches,
 		clearTouches,
-		setSubmitTouches
+		setSubmitTouches,
+		hasTouch
 	};
 };

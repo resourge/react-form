@@ -91,6 +91,30 @@ export function useForm<T extends Record<string, any>>(
 				) : defaultValue
 		),
 		async (key, arrayMethod) => {
+			/*
+// TODO Reverse
+			// TODO concat reverse sort map
+				if (
+					[
+						'pop', 
+						'shift', 
+						'splice'
+					].includes(arrayMethod as string) 
+				) {
+					const regex = /\[\d+\](?!.*\[\d+\])/;
+					const match = key.match(regex)?.at(0);
+
+					const newKey = key.replace(regex, '');
+
+					const keys = Object.keys(touchesRef.current)
+					.filter((key) => key === newKey);
+
+					if ( match) {
+						console.log(match);
+					} // Output: ["[1]"]
+					touchesRef.current[key] = false;
+				}
+			*/
 			if ( arrayMethod ) {
 				changedKeysRef.current.add(key as FormKey<T>);
 			}
@@ -130,6 +154,7 @@ export function useForm<T extends Record<string, any>>(
 		submitValidation,
 		updateTouches, 
 		clearTouches,
+		hasTouch,
 		setError
 	} = useErrors<T>({
 		splitterOptionsRef,
@@ -290,7 +315,6 @@ export function useForm<T extends Record<string, any>>(
 		get isValid(): boolean {
 			return !Object.keys(errorRef.current).length;
 		},
-		touches: touchesRef.current as any,
 		get isTouched() {
 			return !!Object.keys(touchesRef.current).length;
 		},
@@ -298,6 +322,7 @@ export function useForm<T extends Record<string, any>>(
 		triggerChange,
 		handleSubmit,
 		setError,
+		hasTouch,
 		hasError: (key: FormKey<T>, options: GetErrorsOptions = {}): boolean => !!getErrors(key, options).length,
 		getErrors,
 
