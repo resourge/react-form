@@ -24,7 +24,7 @@ import {
 	type ValidateSubmission
 } from '../types/formTypes';
 import { formatErrors } from '../utils/formatErrors';
-import { isClass, isObjectOrArray } from '../utils/utils';
+import { isClass } from '../utils/utils';
 
 import { useErrors } from './useErrors';
 import { useProxy } from './useProxy';
@@ -62,24 +62,6 @@ const validateState = <T extends Record<string, any>>(
 	}
 };
 
-function deepObjectToMap(obj: any, parentKey: string = '', map = new Map<string, any>()) {
-	if ( isObjectOrArray(obj) ) {
-		if (Array.isArray(obj)) {
-			obj.forEach((item, index) => deepObjectToMap(item, `${parentKey}[${index}]`, map));
-		}
-		else {
-			Object.entries(obj)
-			.forEach(([key, value]) => deepObjectToMap(value, parentKey ? `${parentKey}.${key}` : key, map));
-		}
-	}
-
-	if ( parentKey ) {
-		map.set(parentKey, obj);
-	}
-
-	return map;
-}
-
 export function useForm<T extends Record<string, any>>(
 	defaultValue: { new(): T }, 
 	options?: FormOptions<T>
@@ -108,8 +90,13 @@ export function useForm<T extends Record<string, any>>(
 						: (defaultValue as () => T)()
 				) : defaultValue
 		),
-		async (key) => {
-			updateTouches(key as FormKey<T>);
+		async (key, arrayMethod) => {
+			if ( arrayMethod ) {
+				changedKeysRef.current.add(key as FormKey<T>);
+			}
+			else {
+				updateTouches(key as FormKey<T>);
+			}
 
 			if ( watchedRefs.current.size ) {
 				for (const [watchedKey, method] of watchedRefs.current) {
@@ -132,34 +119,28 @@ export function useForm<T extends Record<string, any>>(
 		}
 	);
 
-	const firstSubmitRef = useRef(false);
 	const splitterOptionsRef = useRef<SplitterOptions & { preventStateUpdate?: boolean }>({});
 
 	const {
-		changedKeysRef, touchesRef, updateTouches, clearTouches
-	} = useTouches<T>();
-
-	const changedKeys = Array.from<FormKey<T>>(changedKeysRef.current);
-
-	const {
 		errorRef,
-		validationErrorsRef,
+		changedKeysRef, 
+		touchesRef, 
+		
 		getErrors,
-		updateErrors,
-		validateForm
+		submitValidation,
+		updateTouches, 
+		clearTouches,
+		setError
 	} = useErrors<T>({
-		touchesRef,
-		changedKeys,
-		canValidate: (options.validateOnlyAfterFirstSubmit !== false ? firstSubmitRef.current : true),
 		splitterOptionsRef,
-		validate: () => validateState(
+		stateRef,
+		validate: (changedKeys) => validateState(
 			stateRef.current,
-			Array.from(changedKeysRef.current),
+			changedKeys,
 			options.validate
 		),
 		forceUpdate,
-		updateTouches,
-		firstSubmitRef
+		validationType: options.validationType
 	});
 
 	const {
@@ -176,12 +157,11 @@ export function useForm<T extends Record<string, any>>(
 		splitterOptionsRef.current.filterKeysError = filterKeysError;
 		try {
 			e?.preventDefault?.();
-			firstSubmitRef.current = true;
 
 			// This serves so onlyOnTouch validations still work on handleSubmit
 			changedKeysRef.current.add('*' as FormKey<T>);
 
-			const errors = await validateForm();
+			const errors = await submitValidation();
 			options.onSubmit?.(stateRef.current, errorRef.current);
 
 			if ( Object.keys(errors).length ) {
@@ -317,28 +297,12 @@ export function useForm<T extends Record<string, any>>(
 		field,
 		triggerChange,
 		handleSubmit,
-		setError: (
-			newErrors: Array<{
-				errors: string[]
-				path: FormKey<T>
-			}>
-		) => {
-			firstSubmitRef.current = true;
-
-			newErrors.forEach(({ path }) => {
-				touchesRef.current[path] = {};
-			});
-
-			updateErrors([
-				...validationErrorsRef.current,
-				...newErrors
-			]);
-		},
+		setError,
 		hasError: (key: FormKey<T>, options: GetErrorsOptions = {}): boolean => !!getErrors(key, options).length,
 		getErrors,
 
 		// @ts-expect-error changedKeys for UseFormReturnController
-		changedKeys,
+		changedKeys: changedKeysRef.current,
 
 		reset,
 		onChange,

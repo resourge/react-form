@@ -2,32 +2,46 @@ import { type MutableRefObject, useRef } from 'react';
 
 import { type FormKey } from '../types/FormKey';
 import { type ValidationErrors } from '../types/errorsTypes';
-import { type FormErrors, type GetErrorsOptions, type SplitterOptions } from '../types/formTypes';
+import {
+	type FormErrors,
+	type FormValidationType,
+	type GetErrorsOptions,
+	type SplitterOptions
+} from '../types/formTypes';
 import { deepCompareValidationErrors } from '../utils/comparationUtils';
 import { formatErrors } from '../utils/formatErrors';
-import { filterObject } from '../utils/utils';
+
+import { useTouches } from './useTouches';
 
 export const useErrors = <T extends Record<string, any>>(
 	{
-		updateTouches, validate,
-		changedKeys, canValidate, forceUpdate, 
-		splitterOptionsRef, firstSubmitRef, touchesRef
+		validate, forceUpdate, 
+		splitterOptionsRef, stateRef,
+		validationType = 'onSubmit'
 	}: {
-		canValidate: boolean
-		changedKeys: Array<FormKey<T>>
-		firstSubmitRef: MutableRefObject<boolean>
 		forceUpdate: () => void
 		splitterOptionsRef: MutableRefObject<SplitterOptions & {
 			preventStateUpdate?: boolean
 		}>
-		touchesRef: React.MutableRefObject<Record<string, object>>
-		updateTouches: (key: FormKey<T> | string) => void
-		validate: () => ValidationErrors | Promise<ValidationErrors>
+		stateRef: React.MutableRefObject<T>
+		validate: (changedKeys: Array<FormKey<T>>) => ValidationErrors | Promise<ValidationErrors>
+		/**
+		 * Validation type, specifies the type of validation.
+		 * @default 'onSubmit'
+		 */
+		validationType?: FormValidationType
 	}
 ) => {
+	const {
+		shouldUpdateErrorsRef, changedKeysRef, touchesRef, submitTouchesRef, 
+		updateTouches, clearTouches, setSubmitTouches
+	} = useTouches<T>({
+		validationType,
+		filterKeysError: splitterOptionsRef.current.filterKeysError
+	});
+
 	const errorRef = useRef<FormErrors>({} as FormErrors);
 	const validationErrorsRef = useRef<ValidationErrors>([]);
-	const isValidatingFormRef = useRef(false);
 
 	const setErrors = (errors: ValidationErrors) => {
 		if (
@@ -43,53 +57,50 @@ export const useErrors = <T extends Record<string, any>>(
 		return false;
 	};
 
-	const updateErrors = (errors: ValidationErrors) => { 
-		const newErrors = splitterOptionsRef.current.filterKeysError
-			? errors
-			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-			.filter(({ path }) => splitterOptionsRef.current.filterKeysError!(path))
-			: errors;
-	
-		const oldErrors = Object.keys(errorRef.current);
-		
-		if (
-			setErrors(newErrors)
-		) {
-			// Clear old errors for keys that no longer have errors
-			Object.keys(
-				filterObject(
-					errorRef.current, 
-					splitterOptionsRef.current.filterKeysError
-				)
-			)
-			.filter((key) => !oldErrors.some((path) => path === key) && !touchesRef.current[key])
-			.forEach(updateTouches);
-
+	const renderIfNewErrors = (errors: ValidationErrors) => {
+		if ( setErrors(errors) ) {
 			forceUpdate();
-
-			return true;
 		}
-		return false;
 	};
 
-	const validateForm = async () => {
-		const errors = await Promise.resolve(validate());
+	const setError = (
+		newErrors: Array<{
+			errors: string[]
+			path: FormKey<T>
+		}>
+	) => {
+		newErrors.forEach(({ path }) => {
+			if ( validationType === 'onSubmit' ) {
+				submitTouchesRef.current.add(path);
+			}
+			updateTouches(path, false);
+		});
 
-		isValidatingFormRef.current = updateErrors(errors);
+		renderIfNewErrors([
+			...validationErrorsRef.current,
+			...newErrors
+		]); 
+	};
+
+	const submitValidation = async () => {
+		const errors = await validate(Array.from(changedKeysRef.current));
+
+		setSubmitTouches(
+			stateRef.current,
+			errors,
+			validationErrorsRef.current
+		);
+
+		renderIfNewErrors(errors);
 
 		return errors;
 	};
 
-	if ( changedKeys.length ) {
-		const res = canValidate && !isValidatingFormRef.current 
-			? validate() 
-			: validationErrorsRef.current;
-
-		isValidatingFormRef.current = false;
+	if ( shouldUpdateErrorsRef.current ) {
+		const res = validate(Array.from(changedKeysRef.current));
 
 		if ( res instanceof Promise ) {
-			isValidatingFormRef.current = true;
-			res.then(updateErrors);
+			res.then(renderIfNewErrors);
 		}
 		else {
 			setErrors(res);
@@ -102,7 +113,14 @@ export const useErrors = <T extends Record<string, any>>(
 	): string[] {
 		const errors = errorRef.current[key];
 
-		if ( !errors || !firstSubmitRef.current) {
+		if ( 
+			!errors
+			|| (
+				validationType === 'onSubmit' && !submitTouchesRef.current.has(key)
+			) || (
+				validationType === 'onTouch' && !touchesRef.current[key]
+			)
+		) {
 			return [];
 		}
 
@@ -111,9 +129,13 @@ export const useErrors = <T extends Record<string, any>>(
 
 	return {
 		errorRef,
-		validationErrorsRef,
+		changedKeysRef,
+		touchesRef,
+
 		getErrors,
-		updateErrors,
-		validateForm
+		submitValidation,
+		updateTouches,
+		clearTouches,
+		setError
 	};
 };

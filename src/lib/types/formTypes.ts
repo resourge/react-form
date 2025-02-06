@@ -29,6 +29,8 @@ export type GetErrorsOptions = {
 
 export type ResetMethod<T extends Record<string, any>> = (newFrom: Partial<T>, resetOptions?: ResetOptions | undefined) => void;
 
+export type FormValidationType = 'onSubmit' | 'always' | 'onTouch';
+
 export type FormOptions<T extends Record<string, any>> = {
 	/**
 	 * Triggers when form is changed
@@ -62,15 +64,10 @@ export type FormOptions<T extends Record<string, any>> = {
 	validate?: (form: T, changedKeys: Array<FormKey<T>>) => void | Promise<void> | ValidationErrors | Promise<ValidationErrors>
 
 	/**
-	 * Validates form only after first submit.
-	 * When `true` every change batch will validate the form only after first submit
-	 * With `false` will only validate on method {@link FormActions#handleSubmit} 
-	 * or if {@link FieldOptions#validate}/{@link SplitterOptions#validate} is set `true`.
-	 * 
-	 * * Note: {@link FieldOptions#validate} takes priority over global {@link FormOptions#validateOnlyAfterFirstSubmit}
-	 * @default true
+	 * Validation type, specifies the type of validation.
+	 * @default 'onSubmit'
 	 */
-	validateOnlyAfterFirstSubmit?: boolean
+	validationType?: FormValidationType
 };
 
 export type FieldFormBlur<Value = any, Name = string> = {

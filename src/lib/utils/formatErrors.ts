@@ -24,15 +24,42 @@ function addErrorToFormErrors(
 	});
 }
 
+export const forEachPossibleKey = (key: string, onKey: (key: string) => void) => {
+	const keyPoints = key.split('.');
+		
+	let currentKey = '';
+
+	keyPoints.forEach((part) => {
+		currentKey = currentKey ? `${currentKey}.` : currentKey;
+
+		if (part.includes('[')) {
+			const [arrayPart, index] = part.split(/[\\[\]]/);
+			currentKey = `${currentKey}${arrayPart}`;
+			onKey(currentKey);
+
+			currentKey = `${currentKey}[${index}]`;
+		}
+		else {
+			currentKey = `${currentKey}${part}`;
+		}
+
+		onKey(currentKey);
+	});
+};
+
+export const getErrorsFromValidationErrors = (value: ValidationErrors[number]) => {
+	return 'error' in value ? [value.error] : value.errors;
+};
+
 export const formatErrors = (
-	errors: ValidationErrors = {} as ValidationErrors 
+	errors: ValidationErrors = {} as ValidationErrors
 ) => {
 	return errors
 	.reduce<FormErrors>((val, value) => {
 		const key = value.path;
-		const error = 'error' in value ? [value.error] : value.errors;
+		const errors = getErrorsFromValidationErrors(value);
 
-		addErrorToFormErrors(val, key, error);
+		addErrorToFormErrors(val, key, errors);
 		
 		// Process nested paths to ensure all parent paths are included
 		const parts = key.split('.');
@@ -45,7 +72,7 @@ export const formatErrors = (
 				const [arrayPart, index] = part.split(/[\\[\]]/);
 				currentPath = `${currentPath}${arrayPart}`;
 
-				addErrorToFormErrors(val, currentPath, error, true);
+				addErrorToFormErrors(val, currentPath, errors, true);
 
 				currentPath = `${currentPath}[${index}]`;
 			}
@@ -55,7 +82,7 @@ export const formatErrors = (
 
 			if ( currentPath !== key ) {
 				// Ensure the current path is added with an empty error structure
-				addErrorToFormErrors(val, currentPath, error, true);
+				addErrorToFormErrors(val, currentPath, errors, true);
 			}
 		});
 

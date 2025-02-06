@@ -17,7 +17,7 @@ export type UseFormReturnController<T extends Record<string, any>> = UseFormRetu
 	/**
 	 * Current changed keys. It is used in the `Controller` component
 	 */
-	changedKeys: Array<FormKey<T>>
+	changedKeys: Set<FormKey<T>>
 };
 
 /**
@@ -71,7 +71,7 @@ export const Controller = memo(function Controller({
 
 	// Determine if any of the changed keys are related to the name prop
 	const shouldUpdate = (nextProps.context as UseFormReturnController<Record<string, any>>)
-	.changedKeys.some((key) => key.includes(nextProps.name) || nextProps.name.includes(key));
+	.changedKeys.has(nextProps.name);
 
 	return (
 		prevProps.name === nextProps.name && !shouldUpdate && isSameDeps

@@ -5,7 +5,7 @@ import { useControllerContext } from '../contexts/ControllerContext';
 import { useFormContext } from '../contexts/FormContext';
 import { type FormKey } from '../types/FormKey';
 import { type PathValue } from '../types/PathValue';
-import { type UseFormReturn } from '../types/formTypes';
+import { type SubmitHandler, type ValidateSubmission, type UseFormReturn } from '../types/formTypes';
 import { IS_DEV } from '../utils/constants';
 import { checkIfKeysExist, filterObjectByKeyAndMap } from '../utils/utils';
 
@@ -74,34 +74,48 @@ export function useFormSplitter<
 		get isValid() {
 			return !Object.keys(this.errors).length;
 		},
-		handleSubmit: (
-			onValid, 
-			onInvalid
+		handleSubmit: ((
+			onValid: SubmitHandler<T, K>,
+			onInvalid: ValidateSubmission | undefined,
+			nextFilterKeysError?: (key: string) => boolean
 		) => context.handleSubmit(
-			() => onValid(context.getValue(_formFieldKey)), 
-			(errors) => !checkIfKeysExist(errors, _formFieldKey) && (onInvalid ? onInvalid(filterObjectByKeyAndMap(errors, _formFieldKey)) : true),
+			() => onValid(context.getValue(_formFieldKey)),
+			(errors) =>
+				!checkIfKeysExist(errors, _formFieldKey)
+				&& (
+					onInvalid
+						? onInvalid(filterObjectByKeyAndMap(errors, _formFieldKey))
+						: true
+				),
 			// @ts-expect-error I want this to be able to only occur inside FormSplitter
-			filterKeysError
-		),
+			nextFilterKeysError ?? filterKeysError
+		)) as unknown as UseFormReturn<any>['handleSubmit'],
 		watch: (key, method) => context.watch(key !== 'submit' ? getKey(key) : key, method as WatchMethod<any>),
 		field: (key, options) => context.field(getKey(key), options) as any,
 		getErrors: (key, options) => context.getErrors(getKey(key), options),
 		hasError: (key, options) => context.hasError(getKey(key), options),
-		changeValue: (key, value, options) => context.changeValue(getKey(key), value, {
-			...options,
-			filterKeysError
-		}),
+		changeValue: (key, value, options) => context.changeValue(
+			getKey(key), 
+			value, 
+			{
+				filterKeysError,
+				...options
+			}
+		),
 		getValue: (key) => context.getValue(getKey(key)),
-		onChange: (key, fieldOptions) => (value) => context.onChange(getKey(key), {
-			...fieldOptions,
-			filterKeysError
-		})(value),
+		onChange: (key, fieldOptions) => (value) => context.onChange(
+			getKey(key), 
+			{
+				filterKeysError,
+				...fieldOptions
+			}
+		)(value),
 		reset: (newFrom, resetOptions) => {
 			return context.reset({
 				[_formFieldKey]: newFrom
 			}, {
-				...resetOptions,
-				filterKeysError
+				filterKeysError,
+				...resetOptions
 			});
 		},
 		resetTouch: context.resetTouch,
@@ -112,8 +126,8 @@ export function useFormSplitter<
 		) => context.triggerChange(
 			(form: T) => cb(form[_formFieldKey]), 
 			{
-				...produceOptions,
-				filterKeysError
+				filterKeysError,
+				...produceOptions
 			}
 		),
 		updateController: (key) => context.updateController(getKey(key)),

@@ -15,20 +15,6 @@ export function isClass(x: any): x is new (...args: any[]) => any {
 /**
  * Filter an Object by Key
  */
-export const filterObject = <T extends Record<string, any>>(
-	obj: T, 
-	filterKey?: (filterKey: FormKey<T> | string) => boolean
-): T => filterKey
-	? Object.fromEntries(
-		Object.entries(obj)
-		.filter(([key]) => filterKey(key))
-		.map(([key, error]) => [filterKey(key), error])
-	) as T
-	: obj;
-
-/**
- * Filter an Object by Key
- */
 export const checkIfKeysExist = <T extends Record<string, any>>(obj: T, filterKey: FormKey<T>): Boolean => 
 	Boolean(
 		Object.keys(obj)

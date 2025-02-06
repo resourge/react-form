@@ -1,10 +1,10 @@
 import { useRef } from 'react';
 
-import { observeObject } from '../utils/observeObject/observeObject';
+import { observeObject, type OnKeyTouch } from '../utils/observeObject/observeObject';
 
 export const useProxy = <T extends object>(
 	defaultValue: () => T,
-	onKeyTouch: (key: string) => void
+	onKeyTouch: OnKeyTouch
 ) => {
 	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 	const proxyRef = useRef<T>(undefined!);

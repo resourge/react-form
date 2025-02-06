@@ -1,30 +1,25 @@
 import { IS_DEV } from '../constants';
 import { isObjectOrArray } from '../utils';
 
-type OnKeyTouch = (key: string) => void;
+export type OnKeyTouch = (key: string, arrayMethod?: keyof typeof Array.prototype) => void;
 
-function isBuiltinWithMutableMethods(value: any) {
-	return value instanceof Date
-		|| value instanceof Set
-		|| value instanceof Map
-		|| value instanceof WeakSet
-		|| value instanceof WeakMap
-		|| ArrayBuffer.isView(value);
-}
+const isBuiltinWithMutableMethods = (value: any) => value instanceof Date
+	|| value instanceof Set
+	|| value instanceof Map
+	|| value instanceof WeakSet
+	|| value instanceof WeakMap
+	|| ArrayBuffer.isView(value);
 
-function isBuiltinWithoutMutableMethods(value: any) {
-	return value === null
-		|| typeof value !== 'object'
-		|| value instanceof RegExp
-		|| value instanceof File
-		|| value instanceof Blob;
-}
+const isBuiltinWithoutMutableMethods = (value: any) => value === null
+	|| typeof value !== 'object'
+	|| value instanceof RegExp
+	|| value instanceof File
+	|| value instanceof Blob;
 
-function setProperty(target: any, property: string, value: any, receiver: any, previous: any) { // eslint-disable-line max-params
-	return previous !== undefined
+const setProperty = (target: any, property: string, value: any, receiver: any, previous: any) => 
+	previous !== undefined
 		? Reflect.set(target, property, value, receiver)
 		: Reflect.set(target, property, value);
-}
 
 const TARGET_VALUE = Symbol('TargetValue');
 
@@ -97,13 +92,15 @@ function getDeepPath<T>({
 	};
 }
 
+const arrayMethodsToIgnore = new Set(['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse']);
+
 function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | WeakMap<any, any>>(
-	target: T, 
+	target2: T, 
 	onKeyTouch: OnKeyTouch, 
 	cache: WeakMap<any, any>,
 	key: string
 ): ProxyHandler<T> {
-	if ( isBuiltinWithMutableMethods(target) ) {
+	if ( isBuiltinWithMutableMethods(target2) ) {
 		return {
 			get(target: T, prop, receiver) {
 				// Handle changes to Date methods
@@ -174,8 +171,13 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 		};
 	}
 
+	let lastArrayProp: keyof typeof Array.prototype | undefined;
 	return {
 		get(_target, _prop, _receiver) {
+			if ( arrayMethodsToIgnore.has(_prop as string) ) {
+				lastArrayProp = _prop as keyof typeof Array.prototype;
+			}
+			
 			if (typeof _prop === 'symbol' && _prop === TARGET_VALUE ) {
 				return _target;
 			}
@@ -193,11 +195,12 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 			});
 
 			const value = Reflect.get(target, prop, receiver);
-			if ( isObjectOrArray(value) && !isBuiltinWithoutMutableMethods(value) ) {
-				const reflectTarget = value[TARGET_VALUE as keyof typeof value];
-
+			if ( 
+				isObjectOrArray(value) 
+				&& !isBuiltinWithoutMutableMethods(value) 
+			) {
 				return getProxy(
-					reflectTarget ?? value, 
+					getTargetValue(value) ?? value, 
 					onKeyTouch,
 					cache, 
 					constructKey(target, _prop, key)
@@ -221,7 +224,7 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 
 			value = getTargetValue(value);
 
-			const reflectTarget = target[TARGET_VALUE as keyof typeof target] ?? target;
+			const reflectTarget = getTargetValue(target);
 			const previous = reflectTarget[prop as keyof typeof reflectTarget];
 
 			const success = setProperty(
@@ -233,8 +236,10 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 			);
 
 			if ( success && !Object.is(previous, value) ) {
-				onKeyTouch(constructKey(target, _prop, key));
+				onKeyTouch(constructKey(target, _prop, key), lastArrayProp);
 			}
+			
+			lastArrayProp = undefined;
 
 			return success;
 		},

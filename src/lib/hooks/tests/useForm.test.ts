@@ -3,8 +3,8 @@ import { act } from 'react';
 import { renderHook, waitFor } from '@testing-library/react';
 import {
 	describe,
-	it,
 	expect,
+	it,
 	vi
 } from 'vitest';
 
@@ -33,6 +33,27 @@ describe('useForm', () => {
 			onChange: expect.any(Function),
 			value: ''
 		});
+	});
+
+	it('should validate in first render', () => {
+		const initialForm = {
+			name: 'John',
+			age: 30 
+		};
+		const { result } = renderHook(() => useForm(initialForm, {
+			validate: () => {
+				return [
+					{
+						path: 'name',
+						error: 'Min 5'
+					}
+				];
+			},
+			validationType: 'always'
+
+		}));
+
+		expect(result.current.hasError('name')).toBeTruthy();
 	});
 
 	// Test getErrors function
@@ -231,7 +252,8 @@ describe('useForm', () => {
 
 		const { result } = renderHook(() => useForm(initialValues, {
 			validate,
-			validateOnlyAfterFirstSubmit: false
+			validationType: 'onTouch'
+
 		}));
 
 		act(() => {
@@ -325,7 +347,7 @@ describe('useForm', () => {
 			initialForm, 
 			{
 				validate: mockValidation,
-				validateOnlyAfterFirstSubmit: false
+				validationType: 'onTouch'
 			}
 		));
 
