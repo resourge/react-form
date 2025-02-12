@@ -8,13 +8,14 @@ function addErrorToFormErrors<T extends Record<string, any>>(
 	validationError: ValidationWithErrors,
 	isChildError = false
 ) {
-	const entry = formErrors[path as FormKey<T>] ||= ({
+	const entry: FormError<T[FormKey<T>]> = formErrors[path as FormKey<T>] ||= {
 		errors: [],
 		childErrors: [],
-		childErrorsObj: {
+		childFormErrors: {
+			// @ts-expect-error To prevent circular dependency
 			toJSON: () => ({})
 		}
-	} as unknown as FormError<T[FormKey<T>]>);
+	};
 
 	validationError.errors.forEach((message) => {
 		if ( !isChildError ) {

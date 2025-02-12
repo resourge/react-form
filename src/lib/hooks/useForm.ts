@@ -1,12 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/prefer-promise-reject-errors */
-/* eslint-disable @typescript-eslint/prefer-function-type */
-/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
-/* eslint-disable @typescript-eslint/no-invalid-void-type */
 import {
 	type ChangeEvent,
 	type FormEvent,
-	useEffect,
 	useRef,
 	useState
 } from 'react';
@@ -15,13 +9,13 @@ import { type FieldForm, type GetErrorsOptions, type ResetMethod } from '../type
 import { type FormKey } from '../types/FormKey';
 import { type ValidationErrors } from '../types/errorsTypes';
 import {
-	type Touches,
 	type FieldFormReturn,
 	type FieldOptions,
 	type FormOptions,
 	type OnFunctionChange,
 	type SplitterOptions,
 	type SubmitHandler,
+	type Touches,
 	type UseFormReturn,
 	type ValidateSubmission
 } from '../types/formTypes';
@@ -30,7 +24,6 @@ import { isClass } from '../utils/utils';
 
 import { useErrors } from './useErrors';
 import { useProxy } from './useProxy';
-import { useTouches } from './useTouches';
 import { useWatch } from './useWatch';
 
 /**
@@ -43,6 +36,7 @@ const validateState = <T extends Record<string, any>>(
 	changedKeys: Array<FormKey<T>>,
 	validate: FormOptions<T>['validate']
 ): ValidationErrors | Promise<ValidationErrors> => {
+	// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
 	const handleSuccess = (errors: void | ValidationErrors): ValidationErrors => {
 		if ( errors && errors.length ) {
 			// eslint-disable-next-line @typescript-eslint/no-throw-literal, @typescript-eslint/only-throw-error
@@ -65,7 +59,7 @@ const validateState = <T extends Record<string, any>>(
 };
 
 export function useForm<T extends Record<string, any>>(
-	defaultValue: { new(): T }, 
+	defaultValue: new() => T, 
 	options?: FormOptions<T>
 ): UseFormReturn<T>;
 export function useForm<T extends Record<string, any>>(
@@ -77,9 +71,10 @@ export function useForm<T extends Record<string, any>>(
 	options?: FormOptions<T>
 ): UseFormReturn<T>;
 export function useForm<T extends Record<string, any>>(
-	defaultValue: T | (() => T) | ({ new(): T }), 
+	defaultValue: T | (() => T) | ((new() => T)), 
 	options: FormOptions<T> = {}
 ): UseFormReturn<T> {
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const [_, setState] = useState(0);
 	const forceUpdate = () => setState((x) => x + 1);
 	const tempTouchesRef = useRef<{ 
@@ -220,6 +215,7 @@ export function useForm<T extends Record<string, any>>(
 			options.onSubmit?.(stateRef.current, errorRef.current);
 
 			if ( Object.keys(errors).length && !(await onInvalid?.(formatErrors(errors))) ) {
+				// eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
 				return await Promise.reject(errors);
 			}
 		

@@ -269,7 +269,7 @@ describe('useForm', () => {
 
 		expect(result.current.isValid).toBeTruthy();
 
-		await act(() => result.current.handleSubmit(() => {})());
+		await act(() => (result.current.handleSubmit(() => {})()).catch(() => []));
 
 		expect(result.current.isValid).toBeFalsy();
 	});
