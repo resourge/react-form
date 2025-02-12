@@ -2,12 +2,12 @@ import { useEffect, useRef } from 'react';
 
 import { type FormKey } from '../types';
 import { type ValidationErrors } from '../types/errorsTypes';
-import { type HasTouchOptions, type FormValidationType } from '../types/formTypes';
+import { type FormValidationType, type Touches } from '../types/formTypes';
 import { forEachPossibleKey, getErrorsFromValidationErrors } from '../utils/formatErrors';
 
-function setSubmittedFormPaths(
+function setSubmittedFormPaths<T extends Record<string, any>>(
 	obj: any, 
-	submitTouchesRef: React.MutableRefObject<Set<string>>,
+	setTouch: (key: FormKey<T>, touch: boolean, submitted: boolean) => void,
 	filterKeysError?: (key: string) => boolean, 
 	parentPath: string = ''
 ) {
@@ -26,8 +26,8 @@ function setSubmittedFormPaths(
 				: key;
 
 		if (!filterKeysError || filterKeysError(newPath)) {
-			submitTouchesRef.current.add(newPath);
-			setSubmittedFormPaths(value, submitTouchesRef, filterKeysError, newPath);
+			setTouch(newPath as FormKey<T>, true, true);
+			setSubmittedFormPaths(value, setTouch, filterKeysError, newPath);
 		}
 	});
 }
@@ -43,70 +43,79 @@ type TouchesProps = {
 };
 
 export const useTouches = <T extends Record<string, any>>({ validationType, filterKeysError }: TouchesProps) => {
+	const touchesRef = useRef<Touches>(new Map());
 	const changedKeysRef = useRef<Set<FormKey<T>>>(new Set());
 	const shouldUpdateErrorsRef = useRef<boolean>(validationType === 'always');
-	const touchesRef = useRef<Record<string, boolean>>({});
-	const submitTouchesRef = useRef<Set<string>>(new Set());
 
 	const clearTouches = () => {
-		touchesRef.current = {};
-		submitTouchesRef.current = new Set();
+		touchesRef.current.clear();
 	};
 
-	function hasTouch<Model extends Record<string, any> = T>(
-		key: FormKey<Model>, 
-		{ includeChilds = false }: HasTouchOptions = {}
-	): boolean {
-		return includeChilds 
-			? (
-				Object.keys(touchesRef)
-				.some((path) => path.includes(key) || key.includes(path))
-			)
-			: touchesRef.current[key];
+	function setTouch<Model extends Record<string, any> = T>(
+		key: FormKey<Model>,
+		touch: boolean,
+		submitted: boolean = false,
+		isPossibilityKey: boolean = false
+	) {
+		const newTouch = touchesRef.current.get(key) ?? {
+			submitted,
+			touch
+		};
+
+		forEachPossibleKey(key, (possibilityKey) => {
+			if ( key === possibilityKey) {
+				newTouch.touch = isPossibilityKey ? (newTouch.touch || touch) : touch;
+				newTouch.submitted = newTouch.submitted || submitted;
+				return;
+			}
+
+			setTouch(possibilityKey as FormKey<Model>, touch, newTouch.submitted, true);
+		});
+		
+		touchesRef.current.set(
+			key,
+			newTouch
+		);
 	}
 
+	const hasTouch = <Model extends Record<string, any> = T>(key: FormKey<Model>): boolean => touchesRef.current.get(key)?.touch ?? false;
+
 	const setSubmitTouches = (form: T, newErrors: ValidationErrors, previousErrors: ValidationErrors) => {
-		if ( validationType === 'onSubmit' ) {
-			submitTouchesRef.current.clear();
+		setSubmittedFormPaths<T>(form, setTouch, filterKeysError);
 
-			setSubmittedFormPaths(form, submitTouchesRef, filterKeysError);
-		}
-		if ( validationType === 'onTouch' ) {
-			newErrors
-			.forEach((val) => {
-				const errors = getErrorsFromValidationErrors(val);
-				if ( 
-					!changedKeysRef.current.has(val.path as FormKey<T>) 
-					|| !(
-						previousErrors.some((previousVal) => {
-							const pE = getErrorsFromValidationErrors(previousVal);
+		newErrors
+		.forEach((val) => {
+			const errors = getErrorsFromValidationErrors(val);
+			if ( 
+				!changedKeysRef.current.has(val.path as FormKey<T>) 
+				|| !(
+					previousErrors.some((prevVal) => {
+						const prevErrors = getErrorsFromValidationErrors(prevVal);
 
-							return previousVal.path === val.path
-								&& errors.length === pE.length
-								&& errors.some((error) => pE.includes(error));
-						})
-					)
-				) {
-					updateTouches(val.path as FormKey<T>, false);
-				}
-			});
-		}
+						return prevVal.path === val.path
+							&& errors.errors.length === prevErrors.errors.length
+							&& errors.errors.some((error) => prevErrors.errors.includes(error));
+					})
+				)
+			) {
+				changedKeysRef.current.add(val.path as FormKey<T>);
+			}
+		});
 	};
-	
-	const updateTouches = (
+
+	const changeTouch = (
 		key: FormKey<T> | string,
-		shouldUpdateErrors: boolean = true
+		touch: boolean = true
 	) => {
 		if ( filterKeysError && !filterKeysError(key) ) {
 			return;
 		}
+		setTouch(key as FormKey<T>, touch);
+		changedKeysRef.current.add(key as FormKey<T>);
 
-		forEachPossibleKey(key, (key) => {
-			touchesRef.current[key] = true;
-			changedKeysRef.current.add(key as FormKey<T>);
-		});
-
-		shouldUpdateErrorsRef.current = shouldUpdateErrors;
+		shouldUpdateErrorsRef.current = !(
+			validationType === 'onSubmit' && !touchesRef.current.get('')?.submitted
+		);
 	};
 	
 	useEffect(() => {
@@ -116,12 +125,12 @@ export const useTouches = <T extends Record<string, any>>({ validationType, filt
 
 	return {
 		shouldUpdateErrorsRef,
-		submitTouchesRef,
 		touchesRef,
 		changedKeysRef,
-		updateTouches,
+		changeTouch,
 		clearTouches,
 		setSubmitTouches,
-		hasTouch
+		hasTouch,
+		setTouch
 	};
 };

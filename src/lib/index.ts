@@ -38,7 +38,6 @@ export {
 	type ResetMethod,
 	type ResetOptions,
 	type SubmitHandler,
-	type Touches,
 	type UseFormReturn,
 	type ValidateSubmission
 } from './types';

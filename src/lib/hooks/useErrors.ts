@@ -13,42 +13,43 @@ import { formatErrors } from '../utils/formatErrors';
 
 import { useTouches } from './useTouches';
 
-export const useErrors = <T extends Record<string, any>>(
-	{
-		validate, forceUpdate, 
-		splitterOptionsRef, stateRef,
-		validationType = 'onSubmit'
-	}: {
-		forceUpdate: () => void
-		splitterOptionsRef: MutableRefObject<SplitterOptions & {
-			preventStateUpdate?: boolean
-		}>
-		stateRef: React.MutableRefObject<T>
-		validate: (changedKeys: Array<FormKey<T>>) => ValidationErrors | Promise<ValidationErrors>
-		/**
-		 * Validation type, specifies the type of validation.
-		 * @default 'onSubmit'
-		 */
-		validationType?: FormValidationType
-	}
-) => {
+type UseErrorsConfig<T extends Record<string, any>> = {
+	forceUpdate: () => void
+	splitterOptionsRef: MutableRefObject<SplitterOptions & {
+		preventStateUpdate?: boolean
+	}>
+	stateRef: React.MutableRefObject<T>
+	validate: (changedKeys: Array<FormKey<T>>) => ValidationErrors | Promise<ValidationErrors>
+	/**
+	 * Validation type, specifies the type of validation.
+	 * @default 'onSubmit'
+	 */
+	validationType?: FormValidationType
+};
+
+export const useErrors = <T extends Record<string, any>>({
+	validate, forceUpdate, 
+	splitterOptionsRef, stateRef,
+	validationType = 'onSubmit'
+}: UseErrorsConfig<T>) => {
 	const {
-		shouldUpdateErrorsRef, changedKeysRef, touchesRef, submitTouchesRef, 
-		updateTouches, clearTouches, setSubmitTouches, hasTouch
+		shouldUpdateErrorsRef, changedKeysRef, touchesRef, 
+		changeTouch, clearTouches, setSubmitTouches, 
+		hasTouch, setTouch
 	} = useTouches<T>({
 		validationType,
 		filterKeysError: splitterOptionsRef.current.filterKeysError
 	});
 
-	const errorRef = useRef<FormErrors>({} as FormErrors);
+	const errorRef = useRef<FormErrors<T>>({} as FormErrors<T>);
 	const validationErrorsRef = useRef<ValidationErrors>([]);
+	const changedKeys = Array.from(changedKeysRef.current);
 
 	const setErrors = (errors: ValidationErrors) => {
 		if (
 			!deepCompareValidationErrors(errors, validationErrorsRef.current)
 		) {
 			validationErrorsRef.current = errors;
-
 			errorRef.current = formatErrors(errors);
 
 			return true;
@@ -70,10 +71,9 @@ export const useErrors = <T extends Record<string, any>>(
 		}>
 	) => {
 		newErrors.forEach(({ path }) => {
-			if ( validationType === 'onSubmit' ) {
-				submitTouchesRef.current.add(path);
-			}
-			updateTouches(path, false);
+			setTouch(path, true, validationType === 'onSubmit');
+			
+			changedKeysRef.current.add(path);
 		});
 
 		renderIfNewErrors([
@@ -83,7 +83,7 @@ export const useErrors = <T extends Record<string, any>>(
 	};
 
 	const submitValidation = async () => {
-		const errors = await validate(Array.from(changedKeysRef.current));
+		const errors = await validate(changedKeys);
 
 		setSubmitTouches(
 			stateRef.current,
@@ -97,7 +97,7 @@ export const useErrors = <T extends Record<string, any>>(
 	};
 
 	if ( shouldUpdateErrorsRef.current ) {
-		const res = validate(Array.from(changedKeysRef.current));
+		const res = validate(changedKeys);
 
 		if ( res instanceof Promise ) {
 			res.then(renderIfNewErrors);
@@ -111,15 +111,13 @@ export const useErrors = <T extends Record<string, any>>(
 		key: FormKey<Model>, 
 		{ includeChildsIntoArray = false }: GetErrorsOptions = {}
 	): string[] {
-		const errors = errorRef.current[key];
+		const errors = errorRef.current[key as unknown as FormKey<T>];
+		const touch = touchesRef.current.get(key);
 
-		if ( 
-			!errors
-			|| (
-				validationType === 'onSubmit' && !submitTouchesRef.current.has(key)
-			) || (
-				validationType === 'onTouch' && !touchesRef.current[key]
-			)
+		if (
+			!errors 
+			|| (validationType === 'onSubmit' && (!touch || touch.submitted === false) )
+			|| (validationType === 'onTouch' && (!touch || touch.touch === false))
 		) {
 			return [];
 		}
@@ -129,14 +127,16 @@ export const useErrors = <T extends Record<string, any>>(
 
 	return {
 		errorRef,
+		changedKeys,
 		changedKeysRef,
 		touchesRef,
 
 		getErrors,
 		submitValidation,
-		updateTouches,
+		updateTouches: changeTouch,
 		clearTouches,
 		setError,
-		hasTouch
+		hasTouch,
+		getTouch: setTouch
 	};
 };

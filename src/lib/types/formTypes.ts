@@ -8,23 +8,21 @@ import { type WatchMethod } from '../hooks/useWatch';
 import { type FormKey } from './FormKey';
 import { type ValidationErrors } from './errorsTypes';
 
-export type Touches<T extends Record<string, any>> = {
-	/**
-	 * Paths for the keys touched
-	 */
-	[K in FormKey<T>]?: boolean
+export type ToucheType = {
+	submitted: boolean
+	touch: boolean
 };
 
-export type FormErrors = Record<string, {
-	childErrors: string[]
-	errors: string[]
-}>;
+export type Touches = Map<string, ToucheType>;
 
-export type HasTouchOptions = {
-	/**
-	 * Includes the children touches (@default false)
-	 */
-	includeChilds?: boolean
+export type FormError<T extends Record<string, any>> = {
+	childErrors: string[]
+	childFormErrors: FormErrors<T>
+	errors: string[]
+};
+
+export type FormErrors<T extends Record<string, any>> = {
+	[K in FormKey<T>]?: FormError<T[K]>
 };
 
 export type GetErrorsOptions = {
@@ -42,11 +40,11 @@ export type FormOptions<T extends Record<string, any>> = {
 	/**
 	 * Triggers when form is changed
 	 */
-	onChange?: (form: T, errors: FormErrors) => Promise<void> | void
+	onChange?: (form: T, errors: FormErrors<T>) => Promise<void> | void
 	/**
 	 * Triggers when form is submitted
 	 */
-	onSubmit?: (form: T, errors: FormErrors) => Promise<void> | void
+	onSubmit?: (form: T, errors: FormErrors<T>) => Promise<void> | void
 	/**
 	 * Method to validate form.
 	 * Usually with some kind of validator.
@@ -89,7 +87,7 @@ export type FieldFormBlur<Value = any, Name = string> = {
 	/**
 	 * Method to update values
 	 */
-	onBlur?: (value: Value) => void
+	onBlur: (value: Value) => void
 	/**
 	 * When true onChange will not be returned
 	 */
@@ -117,13 +115,13 @@ export type FieldFormChange<Value = any, Name = string> = {
 	 */
 	name: Name
 	/**
+	 * Method to update values
+	 */
+	onChange: (value: Value) => void
+	/**
 	 * Form value
 	 */
 	value: Value
-	/**
-	 * Method to update values
-	 */
-	onChange?: (value: Value) => void
 	/**
 	 * When true onChange will not be returned
 	 */
@@ -171,11 +169,11 @@ export type OnFunctionChange<T extends Record<string, any>, Result = void> = ((f
 
 export type SubmitHandler<T extends Record<string, any>, K = void> = (form: T) => K | Promise<K>;
 
-export type ValidateSubmission = (
+export type ValidateSubmission<T extends Record<string, any>> = (
 	/**
 	 * Form errors
 	 */
-	errors: FormErrors
+	errors: FormErrors<T>
 ) => boolean | Promise<boolean>;
 
 export interface UseFormReturn<T extends Record<string, any>> {
@@ -211,7 +209,7 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * Form errors
 	 * * Note: Depends on {@link FormOptions#validate}.
 	 */
-	errors: FormErrors
+	errors: FormErrors<T>
 	/**
 	 * Method to connect the form element to the key, by providing native attributes like `onChange`, `name`, etc
 	 * 
@@ -317,7 +315,7 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 */
 	handleSubmit: <K = void>(
 		onValid: SubmitHandler<T, K>, 
-		onInvalid?: ValidateSubmission | undefined
+		onInvalid?: ValidateSubmission<T> | undefined
 	) => (e?: FormEvent<HTMLFormElement> | React.MouseEvent<any, React.MouseEvent> | React.BaseSyntheticEvent) => Promise<K | undefined>
 	/**
 	 * Method to verify if `key` has errors
@@ -360,7 +358,7 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * ///
 	 * ```
 	 */
-	hasTouch: (key: FormKey<T>, options?: HasTouchOptions) => boolean
+	hasTouch: (key: FormKey<T>) => boolean
 	/**
 	 * Form touches state, by default is false if `touches` are undefined or an empty object
 	 */

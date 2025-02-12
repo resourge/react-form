@@ -1,90 +1,61 @@
-import { type ValidationErrors } from '../types/errorsTypes';
-import { type FormErrors } from '../types/formTypes';
+import { type FormKey } from '../types';
+import { type ValidationWithErrors, type ValidationErrors } from '../types/errorsTypes';
+import { type FormError, type FormErrors } from '../types/formTypes';
 
-function addErrorToFormErrors(
-	formErrors: FormErrors, 
+function addErrorToFormErrors<T extends Record<string, any>>(
+	formErrors: FormErrors<T>, 
 	path: string, 
-	errors: string[],
+	validationError: ValidationWithErrors,
 	isChildError = false
 ) {
-	formErrors[path] ??= {
+	const entry = formErrors[path as FormKey<T>] ||= ({
 		errors: [],
-		childErrors: []
-	};
-	
-	errors.forEach((message) => {
+		childErrors: [],
+		childErrorsObj: {
+			toJSON: () => ({})
+		}
+	} as unknown as FormError<T[FormKey<T>]>);
+
+	validationError.errors.forEach((message) => {
 		if ( !isChildError ) {
-			if ( !formErrors[path].errors.includes(message) ) {
-				formErrors[path].errors.push(message);
+			if ( !entry.errors.includes(message) ) {
+				entry.errors.push(message);
 			}
 		}
-		if ( !formErrors[path].childErrors.includes(message) ) {
-			formErrors[path].childErrors.push(message);
+		else if ( !entry.childFormErrors[validationError.path as T[FormKey<T>]] ) {
+			entry.childFormErrors[validationError.path as T[FormKey<T>]] = formErrors[validationError.path as FormKey<T>];
+		}
+
+		if ( !entry.childErrors.includes(message) ) {
+			entry.childErrors.push(message);
 		}
 	});
 }
 
 export const forEachPossibleKey = (key: string, onKey: (key: string) => void) => {
-	const keyPoints = key.split('.');
-		
-	let currentKey = '';
+	(
+		key.match(/(?:\.\w+|\[\d+\]|\w+)/g) ?? []
+	).forEach((_, index, arr) => onKey(arr.slice(0, arr.length - index).join('')));
 
-	keyPoints.forEach((part) => {
-		currentKey = currentKey ? `${currentKey}.` : currentKey;
-
-		if (part.includes('[')) {
-			const [arrayPart, index] = part.split(/[\\[\]]/);
-			currentKey = `${currentKey}${arrayPart}`;
-			onKey(currentKey);
-
-			currentKey = `${currentKey}[${index}]`;
-		}
-		else {
-			currentKey = `${currentKey}${part}`;
-		}
-
-		onKey(currentKey);
-	});
+	onKey('');
 };
 
-export const getErrorsFromValidationErrors = (value: ValidationErrors[number]) => {
-	return 'error' in value ? [value.error] : value.errors;
+export const getErrorsFromValidationErrors = (value: ValidationErrors[number]): ValidationWithErrors => {
+	return {
+		path: value.path,
+		errors: 'error' in value ? [value.error] : value.errors
+	};
 };
 
-export const formatErrors = (
+export const formatErrors = <T extends Record<string, any>>(
 	errors: ValidationErrors = {} as ValidationErrors
 ) => {
 	return errors
-	.reduce<FormErrors>((val, value) => {
+	.reduce<FormErrors<T>>((val, value) => {
 		const key = value.path;
 		const errors = getErrorsFromValidationErrors(value);
 
-		addErrorToFormErrors(val, key, errors);
-		
-		// Process nested paths to ensure all parent paths are included
-		const parts = key.split('.');
-		let currentPath = '';
-
-		parts.forEach((part) => {
-			currentPath = currentPath ? `${currentPath}.` : currentPath;
-
-			if (part.includes('[')) {
-				const [arrayPart, index] = part.split(/[\\[\]]/);
-				currentPath = `${currentPath}${arrayPart}`;
-
-				addErrorToFormErrors(val, currentPath, errors, true);
-
-				currentPath = `${currentPath}[${index}]`;
-			}
-			else {
-				currentPath = `${currentPath}${part}`;
-			}
-
-			if ( currentPath !== key ) {
-				// Ensure the current path is added with an empty error structure
-				addErrorToFormErrors(val, currentPath, errors, true);
-			}
-		});
+		forEachPossibleKey(key, (possibilityKey) => addErrorToFormErrors(val, possibilityKey, errors, key !== possibilityKey));
 
 		return val;
 	}, {});

@@ -6,6 +6,7 @@
 import {
 	type ChangeEvent,
 	type FormEvent,
+	useEffect,
 	useRef,
 	useState
 } from 'react';
@@ -14,6 +15,7 @@ import { type FieldForm, type GetErrorsOptions, type ResetMethod } from '../type
 import { type FormKey } from '../types/FormKey';
 import { type ValidationErrors } from '../types/errorsTypes';
 import {
+	type Touches,
 	type FieldFormReturn,
 	type FieldOptions,
 	type FormOptions,
@@ -80,6 +82,13 @@ export function useForm<T extends Record<string, any>>(
 ): UseFormReturn<T> {
 	const [_, setState] = useState(0);
 	const forceUpdate = () => setState((x) => x + 1);
+	const tempTouchesRef = useRef<{ 
+		method: string | undefined
+		touches: Touches 
+	}>({
+		method: undefined,
+		touches: new Map()
+	});
 
 	const stateRef = useProxy<T>(
 		() => (
@@ -90,37 +99,56 @@ export function useForm<T extends Record<string, any>>(
 						: (defaultValue as () => T)()
 				) : defaultValue
 		),
-		async (key, arrayMethod) => {
-			/*
-// TODO Reverse
-			// TODO concat reverse sort map
-				if (
-					[
-						'pop', 
-						'shift', 
-						'splice'
-					].includes(arrayMethod as string) 
-				) {
-					const regex = /\[\d+\](?!.*\[\d+\])/;
-					const match = key.match(regex)?.at(0);
+		async (key, metadata) => {
+			if ( metadata ) {
+				const {
+					isArray, previousIndex, method 
+				} = metadata;
 
-					const newKey = key.replace(regex, '');
+				if ( isArray ) {
+					const touchKeys = Array.from(touchesRef.current.entries());
 
-					const keys = Object.keys(touchesRef.current)
-					.filter((key) => key === newKey);
-
-					if ( match) {
-						console.log(match);
-					} // Output: ["[1]"]
-					touchesRef.current[key] = false;
+					if ( tempTouchesRef.current.method !== method || tempTouchesRef.current.touches.size === 0 ) {
+						tempTouchesRef.current.method = method; 
+						const result = key.replace(/\[[^\\[\]]*\]$/, '');
+	
+						tempTouchesRef.current.touches = new Map(
+							touchKeys
+							.filter(([key]) => key !== result && key.startsWith(result))
+						);
+					}
+					
+					(
+						previousIndex !== undefined
+							? touchKeys.filter(([touchKey]) => touchKey.startsWith(previousIndex))
+							: touchKeys.filter(([touchKey]) => touchKey.startsWith(key))
+					)
+					.forEach(([oldKey]) => {
+						if ( previousIndex !== undefined ) {
+							const newKey = oldKey.replace(previousIndex, key);
+							const _value = tempTouchesRef.current.touches.get(oldKey);
+							if ( _value ) {
+								tempTouchesRef.current.touches.delete(oldKey);
+							}
+							else {
+								touchesRef.current.delete(oldKey);
+							}
+							
+							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+							touchesRef.current.set(newKey, _value ?? touchesRef.current.get(oldKey)!);
+						}
+						else {
+							touchesRef.current.delete(oldKey);
+						}
+						changedKeysRef.current.add(oldKey as FormKey<T>);
+					});
 				}
-			*/
-			if ( arrayMethod ) {
-				changedKeysRef.current.add(key as FormKey<T>);
 			}
-			else {
-				updateTouches(key as FormKey<T>);
-			}
+
+			updateTouches(
+				key as FormKey<T>, 
+				(metadata && metadata.isArray ? hasTouch(key as FormKey<T>) : undefined)
+			);
 
 			if ( watchedRefs.current.size ) {
 				for (const [watchedKey, method] of watchedRefs.current) {
@@ -148,14 +176,16 @@ export function useForm<T extends Record<string, any>>(
 	const {
 		errorRef,
 		changedKeysRef, 
+		changedKeys,
 		touchesRef, 
 		
 		getErrors,
 		submitValidation,
+		setError,
+
 		updateTouches, 
 		clearTouches,
-		hasTouch,
-		setError
+		hasTouch
 	} = useErrors<T>({
 		splitterOptionsRef,
 		stateRef,
@@ -176,7 +206,7 @@ export function useForm<T extends Record<string, any>>(
 
 	const handleSubmit = <K = void>(
 		onValid: SubmitHandler<T, K>,
-		onInvalid?: ValidateSubmission,
+		onInvalid?: ValidateSubmission<T>,
 		filterKeysError?: (key: string) => boolean
 	) => async (e?: FormEvent<HTMLFormElement> | React.MouseEvent<any, React.MouseEvent> | React.BaseSyntheticEvent) => {
 		splitterOptionsRef.current.filterKeysError = filterKeysError;
@@ -189,14 +219,8 @@ export function useForm<T extends Record<string, any>>(
 			const errors = await submitValidation();
 			options.onSubmit?.(stateRef.current, errorRef.current);
 
-			if ( Object.keys(errors).length ) {
-				const canGoOn = onInvalid
-					? await Promise.resolve(onInvalid(formatErrors(errors)))
-					: false;
-
-				if ( !canGoOn ) {
-					return await Promise.reject(errors);
-				}
+			if ( Object.keys(errors).length && !(await onInvalid?.(formatErrors(errors))) ) {
+				return await Promise.reject(errors);
 			}
 		
 			const result = await onValid(stateRef.current);
@@ -218,8 +242,7 @@ export function useForm<T extends Record<string, any>>(
 
 		splitterOptionsRef.current.preventStateUpdate = true;
 
-		(Object.keys(newFrom) as Array<keyof T>)
-		.forEach((key) => stateRef.current[key as keyof T] = newFrom[key] as T[keyof T]);
+		Object.assign(stateRef.current, newFrom);
 
 		if ( resetOptions.clearTouched ?? true ) {
 			clearTouches();
@@ -229,54 +252,28 @@ export function useForm<T extends Record<string, any>>(
 		splitterOptionsRef.current = {};
 	};
 
-	const triggerChange = async (cb: OnFunctionChange<T>, produceOptions: SplitterOptions = {}) => {
-		splitterOptionsRef.current = produceOptions;
-		try {
-			splitterOptionsRef.current.preventStateUpdate = true;
-			await Promise.resolve(cb(stateRef.current));
-			forceUpdate();
-		}
-		finally {
-			splitterOptionsRef.current = {};
-		}
-	};
-
 	const onChange = (
 		key: FormKey<T>, 
 		fieldOptions: FieldOptions = {}
 	) => (value: T[FormKey<T>] | ChangeEvent) => {
-		let _value: T[FormKey<T>] = value as T[FormKey<T>];
-
-		const target = value && (value as ChangeEvent<HTMLInputElement>).currentTarget;
-
-		if (target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName.toUpperCase())) {
-			_value = target.value as T[FormKey<T>];
-		}
-
-		const nativeEvent = value && (value as ChangeEvent<HTMLInputElement>).nativeEvent;
-
-		const nativeValue = nativeEvent 
-			? (nativeEvent as unknown as { text: any }).text 
-			: undefined;
-
-		if (nativeValue !== undefined) {
-			_value = nativeValue;
-		}
+		const _value = (
+			(value as ChangeEvent<HTMLInputElement> & { nativeEvent?: { text?: string } })?.nativeEvent?.text
+			?? (value as ChangeEvent<HTMLInputElement>)?.currentTarget?.value
+			?? value
+		);
 
 		splitterOptionsRef.current = fieldOptions;
 
-		stateRef.current[key] = _value;
+		stateRef.current[key] = _value as T[FormKey<T>];
 
 		splitterOptionsRef.current = {};
 	};
-
-	const getValue = (key: FormKey<T>) => stateRef.current[key];
 
 	const field = ((
 		key: FormKey<T>, 
 		fieldOptions: FieldOptions = {}
 	): FieldFormReturn => {
-		const value = getValue(key);
+		const value = stateRef.current[key];
 
 		if ( fieldOptions.blur ) {
 			return {
@@ -286,7 +283,7 @@ export function useForm<T extends Record<string, any>>(
 					// @ts-expect-error fieldOptions if going to change splitterOptionsRef, and that is where preventStateUpdate is going
 					preventStateUpdate: true
 				}),
-				onBlur: () => touchesRef.current[key] && forceUpdate(),
+				onBlur: () => hasTouch(key) && forceUpdate(),
 				defaultValue: value
 			};
 		}
@@ -311,15 +308,27 @@ export function useForm<T extends Record<string, any>>(
 		get context() {
 			return this;
 		},
-		errors: errorRef.current,
+		get errors() {
+			return errorRef.current['' as FormKey<T>]?.childFormErrors ?? {};
+		},
 		get isValid(): boolean {
-			return !Object.keys(errorRef.current).length;
+			return !errorRef.current['' as FormKey<T>]?.childErrors.length;
 		},
 		get isTouched() {
-			return !!Object.keys(touchesRef.current).length;
+			return hasTouch('');
 		},
 		field,
-		triggerChange,
+		triggerChange: async (cb: OnFunctionChange<T>, produceOptions: SplitterOptions = {}) => {
+			splitterOptionsRef.current = produceOptions;
+			try {
+				splitterOptionsRef.current.preventStateUpdate = true;
+				await Promise.resolve(cb(stateRef.current));
+				forceUpdate();
+			}
+			finally {
+				splitterOptionsRef.current = {};
+			}
+		},
 		handleSubmit,
 		setError,
 		hasTouch,
@@ -327,7 +336,7 @@ export function useForm<T extends Record<string, any>>(
 		getErrors,
 
 		// @ts-expect-error changedKeys for UseFormReturnController
-		changedKeys: changedKeysRef.current,
+		changedKeys,
 
 		reset,
 		onChange,
@@ -336,7 +345,7 @@ export function useForm<T extends Record<string, any>>(
 			value: T[FormKey<T>], 
 			produceOptions?: FieldOptions
 		) => onChange(key, produceOptions)(value),
-		getValue,
+		getValue: (key: FormKey<T>) => stateRef.current[key],
 
 		resetTouch: () => {
 			clearTouches();

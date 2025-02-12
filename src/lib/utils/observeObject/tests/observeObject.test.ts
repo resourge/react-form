@@ -22,7 +22,11 @@ describe('observeObject', () => {
 
 		proxy.a = undefined;
 
-		expect(onKeyTouch).toHaveBeenCalledWith('a', undefined);
+		expect(onKeyTouch).toHaveBeenCalledWith('a', {
+			isArray: false,
+			method: undefined,
+			previousIndex: undefined 
+		});
 		expect(proxy.a).toBe(undefined);
 		expect(target.a).toBe(undefined);
 	});
@@ -36,7 +40,11 @@ describe('observeObject', () => {
 
 		proxy.a = 2;
 
-		expect(onKeyTouch).toHaveBeenCalledWith('a', undefined);
+		expect(onKeyTouch).toHaveBeenCalledWith('a', {
+			isArray: false,
+			method: undefined,
+			previousIndex: undefined 
+		});
 		expect(proxy.a).toBe(2);
 		expect(target.a).toBe(2);
 	});
@@ -187,7 +195,11 @@ describe('observeObject', () => {
 		// @ts-expect-error Expected
 		delete proxy.a;
 
-		expect(onKeyTouch).toHaveBeenCalledWith('a');
+		expect(onKeyTouch).toHaveBeenCalledWith('a', {
+			isArray: false,
+			method: undefined,
+			previousIndex: undefined 
+		});
 		expect(proxy.a).toBeUndefined();
 		expect(target.a).toBeUndefined();
 	});
@@ -205,8 +217,15 @@ describe('observeObject', () => {
 		proxy.a.b = 2;
 		proxy.arr[1] = 4;
 
-		expect(onKeyTouch).toHaveBeenCalledWith('a.b', undefined);
-		expect(onKeyTouch).toHaveBeenCalledWith('arr[1]', undefined);
+		expect(onKeyTouch).toHaveBeenCalledWith('a.b', {
+			isArray: false,
+			method: undefined,
+			previousIndex: undefined 
+		});
+		expect(onKeyTouch).toHaveBeenCalledWith('arr[1]', {
+			isArray: true,
+			previousIndex: undefined
+		});
 		expect(proxy.a.b).toBe(2);
 		expect(proxy.arr[1]).toBe(4);
 	});
@@ -228,8 +247,16 @@ describe('observeObject', () => {
 		proxy.a.b.c.d = 2;
 		proxy.arr[0][1] = 5;
 
-		expect(onKeyTouch).toHaveBeenCalledWith('a.b.c.d', undefined);
-		expect(onKeyTouch).toHaveBeenCalledWith('arr[0][1]', undefined);
+		expect(onKeyTouch).toHaveBeenCalledWith('a.b.c.d', {
+			isArray: false,
+			method: undefined,
+			previousIndex: undefined 
+		});
+		expect(onKeyTouch).toHaveBeenCalledWith('arr[0][1]', {
+			isArray: true,
+			previousIndex: undefined 
+		});
+
 		expect(proxy.a.b.c.d).toBe(2);
 		expect(proxy.arr[0][1]).toBe(5);
 	});
@@ -293,7 +320,11 @@ describe('observeObject', () => {
 		proxy.a = 4;
 
 		expect(onKeyTouch).toHaveBeenCalledTimes(3);
-		expect(onKeyTouch).toHaveBeenCalledWith('a', undefined);
+		expect(onKeyTouch).toHaveBeenCalledWith('a', {
+			isArray: false,
+			method: undefined,
+			previousIndex: undefined 
+		});
 		expect(proxy.a).toBe(4);
 	});
 
@@ -306,7 +337,11 @@ describe('observeObject', () => {
 			nestedProp: 'value' 
 		};
 
-		expect(onKeyTouch).toHaveBeenCalledWith('newProp', undefined);
+		expect(onKeyTouch).toHaveBeenCalledWith('newProp', {
+			isArray: false,
+			method: undefined,
+			previousIndex: undefined 
+		});
 		expect(proxy.newProp.nestedProp).toBe('value');
 	});
 
@@ -321,7 +356,11 @@ describe('observeObject', () => {
 		newDate.setFullYear(2025);
 		proxy.date = newDate;
 
-		expect(onKeyTouch).toHaveBeenCalledWith('date', undefined);
+		expect(onKeyTouch).toHaveBeenCalledWith('date', {
+			isArray: false,
+			method: undefined,
+			previousIndex: undefined 
+		});
 		expect(proxy.date.getFullYear()).toBe(2025);
 	});
 
@@ -345,7 +384,11 @@ describe('observeObject', () => {
 		const proxy = observeObject(target, onKeyTouch);
 		proxy.self.a = 1;
 
-		expect(onKeyTouch).toHaveBeenCalledWith('a', undefined);
+		expect(onKeyTouch).toHaveBeenCalledWith('a', {
+			isArray: false,
+			method: undefined,
+			previousIndex: undefined 
+		});
 		expect(proxy.self.a).toBe(1);
 	});
 });

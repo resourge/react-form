@@ -13,7 +13,6 @@ export type {
 	ValidateSubmission,
 	GetErrorsOptions,
 	UseFormReturn,
-	Touches,
 	FieldFormBlur,
 	FieldFormChange,
 	FieldFormReadonly,
