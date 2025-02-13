@@ -17,6 +17,7 @@ describe('observeObject', () => {
 		
 			}
 		};
+		
 		const onKeyTouch = vi.fn();
 		const proxy = observeObject(target, onKeyTouch);
 
@@ -390,6 +391,100 @@ describe('observeObject', () => {
 			previousIndex: undefined 
 		});
 		expect(proxy.self.a).toBe(1);
+	});
+
+	it('should trigger 3 times even if value has the same reference', () => {
+		const test = {
+			id: 2
+		};
+		const target = {
+			c: [test, test, test, {
+				id: 1 
+			}]
+		};
+		const onKeyTouch = vi.fn();
+
+		const proxy = observeObject(target, onKeyTouch);
+
+		proxy.c.sort((a, b) => a.id - b.id); 
+
+		expect(onKeyTouch).toHaveBeenCalledTimes(4);
+
+		expect(onKeyTouch).toHaveBeenCalledWith('c[0]', {
+			isArray: true,
+			method: 'sort',
+			previousIndex: 'c[3]' 
+		});
+		expect(onKeyTouch).toHaveBeenCalledWith('c[1]', {
+			isArray: true,
+			method: 'sort',
+			previousIndex: 'c[0]' 
+		});
+		expect(onKeyTouch).toHaveBeenCalledWith('c[2]', {
+			isArray: true,
+			method: 'sort',
+			previousIndex: 'c[1]' 
+		});
+		expect(onKeyTouch).toHaveBeenCalledWith('c[3]', {
+			isArray: true,
+			method: 'sort',
+			previousIndex: 'c[2]' 
+		});
+	});
+
+	it('should filter work normally', () => {
+		const target = {
+			mostUsed: ['test', 'test1', 'test2'],
+			categories: [
+				{
+					type: 'test3'
+				},
+				{
+					type: 'test'
+				},
+				{
+					type: 'test'
+				},
+				{
+					type: 'test'
+				},
+				{
+					type: 'test4'
+				},
+				{
+					type: 'test2'
+				},
+				{
+					type: 'test1'
+				}
+			]
+		};
+		
+		const onKeyTouch = vi.fn();
+		const proxy = observeObject(target, onKeyTouch);
+
+		expect(
+			proxy.categories
+			.filter((item) => proxy.mostUsed.includes(item.type))
+			.map((item) => item.type)
+		).toEqual(['test', 'test', 'test', 'test2', 'test1']);
+
+		expect(
+			proxy.categories
+			.filter((item) => {
+				const index = proxy.mostUsed.indexOf(item.type);
+
+				if ( index > -1 ) {
+					proxy.mostUsed.splice(index, 1);
+					return true;
+				}
+
+				return false;
+			})
+			.map((item) => item.type)
+		).toEqual(['test', 'test2', 'test1']);
+
+		expect(proxy.mostUsed).toEqual([]);
 	});
 });
 

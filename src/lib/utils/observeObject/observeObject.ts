@@ -7,7 +7,11 @@ export type ValueMetadataType = {
 	previousIndex?: string
 };
 
-type CacheType = WeakMap<any, any>;
+type CacheType = {
+	cache: WeakMap<any, any>
+	lastArrayMethodRef: WeakMap<any, any>
+	primitiveIndexCache: WeakMap<any, Array<[any, string]>>
+};
 
 export type OnKeyTouch = (
 	key: string, 
@@ -36,13 +40,13 @@ const getTargetValue = (value: any) => (value?.[TARGET_VALUE] ?? value);
 
 /** Constructs a key path for tracking changes in objects. */
 const constructKey = (
-	target: any, 
 	prop: string | symbol, 
-	key: string
+	key: string,
+	isArray: boolean
 ): string => {
 	const _prop = String(prop);
 	return key 
-		? `${key}${Array.isArray(target) ? `[${_prop}]` : `.${_prop}`}` 
+		? `${key}${isArray ? `[${_prop}]` : `.${_prop}`}` 
 		: _prop;
 };
 
@@ -50,13 +54,13 @@ const constructKey = (
  * Extracts deep properties while ensuring they exist to avoid errors.
  */
 function getDeepPath<T>({
-	prop, receiver, target, onKeyTouch, cache
+	prop, receiver, target, onKeyTouch, cache, key
 }: {
 	cache: CacheType
+	key: string
 	onKeyTouch: OnKeyTouch
 	prop: any
 	target: any
-	currentIndex?: string
 	receiver?: any
 }): {
 		deepProp: string
@@ -73,8 +77,8 @@ function getDeepPath<T>({
 			target, 
 			onKeyTouch,
 			cache,
-			'',
-			!isNaN(lastKey.toString() as unknown as number) ? lastKey : undefined
+			key,
+			!isNaN(lastKey as unknown as number) ? lastKey : undefined
 		);
 
 		// This is intended for it to cycle
@@ -102,8 +106,6 @@ function getDeepPath<T>({
 	};
 }
 
-const lastArrayMethodRef = new WeakMap();
-
 /**
  * Proxy handler for tracking property accesses and mutations.
  */
@@ -111,14 +113,13 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 	target2: T, 
 	onKeyTouch: OnKeyTouch, 
 	cache: CacheType,
-	key: string,
-	currentIndex?: string
+	key: string
 ): ProxyHandler<T> {
 	if ( isMutableBuiltin(target2) ) {
 		return {
 			get(target: T, prop, receiver) {
 				if (prop === INDEX_VALUE ) {
-					return currentIndex;
+					return key;
 				}
 				// Handle changes to Date methods
 				let origMethod = Reflect.get(target, prop, receiver) as (...args: any[]) => any;
@@ -191,7 +192,7 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 	return {
 		get(target, prop, receiver) {
 			if (prop === INDEX_VALUE ) {
-				return currentIndex;
+				return key;
 			}
 			if (prop === TARGET_VALUE ) {
 				return target;
@@ -206,29 +207,37 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 				cache,
 				onKeyTouch,
 				prop,
-				receiver
+				receiver,
+				key
 			});
 
 			const value = Reflect.get(deepTarget, deepProp, deepReceiver);
 			// Track last accessed array method
-			const isArray = Array.isArray(target);
+			const isArray = Array.isArray(deepTarget);
+
+			if ( Array.isArray(value) ) {
+				cache.primitiveIndexCache.set(value, []);
+			}
+			
+			const isPropNumber = isNaN(deepProp.toString() as unknown as number);
+			
 			if ( 
 				isArray
 				&& deepProp !== 'constructor'
 				&& typeof Array.prototype[deepProp as keyof typeof Array.prototype] === 'function'
 			) {
-				lastArrayMethodRef.set(
-					target, 
+				cache.lastArrayMethodRef.set(
+					deepTarget, 
 					deepProp
 				);
 			}
 			else if (
 				deepProp !== 'length'
 				&& deepProp !== 'constructor'
-				&& isNaN(deepProp.toString() as unknown as number) 
+				&& isPropNumber
 			) {
-				lastArrayMethodRef.delete(
-					isArray ? target : value as any[]
+				cache.lastArrayMethodRef.delete(
+					isArray ? deepTarget : value as any[]
 				);
 			}
 
@@ -242,28 +251,22 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 					originalValue, 
 					onKeyTouch,
 					cache, 
-					constructKey(deepTarget, prop, key),
-					!isNaN(deepProp.toString() as unknown as number) ? deepProp : undefined
+					constructKey(prop, key, isArray),
+					!isPropNumber ? deepProp : undefined
 				);
 			}
 
 			// It's a way to track index's for primitive values
 			if (
-				!isNaN(deepProp.toString() as unknown as number) 
-				&& lastArrayMethodRef.get(deepTarget)
+				!isPropNumber
+				&& cache.lastArrayMethodRef.get(deepTarget)
 			) {
-				return new Proxy({ }, {
-					get: function(obj, innerProp) {
-						if ( innerProp === TARGET_VALUE ) {
-							return originalValue;
-						}
-						if ( innerProp === INDEX_VALUE ) {
-							return deepProp;
-						}
-						return originalValue[innerProp as keyof typeof value]?.bind(originalValue);
-					}
-				});
+				const primitiveIndex = cache.primitiveIndexCache.get(deepTarget);
+				if ( primitiveIndex ) {
+					primitiveIndex.push([originalValue, constructKey(prop, key, isArray)]);
+				}
 			}
+
 			return originalValue;
 		},
 		set(target, prop, value, receiver) {
@@ -277,33 +280,51 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 				target,
 				onKeyTouch,
 				cache,
-				currentIndex
+				key
 			});
-				
-			const previousIndex = value?.[INDEX_VALUE];
+
+			const previousIndex = value?.[INDEX_VALUE]
+				?? (() => {
+					const primitiveIndex = cache.primitiveIndexCache.get(deepTarget);
+					if ( !primitiveIndex ) {
+						return undefined;
+					}
+
+					const index = primitiveIndex.findIndex(([b]) => b === value);
+
+					if ( index < 0 ) {
+						return undefined;
+					}
+
+					// eslint-disable-next-line @typescript-eslint/no-unused-vars
+					const [_, prevIndex] = primitiveIndex.splice(index, 1)[0];
+
+					cache.primitiveIndexCache.set(deepTarget, primitiveIndex);
+						
+					return prevIndex;
+				})();
+
 			value = getTargetValue(value);
 
 			const previous = deepTarget[deepProp as keyof typeof deepTarget];
 	
-			const success = Reflect.set(deepTarget, deepProp.toString(), value, deepReceiver);
+			const success = Reflect.set(deepTarget, deepProp, value, deepReceiver);
 			
 			if ( 
 				success 
 				&& !(Object.is(previous, value) && !previousIndex) 
 				&& prop !== 'length'
 			) {
+				const isArray = Array.isArray(deepTarget);
+
 				onKeyTouch(
-					constructKey(deepTarget, prop, key), 
+					constructKey(prop, key, isArray), 
 					{
-						method: lastArrayMethodRef.get(deepTarget as any[]),
-						isArray: Array.isArray(deepTarget) || Array.isArray(value),
-						previousIndex: previousIndex ? `${key}[${previousIndex}]` : undefined
+						method: cache.lastArrayMethodRef.get(deepTarget as any[]),
+						isArray: isArray || Array.isArray(value),
+						previousIndex
 					}
 				);
-			}
-
-			if ( previousIndex ) {
-				cache.delete(value);
 			}
 
 			return success;
@@ -316,20 +337,20 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 				prop,
 				target,
 				onKeyTouch,
-				cache
+				cache,
+				key
 			});
-
-			const previousIndex = target?.[INDEX_VALUE as keyof typeof target] as string | undefined;
 
 			const success = Reflect.deleteProperty(deepTarget, deepProp);
 
 			if ( success ) {
+				const isArray = Array.isArray(deepTarget);
 				onKeyTouch(
-					constructKey(deepTarget, prop, key),
+					constructKey(prop, key, isArray),
 					{
-						method: lastArrayMethodRef.get(deepTarget),
-						isArray: Array.isArray(deepTarget),
-						previousIndex: previousIndex ? `${key}[${previousIndex}]` : undefined
+						method: cache.lastArrayMethodRef.get(deepTarget),
+						isArray,
+						previousIndex: undefined
 					}
 				);
 			}
@@ -342,7 +363,11 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 function getProxy<T extends object>(
 	target: T, 
 	onKeyTouch: OnKeyTouch, 
-	cache = new WeakMap<any, any>(),
+	cache: CacheType = {
+		cache: new WeakMap(),
+		lastArrayMethodRef: new WeakMap(),
+		primitiveIndexCache: new WeakMap()
+	},
 	key: string = '',
 	currentIndex?: string
 ): T {
@@ -362,18 +387,18 @@ function getProxy<T extends object>(
 	reference ??= target as any;
 
 	// Return existing proxy if this object is already in cache
-	if (!cache.has(reference as object)) {
+	if (!cache.cache.has(reference as object)) {
 		// Store the proxy in the WeakMap to handle circular references
-		cache.set(
+		cache.cache.set(
 			reference as object, 
 			new Proxy<T>(
 				target, 
-				getProxyHandler(target, onKeyTouch, cache, key, currentIndex)
+				getProxyHandler(target, onKeyTouch, cache, key)
 			)
 		);
 	}
 
-	return cache.get(reference as object);
+	return cache.cache.get(reference as object);
 }
 
 export function observeObject<T extends object>(
