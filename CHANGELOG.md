@@ -1,3 +1,19 @@
+# [1.29.0](https://github.com/resourge/react-form/compare/v1.28.8...v1.29.0) (2025-02-20)
+
+
+### Bug Fixes
+
+* **formaterrors:** fix typo ([1d5f51d](https://github.com/resourge/react-form/commit/1d5f51d35a33224b180ce7ae03b4f4cec35de57b))
+* **observeobject:** fix previousIndex on primitive arrayss ([2ec32ac](https://github.com/resourge/react-form/commit/2ec32ac5b429a0f82657c8de2ce72075d0525427))
+* **submit:** fix errors and touches on submit ([5b1f7bb](https://github.com/resourge/react-form/commit/5b1f7bb5eccd162e4d3a7778f21d3002d793a7bb))
+
+
+### Features
+
+* **useform:** add differnte types of validations ([505fd52](https://github.com/resourge/react-form/commit/505fd523c267589e5244954190053983340a2739))
+* **useform:** add hasTouch to help check if a camp was "touched" ([11ed4c0](https://github.com/resourge/react-form/commit/11ed4c0fb159df65b4d48adf9b2ceb8f888f8b44))
+* **useform:** add validationType to improve current validation system and add more options ([3f877cb](https://github.com/resourge/react-form/commit/3f877cbbdf10c8cf56cb70f4c68170ef0ddf931b))
+
 ## [1.28.8](https://github.com/resourge/react-form/compare/v1.28.7...v1.28.8) (2025-01-09)
 
 
