@@ -1,6 +1,8 @@
 import PackageJson from '../package.json';
 
-const { name, version, license, author } = PackageJson;
+const {
+	name, version, license, author 
+} = PackageJson;
 
 function getBanner(version: string) {
 	return `/**

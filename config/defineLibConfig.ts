@@ -1,24 +1,21 @@
-import deepmerge from '@fastify/deepmerge'
-import { defineConfig, type UserConfigExport } from 'vite'
-import banner from 'vite-plugin-banner'
-import dts from 'vite-plugin-dts'
-import viteTsconfigPaths from 'vite-tsconfig-paths'
+import deepmerge from '@fastify/deepmerge';
+import { defineConfig, type UserConfigExport } from 'vite';
+import banner from 'vite-plugin-banner';
+import dts from 'vite-plugin-dts';
+import viteTsconfigPaths from 'vite-tsconfig-paths';
 
-import PackageJson from '../package.json'
+import PackageJson from '../package.json';
 
-import { createBanner } from './createBanner'
-import { packages } from './getPackages'
+import { createBanner } from './createBanner';
+import { packages } from './getPackages';
 
-const {
-	dependencies = {}, devDependencies = {}, peerDependencies  = {}
-} = PackageJson;
+const { devDependencies = {}, peerDependencies = {} } = PackageJson;
 
 const external = [
 	'react/jsx-runtime',
 	...Object.keys(peerDependencies),
-	...Object.keys(dependencies),
 	...Object.keys(devDependencies)
-]
+];
 
 const packagesNames = packages.map((pack) => pack.name);
 
