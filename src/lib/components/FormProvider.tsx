@@ -1,3 +1,5 @@
+import { type JSX } from 'react';
+
 import { FormContext, type FormContextObject } from '../contexts/FormContext';
 
 export type FormProviderProps<T extends Record<string, any>> = React.PropsWithChildren<{

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { memo } from 'react';
+import { type JSX, memo } from 'react';
 
 import { ControllerContext } from '../contexts/ControllerContext';
 import { type FormContextObject } from '../contexts/FormContext';

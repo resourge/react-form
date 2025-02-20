@@ -1,4 +1,4 @@
-import { forwardRef, useMemo } from 'react';
+import { forwardRef, useMemo, type JSX } from 'react';
 
 import { FormProvider } from '../components';
 import { useForm } from '../hooks';
