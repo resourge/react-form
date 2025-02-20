@@ -343,19 +343,18 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * Method to verify if `key` has being 'touched'
 	 * 
 	 * @param key - key from `form` state
-	 * @param options - {@link GetErrorsOptions}
-	 * @returns `true` for error on form
+	 * @returns `true` for touch on field
 	 * @example
 	 * ```Typescript
 	 * const {
-	 *   hasError
+	 *   hasTouch
 	 * } = useForm(
 	 *	 {
 	 * 		name: 'Rimuru'
 	 *	 }
 	 * )
 	 * ...
-	 * hasTouche('name')
+	 * hasTouch('name')
 	 * ///
 	 * ```
 	 */

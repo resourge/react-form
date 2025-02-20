@@ -184,6 +184,13 @@ const submitHandler = handleSubmit(
 const hasUsernameError = hasError("username");
 ```
 
+- `hasTouch(key: string): boolean`: Checks if a specified form field was touched.
+
+```tsx
+// Check if the 'username' field was touched
+const hasUsernameTouch = hasTouch("username");
+```
+
 - `isTouched`: Indicates whether any form field has been interacted with by the user.
 - `isValid`: Indicates whether the form currently holds valid data, validating all form field values.
 - `onChange(key: string, fieldOptions?: FieldOptions): (value: any) => void`: Generates a callback function to manage changes to a specific form field.
