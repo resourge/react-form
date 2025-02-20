@@ -5,7 +5,7 @@ import {
 	vi
 } from 'vitest';
 
-import { forEachPossibleKey } from '../formatErrors';
+import { forEachPossibleKey, formatErrors } from '../formatErrors';
 
 describe('forEachPossibleKey', () => {
 	it('should return all key possibilities in reverse order', () => {
@@ -34,5 +34,63 @@ describe('forEachPossibleKey', () => {
 
 		expect(possibilities)
 		.toEqual(['']);
+	});
+});
+
+describe('formatErrors', () => {
+	it('should return all key possibilities in reverse order', () => {
+		const result = formatErrors([
+			{
+				error: 'validations.required',
+				path: 'description'
+			},
+			{
+				error: 'promptModel.promptIsRequired',
+				path: 'nodes[0].data.prompt.content'
+			}
+		]);
+
+		expect(JSON.parse(JSON.stringify(result['']?.childFormErrors))).toEqual({
+			description: {
+				errors: [
+					'validations.required'
+				],
+				childErrors: [
+					'validations.required'
+				]
+			},
+			'nodes[0].data.prompt.content': {
+				errors: [
+					'promptModel.promptIsRequired'
+				],
+				childErrors: [
+					'promptModel.promptIsRequired'
+				]
+			},
+			'nodes[0].data.prompt': {
+				errors: [],
+				childErrors: [
+					'promptModel.promptIsRequired'
+				]
+			},
+			'nodes[0].data': {
+				errors: [],
+				childErrors: [
+					'promptModel.promptIsRequired'
+				]
+			},
+			'nodes[0]': {
+				errors: [],
+				childErrors: [
+					'promptModel.promptIsRequired'
+				]
+			},
+			nodes: {
+				errors: [],
+				childErrors: [
+					'promptModel.promptIsRequired'
+				]
+			}
+		});
 	});
 });

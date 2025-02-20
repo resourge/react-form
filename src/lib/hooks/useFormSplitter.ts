@@ -5,11 +5,14 @@ import { useControllerContext } from '../contexts/ControllerContext';
 import { useFormContext } from '../contexts/FormContext';
 import { type FormKey } from '../types/FormKey';
 import { type PathValue } from '../types/PathValue';
-import { type SubmitHandler, type ValidateSubmission, type UseFormReturn } from '../types/formTypes';
+import {
+	type SubmitHandler,
+	type ValidateSubmission,
+	type UseFormReturn,
+	type WatchMethod
+} from '../types/formTypes';
 import { IS_DEV } from '../utils/constants';
 import { checkIfKeysExist } from '../utils/utils';
-
-import { type WatchMethod } from './useWatch';
 
 export type FormSplitterResult<
 	O extends Record<string, any>,

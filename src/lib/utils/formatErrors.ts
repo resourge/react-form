@@ -2,35 +2,52 @@ import { type FormKey } from '../types';
 import { type ValidationWithErrors, type ValidationErrors } from '../types/errorsTypes';
 import { type FormError, type FormErrors } from '../types/formTypes';
 
+type PrevFormError<T extends Record<string, any>> = {
+	entry: FormError<T[FormKey<T>]>
+	path: string
+};
+
 function addErrorToFormErrors<T extends Record<string, any>>(
 	formErrors: FormErrors<T>, 
 	path: string, 
 	validationError: ValidationWithErrors,
-	isChildError = false
-) {
+	isChildError = false,
+	prev?: PrevFormError<T>
+): PrevFormError<T> {
 	const entry: FormError<T[FormKey<T>]> = formErrors[path as FormKey<T>] ||= {
 		errors: [],
 		childErrors: [],
-		childFormErrors: {
-			// @ts-expect-error To prevent circular dependency
-			toJSON: () => ({})
+		childFormErrors: {},
+		// @ts-expect-error To prevent circular dependency
+		toJSON() {
+			return {
+				errors: this.errors,
+				childErrors: this.childErrors
+			};
 		}
 	};
 
-	validationError.errors.forEach((message) => {
-		if ( !isChildError ) {
-			if ( !entry.errors.includes(message) ) {
-				entry.errors.push(message);
-			}
-		}
-		else if ( !entry.childFormErrors[validationError.path as T[FormKey<T>]] ) {
-			entry.childFormErrors[validationError.path as T[FormKey<T>]] = formErrors[validationError.path as FormKey<T>];
-		}
+	if ( prev ) {
+		entry.childFormErrors = {
+			...entry.childFormErrors,
+			...prev.entry.childFormErrors,
+			[prev.path]: prev.entry
+		};
+	}
 
+	validationError.errors.forEach((message) => {
+		if ( !isChildError && !entry.errors.includes(message) ) {
+			entry.errors.push(message);
+		}
 		if ( !entry.childErrors.includes(message) ) {
 			entry.childErrors.push(message);
 		}
 	});
+
+	return {
+		path, 
+		entry
+	};
 }
 
 export const forEachPossibleKey = (key: string, onKey: (key: string) => void) => {
@@ -56,7 +73,10 @@ export const formatErrors = <T extends Record<string, any>>(
 		const key = value.path;
 		const errors = getErrorsFromValidationErrors(value);
 
-		forEachPossibleKey(key, (possibilityKey) => addErrorToFormErrors(val, possibilityKey, errors, key !== possibilityKey));
+		let prev: PrevFormError<T> | undefined;
+		forEachPossibleKey(key, (possibilityKey) => {
+			prev = addErrorToFormErrors(val, possibilityKey, errors, key !== possibilityKey, prev);
+		});
 
 		return val;
 	}, {});

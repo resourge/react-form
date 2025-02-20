@@ -17,9 +17,9 @@ describe('observeObject', () => {
 		
 			}
 		};
-		
 		const onKeyTouch = vi.fn();
-		const proxy = observeObject(target, onKeyTouch);
+		const onGetTouch = vi.fn();
+		const proxy = observeObject(target, onKeyTouch, onGetTouch);
 
 		proxy.a = undefined;
 
@@ -37,7 +37,8 @@ describe('observeObject', () => {
 			a: 1 
 		};
 		const onKeyTouch = vi.fn();
-		const proxy = observeObject(target, onKeyTouch);
+		const onGetTouch = vi.fn();
+		const proxy = observeObject(target, onKeyTouch, onGetTouch);
 
 		proxy.a = 2;
 
@@ -56,7 +57,8 @@ describe('observeObject', () => {
 			date
 		};
 		const onKeyTouch = vi.fn();
-		const proxy = observeObject(target, onKeyTouch);
+		const onGetTouch = vi.fn();
+		const proxy = observeObject(target, onKeyTouch, onGetTouch);
 
 		expect(proxy.date.toISOString()).toBe(date.toISOString());
 
@@ -79,8 +81,8 @@ describe('observeObject', () => {
 			languages: undefined
 		};
 		const onKeyTouch = vi.fn();
-
-		const proxy = observeObject<any>(target, onKeyTouch);
+		const onGetTouch = vi.fn();
+		const proxy = observeObject<any>(target, onKeyTouch, onGetTouch);
 
 		proxy.languages = proxy.languagesOptions[0];
 
@@ -99,8 +101,8 @@ describe('observeObject', () => {
 			languages: []
 		};
 		const onKeyTouch = vi.fn();
-
-		const proxy = observeObject<any>(target, onKeyTouch);
+		const onGetTouch = vi.fn();
+		const proxy = observeObject<any>(target, onKeyTouch, onGetTouch);
 
 		const item = proxy.languagesOptions[0];
 
@@ -165,7 +167,8 @@ describe('observeObject', () => {
 			}
 		};
 		const onKeyTouch = vi.fn();
-		const proxy = observeObject(target, onKeyTouch);
+		const onGetTouch = vi.fn();
+		const proxy = observeObject(target, onKeyTouch, onGetTouch);
 
 		expect(proxy.a).toBe(1);
 
@@ -178,7 +181,8 @@ describe('observeObject', () => {
 			a: 1 
 		};
 		const onKeyTouch = vi.fn();
-		const proxy = observeObject(target, onKeyTouch);
+		const onGetTouch = vi.fn();
+		const proxy = observeObject(target, onKeyTouch, onGetTouch);
 
 		proxy.a = 1;
 
@@ -191,7 +195,8 @@ describe('observeObject', () => {
 			a: 1 
 		};
 		const onKeyTouch = vi.fn();
-		const proxy = observeObject(target, onKeyTouch);
+		const onGetTouch = vi.fn();
+		const proxy = observeObject(target, onKeyTouch, onGetTouch);
 
 		// @ts-expect-error Expected
 		delete proxy.a;
@@ -213,7 +218,8 @@ describe('observeObject', () => {
 			arr: [1, 2, 3] 
 		};
 		const onKeyTouch = vi.fn();
-		const proxy = observeObject(target, onKeyTouch);
+		const onGetTouch = vi.fn();
+		const proxy = observeObject(target, onKeyTouch, onGetTouch);
 
 		proxy.a.b = 2;
 		proxy.arr[1] = 4;
@@ -243,7 +249,8 @@ describe('observeObject', () => {
 			arr: [[1, 2], [3, 4]] 
 		};
 		const onKeyTouch = vi.fn();
-		const proxy = observeObject(target, onKeyTouch);
+		const onGetTouch = vi.fn();
+		const proxy = observeObject(target, onKeyTouch, onGetTouch);
 
 		proxy.a.b.c.d = 2;
 		proxy.arr[0][1] = 5;
@@ -269,7 +276,8 @@ describe('observeObject', () => {
 			set: new Set([1, 2, 3])
 		};
 		const onKeyTouch = vi.fn();
-		const proxy = observeObject(target, onKeyTouch);
+		const onGetTouch = vi.fn();
+		const proxy = observeObject(target, onKeyTouch, onGetTouch);
 
 		// Date manipulation
 		const oldTime = proxy.date.getTime();
@@ -298,7 +306,8 @@ describe('observeObject', () => {
 			sets: [new Set([1, 2, 3]), new Set([4, 5, 6])]
 		};
 		const onKeyTouch = vi.fn();
-		const proxy = observeObject(target, onKeyTouch);
+		const onGetTouch = vi.fn();
+		const proxy = observeObject(target, onKeyTouch, onGetTouch);
 
 		proxy.maps[0].set('key3', 'value3');
 		proxy.sets[1].add(7);
@@ -314,7 +323,8 @@ describe('observeObject', () => {
 			a: 1 
 		};
 		const onKeyTouch = vi.fn();
-		const proxy = observeObject(target, onKeyTouch);
+		const onGetTouch = vi.fn();
+		const proxy = observeObject(target, onKeyTouch, onGetTouch);
 
 		proxy.a = 2;
 		proxy.a = 3;
@@ -332,7 +342,8 @@ describe('observeObject', () => {
 	it('should correctly handle adding new properties to objects', () => {
 		const target: any = {};
 		const onKeyTouch = vi.fn();
-		const proxy = observeObject(target, onKeyTouch);
+		const onGetTouch = vi.fn();
+		const proxy = observeObject(target, onKeyTouch, onGetTouch);
 
 		proxy.newProp = {
 			nestedProp: 'value' 
@@ -348,10 +359,12 @@ describe('observeObject', () => {
 
 	it('should correctly handle Date objects', () => {
 		const date = new Date();
-		const onKeyTouch = vi.fn();
-		const proxy = observeObject({
+		const target = {
 			date 
-		}, onKeyTouch);
+		};
+		const onKeyTouch = vi.fn();
+		const onGetTouch = vi.fn();
+		const proxy = observeObject(target, onKeyTouch, onGetTouch);
 
 		const newDate = new Date();
 		newDate.setFullYear(2025);
@@ -368,7 +381,8 @@ describe('observeObject', () => {
 	it('should correctly handle Map objects', () => {
 		const map = new Map();
 		const onKeyTouch = vi.fn();
-		const proxy = observeObject(map, onKeyTouch);
+		const onGetTouch = vi.fn();
+		const proxy = observeObject(map, onKeyTouch, onGetTouch);
 
 		proxy.set('key', 'value');
 		expect(onKeyTouch).toHaveBeenCalledWith('');
@@ -379,10 +393,10 @@ describe('observeObject', () => {
 
 	it('should correctly handle circular references', () => {
 		const target: any = {};
-		const onKeyTouch = vi.fn();
 		target.self = target;
-
-		const proxy = observeObject(target, onKeyTouch);
+		const onKeyTouch = vi.fn();
+		const onGetTouch = vi.fn();
+		const proxy = observeObject(target, onKeyTouch, onGetTouch);
 		proxy.self.a = 1;
 
 		expect(onKeyTouch).toHaveBeenCalledWith('a', {
@@ -403,8 +417,8 @@ describe('observeObject', () => {
 			}]
 		};
 		const onKeyTouch = vi.fn();
-
-		const proxy = observeObject(target, onKeyTouch);
+		const onGetTouch = vi.fn();
+		const proxy = observeObject(target, onKeyTouch, onGetTouch);
 
 		proxy.c.sort((a, b) => a.id - b.id); 
 
@@ -412,23 +426,19 @@ describe('observeObject', () => {
 
 		expect(onKeyTouch).toHaveBeenCalledWith('c[0]', {
 			isArray: true,
-			method: 'sort',
-			previousIndex: 'c[3]' 
+			touch: undefined
 		});
 		expect(onKeyTouch).toHaveBeenCalledWith('c[1]', {
 			isArray: true,
-			method: 'sort',
-			previousIndex: 'c[0]' 
+			touch: undefined
 		});
 		expect(onKeyTouch).toHaveBeenCalledWith('c[2]', {
 			isArray: true,
-			method: 'sort',
-			previousIndex: 'c[1]' 
+			touch: undefined
 		});
 		expect(onKeyTouch).toHaveBeenCalledWith('c[3]', {
 			isArray: true,
-			method: 'sort',
-			previousIndex: 'c[2]' 
+			touch: undefined
 		});
 	});
 
@@ -461,7 +471,8 @@ describe('observeObject', () => {
 		};
 		
 		const onKeyTouch = vi.fn();
-		const proxy = observeObject(target, onKeyTouch);
+		const onGetTouch = vi.fn();
+		const proxy = observeObject(target, onKeyTouch, onGetTouch);
 
 		expect(
 			proxy.categories
@@ -497,7 +508,8 @@ describe('Caching and Performance', () => {
 			} 
 		};
 		const onKeyTouch = vi.fn();
-		const proxy = observeObject(target, onKeyTouch);
+		const onGetTouch = vi.fn();
+		const proxy = observeObject(target, onKeyTouch, onGetTouch);
 
 		const nestedProxy1 = proxy.b;
 		const nestedProxy2 = proxy.b;

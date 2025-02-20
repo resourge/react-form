@@ -19,7 +19,6 @@ import {
 	type UseFormReturn,
 	type ValidateSubmission
 } from '../types/formTypes';
-import { formatErrors } from '../utils/formatErrors';
 import { isClass } from '../utils/utils';
 
 import { useErrors } from './useErrors';
@@ -77,13 +76,7 @@ export function useForm<T extends Record<string, any>>(
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const [_, setState] = useState(0);
 	const forceUpdate = () => setState((x) => x + 1);
-	const tempTouchesRef = useRef<{ 
-		method: string | undefined
-		touches: Touches 
-	}>({
-		method: undefined,
-		touches: new Map()
-	});
+	const touchesRef = useRef<Touches>(new Map());
 
 	const stateRef = useProxy<T>(
 		() => (
@@ -95,65 +88,34 @@ export function useForm<T extends Record<string, any>>(
 				) : defaultValue
 		),
 		async (key, metadata) => {
-			if ( metadata ) {
-				const {
-					isArray, previousIndex, method 
-				} = metadata;
-
-				if ( isArray ) {
-					const touchKeys = Array.from(touchesRef.current.entries());
-
-					if ( tempTouchesRef.current.method !== method || tempTouchesRef.current.touches.size === 0 ) {
-						tempTouchesRef.current.method = method; 
-						const result = key.replace(/\[[^\\[\]]*\]$/, '');
-	
-						tempTouchesRef.current.touches = new Map(
-							touchKeys
-							.filter(([key]) => key !== result && key.startsWith(result))
-						);
-					}
-					
-					(
-						previousIndex !== undefined
-							? touchKeys.filter(([touchKey]) => touchKey.startsWith(previousIndex))
-							: touchKeys.filter(([touchKey]) => touchKey.startsWith(key))
-					)
-					.forEach(([oldKey]) => {
-						if ( previousIndex !== undefined ) {
-							const newKey = oldKey.replace(previousIndex, key);
-							const _value = tempTouchesRef.current.touches.get(oldKey);
-							if ( _value ) {
-								tempTouchesRef.current.touches.delete(oldKey);
-							}
-							else {
-								touchesRef.current.delete(oldKey);
-							}
-							
-							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-							touchesRef.current.set(newKey, _value ?? touchesRef.current.get(oldKey)!);
+			if ( metadata?.isArray ) {
+				metadata.touch?.touch
+				.forEach(([oldKey, value]) => {
+					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+					touchesRef.current.set(oldKey.replace(metadata.touch!.key, key), value);
+				});
+				if (!metadata.touch) {
+					touchesRef.current
+					.forEach((_, touchKey) => {
+						if ( touchKey.startsWith(key) ) {
+							touchesRef.current.delete(touchKey);
 						}
-						else {
-							touchesRef.current.delete(oldKey);
-						}
-						changedKeysRef.current.add(oldKey as FormKey<T>);
 					});
 				}
 			}
 
-			updateTouches(
+			changeTouch(
 				key as FormKey<T>, 
 				(metadata && metadata.isArray ? hasTouch(key as FormKey<T>) : undefined)
 			);
 
-			if ( watchedRefs.current.size ) {
-				for (const [watchedKey, method] of watchedRefs.current) {
-					if ( watchedKey === key ) {
-						const res = method(stateRef.current);
+			for (const [watchedKey, method] of watchedRefs.current) {
+				if ( watchedKey === key ) {
+					const res = method(stateRef.current);
 
-						if ( res instanceof Promise ) {
-							// eslint-disable-next-line no-await-in-loop
-							await res;
-						}
+					if ( res instanceof Promise ) {
+						// eslint-disable-next-line no-await-in-loop
+						await res;
 					}
 				}
 			}
@@ -163,7 +125,8 @@ export function useForm<T extends Record<string, any>>(
 			if ( !splitterOptionsRef.current.preventStateUpdate ) {
 				forceUpdate();
 			}
-		}
+		},
+		(key: string) => Array.from(touchesRef.current).filter(([touchKey]) => touchKey.startsWith(key))
 	);
 
 	const splitterOptionsRef = useRef<SplitterOptions & { preventStateUpdate?: boolean }>({});
@@ -172,16 +135,15 @@ export function useForm<T extends Record<string, any>>(
 		errorRef,
 		changedKeysRef, 
 		changedKeys,
-		touchesRef, 
 		
 		getErrors,
 		submitValidation,
-		setError,
-
-		updateTouches, 
+		changeTouch, 
 		clearTouches,
+		setError,
 		hasTouch
 	} = useErrors<T>({
+		touchesRef,
 		splitterOptionsRef,
 		stateRef,
 		validate: (changedKeys) => validateState(
@@ -212,9 +174,9 @@ export function useForm<T extends Record<string, any>>(
 			changedKeysRef.current.add('*' as FormKey<T>);
 
 			const errors = await submitValidation();
-			options.onSubmit?.(stateRef.current, errorRef.current);
+			options.onSubmit?.(stateRef.current, errors);
 
-			if ( Object.keys(errors).length && !(await onInvalid?.(formatErrors(errors))) ) {
+			if ( Object.keys(errors).length && !(await onInvalid?.(errors)) ) {
 				// eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
 				return await Promise.reject(errors);
 			}
@@ -349,7 +311,7 @@ export function useForm<T extends Record<string, any>>(
 			forceUpdate();
 		},
 		watch,
-		updateController: updateTouches,
+		updateController: changeTouch,
 		// #endregion Form actions
 		toJSON() {
 			return {

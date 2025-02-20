@@ -1,8 +1,7 @@
 import { type MutableRefObject, useRef } from 'react';
 
 import { type FormKey } from '../types';
-
-export type WatchMethod<T extends Record<string, any>> = (form: T) => void | Promise<void>;
+import { type WatchMethod } from '../types/formTypes';
 
 export type UseWatchReturn<T extends Record<string, any>> = {
 	onSubmitWatch: (form: T) => Promise<void>

@@ -3,7 +3,6 @@
 import { type FormEvent } from 'react';
 
 import { type FormContextObject } from '../contexts/FormContext';
-import { type WatchMethod } from '../hooks/useWatch';
 
 import { type FormKey } from './FormKey';
 import { type ValidationErrors } from './errorsTypes';
@@ -13,7 +12,9 @@ export type ToucheType = {
 	touch: boolean
 };
 
-export type Touches = Map<string, ToucheType>;
+export type Touches = Map<any, ToucheType>;
+
+export type WatchMethod<T extends Record<string, any>> = (form: T) => void | Promise<void>;
 
 export type FormError<T extends Record<string, any>> = {
 	childErrors: string[]
@@ -485,7 +486,7 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * ...
 	 * ```
 	 */
-	triggerChange: (cb: OnFunctionChange<T, void>, produceOptions?: SplitterOptions | undefined) => void
+	triggerChange: (cb: OnFunctionChange<T, void>, produceOptions?: SplitterOptions | undefined) => Promise<void>
 	/**
 	 * Manually force Controller component to update.
 	 * 

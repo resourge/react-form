@@ -418,12 +418,10 @@ describe('useForm', () => {
 	});
 
 	// Test triggerChange function
-	it('should trigger change event for a specific field', () => {
+	it('should trigger change event for a specific field', async () => {
 		const { result } = renderHook(() => useForm(getDefaultValues()));
 
-		act(() => {
-			result.current.triggerChange((form) => form.name = 'Jane Doe');
-		});
+		await act(() => result.current.triggerChange((form) => form.name = 'Jane Doe'));
 
 		expect(result.current.form.name).toBe('Jane Doe');
 	});
