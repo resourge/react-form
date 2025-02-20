@@ -89,8 +89,7 @@ export function useFormStorage<T extends Record<string, any>>(
 	} = options;
 	if ( IS_DEV ) {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const uniqueIdRef = useRef(uniqueId);
-		if ( uniqueId !== uniqueIdRef.current ) {
+		if ( uniqueId !== useRef(uniqueId).current ) {
 			throw new Error('uniqueId must be a static value');
 		}
 	}
@@ -126,7 +125,7 @@ export function useFormStorage<T extends Record<string, any>>(
 	);
 
 	const restoreFromStorage = async () => {
-		const storageState = await Promise.resolve(storage.getItem(uniqueId));
+		const storageState = await storage.getItem(uniqueId);
 
 		if (!storageState) {
 			return;
@@ -144,11 +143,11 @@ export function useFormStorage<T extends Record<string, any>>(
 				(Object.keys(deserializeForm) as Array<keyof T>)
 				.forEach((key) => form[key] = deserializeForm[key]);
 			});
+			return;
 		}
-		else {
-			Promise.resolve(storage.removeItem(uniqueId))
-			.catch(onStorageError);
-		}
+
+		return await Promise.resolve(storage.removeItem(uniqueId))
+		.catch(onStorageError);
 	};
 
 	useEffect(() => {

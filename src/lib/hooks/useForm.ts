@@ -280,7 +280,7 @@ export function useForm<T extends Record<string, any>>(
 			splitterOptionsRef.current = produceOptions;
 			try {
 				splitterOptionsRef.current.preventStateUpdate = true;
-				await Promise.resolve(cb(stateRef.current));
+				await cb(stateRef.current);
 				forceUpdate();
 			}
 			finally {
