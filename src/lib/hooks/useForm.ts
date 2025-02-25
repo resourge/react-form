@@ -53,7 +53,10 @@ const validateState = <T extends Record<string, any>>(
 			: handleSuccess(result);
 	}
 	catch ( err ) {
-		return err as ValidationErrors;
+		if ( err && Array.isArray(err) ) {
+			return err;
+		}
+		throw err as Error;
 	}
 };
 
