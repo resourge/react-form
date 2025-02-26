@@ -1,6 +1,8 @@
 export {
 	Controller,
 	type ControllerProps,
+	Form,
+	type FormProps,
 	FormProvider,
 	type FormProviderProps,
 	type UseFormReturnController

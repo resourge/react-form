@@ -1,11 +1,30 @@
 import { type FC } from 'react';
 
-import { FormProvider, useForm, useFormSplitter } from './lib';
+import { FormProvider, useForm, useFormSplitter } from '../lib';
 
 type Props = {
 };
 
 const Asd = () => {
+	const { form, reset } = useFormSplitter('test.test');
+	
+	return (
+		<button
+			onClick={() => {
+				const v = form.at(0);
+
+				reset([...form, {
+					...v,
+					id: 10 
+				}]);
+			}}
+		>
+			Reset
+		</button>
+	);
+};
+
+const Asd1 = () => {
 	const { form, reset } = useFormSplitter('test.test');
 	
 	return (

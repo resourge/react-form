@@ -476,6 +476,27 @@ const MyFormComponent = () => {
 };
 ```
 
+# Form
+
+`Form` component is a wrapper for html form and FormProvider. It wraps your form components and provides the form context to its descendants. It is typically used in conjunction with the `useForm` | `useFormStorage` | `useFormSplitter` hook to manage form state.
+
+## Usage
+
+```tsx
+import { FormProvider, useForm } from "@resourge/react-form";
+
+const MyFormComponent = () => {
+  const { context } = useForm<MyFormData>(); // Replace MyFormData with your form data type
+  // Access form data, state, and methods from context
+
+  return (
+    <Form context={context} onSubmit={(form) => {
+		...
+	}}>{/* Your form components */}</Form>
+  );
+};
+```
+
 ## useFormContext
 
 `useFormContext` hook provides access to the form context created by the nearest `FormProvider` component. It returns the form context containing form data, state, and methods.
