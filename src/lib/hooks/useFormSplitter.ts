@@ -72,7 +72,12 @@ export function useFormSplitter<
 			return context.hasTouch(_formFieldKey);
 		},
 		get isValid() {
-			return !context.errors[_formFieldKey]?.childErrors.length;
+			return !context.hasError(
+				_formFieldKey, 
+				{
+					includeChildsIntoArray: true 
+				}
+			);
 		},
 		handleSubmit: ((
 			onValid: SubmitHandler<T, K>,
