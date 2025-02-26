@@ -260,12 +260,15 @@ describe('useForm', () => {
 	});
 
 	it('should form be valid only after onSubmit', async () => {
-		const { result } = renderHook(() => useForm(getDefaultValues(), {
-			validate: () => [{
-				path: 'name',
-				errors: ['Required']
-			}]
-		}));
+		const { result } = renderHook(() => useForm(
+			getDefaultValues(), 
+			{
+				validate: () => [{
+					path: 'name',
+					error: 'Required'
+				}]
+			}
+		));
 
 		expect(result.current.isValid).toBeTruthy();
 

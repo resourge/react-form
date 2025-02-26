@@ -1,5 +1,5 @@
 import { type FormKey } from '../types';
-import { type ValidationWithErrors, type ValidationErrors } from '../types/errorsTypes';
+import { type ValidationErrors, type ValidationError } from '../types/errorsTypes';
 import { type FormError, type FormErrors } from '../types/formTypes';
 
 type PrevFormError<T extends Record<string, any>> = {
@@ -10,7 +10,7 @@ type PrevFormError<T extends Record<string, any>> = {
 function addErrorToFormErrors<T extends Record<string, any>>(
 	formErrors: FormErrors<T>, 
 	path: string, 
-	validationError: ValidationWithErrors,
+	validationError: ValidationError,
 	isChildError = false,
 	prev?: PrevFormError<T>
 ): PrevFormError<T> {
@@ -35,14 +35,13 @@ function addErrorToFormErrors<T extends Record<string, any>>(
 		};
 	}
 
-	validationError.errors.forEach((message) => {
-		if ( !isChildError && !entry.errors.includes(message) ) {
-			entry.errors.push(message);
-		}
-		if ( !entry.childErrors.includes(message) ) {
-			entry.childErrors.push(message);
-		}
-	});
+	const message = validationError.error;
+	if ( !isChildError && !entry.errors.includes(message) ) {
+		entry.errors.push(message);
+	}
+	if ( !entry.childErrors.includes(message) ) {
+		entry.childErrors.push(message);
+	}
 
 	return {
 		path, 
@@ -58,24 +57,15 @@ export const forEachPossibleKey = (key: string, onKey: (key: string) => void) =>
 	onKey('');
 };
 
-export const getErrorsFromValidationErrors = (value: ValidationErrors[number]): ValidationWithErrors => {
-	return {
-		path: value.path,
-		errors: 'error' in value ? [value.error] : value.errors
-	};
-};
-
 export const formatErrors = <T extends Record<string, any>>(
 	errors: ValidationErrors = {} as ValidationErrors
 ) => {
 	return errors
 	.reduce<FormErrors<T>>((val, value) => {
-		const key = value.path;
-		const errors = getErrorsFromValidationErrors(value);
-
 		let prev: PrevFormError<T> | undefined;
-		forEachPossibleKey(key, (possibilityKey) => {
-			prev = addErrorToFormErrors(val, possibilityKey, errors, key !== possibilityKey, prev);
+		
+		forEachPossibleKey(value.path, (possibilityKey) => {
+			prev = addErrorToFormErrors(val, possibilityKey, value, value.path !== possibilityKey, prev);
 		});
 
 		return val;

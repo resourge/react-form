@@ -10,7 +10,7 @@ import {
 	type Touches
 } from '../types/formTypes';
 import { deepCompareValidationErrors } from '../utils/comparationUtils';
-import { formatErrors, getErrorsFromValidationErrors } from '../utils/formatErrors';
+import { formatErrors } from '../utils/formatErrors';
 
 import { useTouches } from './useTouches';
 
@@ -80,10 +80,20 @@ export const useErrors = <T extends Record<string, any>>({
 			changedKeysRef.current.add(path);
 		});
 
-		renderIfNewErrors([
-			...validationErrorsRef.current,
-			...newErrors
-		]); 
+		const _newErrors = [
+			...validationErrorsRef.current
+		];
+
+		newErrors.forEach(({ path, errors }) => {
+			errors.forEach((error) => {
+				_newErrors.push({
+					path,
+					error
+				});
+			});
+		});
+
+		renderIfNewErrors(_newErrors); 
 	};
 
 	const submitValidation = async () => {
@@ -103,19 +113,17 @@ export const useErrors = <T extends Record<string, any>>({
 
 		newErrors
 		.forEach((val) => {
-			const errors = getErrorsFromValidationErrors(val);
 			if ( 
 				!changedKeysRef.current.has(val.path as FormKey<T>) 
 				|| !(
-					validationErrorsRef.current.some((prevVal) => {
-						const prevErrors = getErrorsFromValidationErrors(prevVal);
-
-						return prevVal.path === val.path
-							&& errors.errors.length === prevErrors.errors.length
-							&& errors.errors.some((error) => prevErrors.errors.includes(error));
-					})
+					validationErrorsRef.current
+					.some((prevVal) => (
+						prevVal.path === val.path
+						&& val.error === prevVal.error
+					))
 				)
 			) {
+				setTouch(val.path as FormKey<T>, true, true);
 				changedKeysRef.current.add(val.path as FormKey<T>);
 			}
 		});
