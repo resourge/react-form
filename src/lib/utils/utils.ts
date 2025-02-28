@@ -1,4 +1,4 @@
-import { type FormKey } from '../types/FormKey';
+import { type Touches } from '../types/formTypes';
 
 export function isObjectOrArray(value: any): value is object {
 	return value !== null && typeof value === 'object';
@@ -12,12 +12,36 @@ export function isClass(x: any): x is new (...args: any[]) => any {
 		&& Object.getOwnPropertyDescriptor(x, 'prototype')?.writable === false;
 }
 
-/**
- * Filter an Object by Key
- */
-export const checkIfKeysExist = <T extends Record<string, any>>(obj: T, filterKey: FormKey<T>): Boolean => 
-	Boolean(
-		Object.keys(obj)
-		.filter((key) => key.includes(filterKey))
-		.length
-	);
+export function setSubmitDeepKeys(
+	obj: any, 
+	touches: Touches, 
+	filterKeysError?: ((key: string) => boolean),
+	seen = new WeakSet(), 
+	prefix = ''
+) {
+	if (typeof obj !== 'object' || obj === null || seen.has(obj as WeakKey)) {
+		return;
+	}
+	
+	seen.add(obj as WeakKey);
+	
+	for (const key of Object.keys(obj as WeakKey)) {
+		const fullKey = Array.isArray(obj) 
+			? `${prefix}[${key}]` 
+			: (prefix ? `${prefix}.${key}` : key);
+		if (!filterKeysError || filterKeysError(fullKey)) {
+			const touch = touches.get(fullKey);
+			if ( !touch ) {
+				touches.set(fullKey, {
+					submitted: true,
+					touch: true 
+				});
+			}
+			else {
+				touch.submitted = true;
+				touch.touch = true;
+			}
+			setSubmitDeepKeys(obj[key], touches, filterKeysError, seen, fullKey);
+		}
+	}
+}

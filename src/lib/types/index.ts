@@ -6,17 +6,15 @@ export type {
 	FormErrors,
 	FormOptions,
 	OnFunctionChange,
-	SplitterOptions,
 	FieldOptions,
 	ResetOptions,
 	SubmitHandler,
-	ValidateSubmission,
+	ValidateSubmissionErrors as ValidateSubmission,
 	GetErrorsOptions,
 	UseFormReturn,
 	FieldFormBlur,
 	FieldFormChange,
 	FieldFormReadonly,
 	FieldForm,
-	ProduceNewStateOptionsHistory,
 	ResetMethod
 } from './formTypes';

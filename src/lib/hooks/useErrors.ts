@@ -1,4 +1,4 @@
-import { type MutableRefObject, useRef } from 'react';
+import { useRef } from 'react';
 
 import { type FormKey } from '../types/FormKey';
 import { type ValidationErrors } from '../types/errorsTypes';
@@ -6,19 +6,17 @@ import {
 	type FormErrors,
 	type FormValidationType,
 	type GetErrorsOptions,
-	type SplitterOptions,
-	type Touches
+	type Touches,
+	type ValidateSubmissionErrors
 } from '../types/formTypes';
 import { deepCompareValidationErrors } from '../utils/comparationUtils';
 import { formatErrors } from '../utils/formatErrors';
+import { setSubmitDeepKeys } from '../utils/utils';
 
 import { useTouches } from './useTouches';
 
 type UseErrorsConfig<T extends Record<string, any>> = {
 	forceUpdate: () => void
-	splitterOptionsRef: MutableRefObject<SplitterOptions & {
-		preventStateUpdate?: boolean
-	}>
 	stateRef: React.MutableRefObject<T>
 	touchesRef: React.MutableRefObject<Touches>
 	validate: (changedKeys: Array<FormKey<T>>) => ValidationErrors | Promise<ValidationErrors> 
@@ -31,9 +29,8 @@ type UseErrorsConfig<T extends Record<string, any>> = {
 
 export const useErrors = <T extends Record<string, any>>({
 	validate, forceUpdate, 
-	splitterOptionsRef, stateRef,
-	validationType = 'onSubmit', 
-	touchesRef
+	stateRef, touchesRef,
+	validationType = 'onSubmit'
 }: UseErrorsConfig<T>) => {
 	const {
 		shouldUpdateErrorsRef, changedKeysRef, 
@@ -41,8 +38,7 @@ export const useErrors = <T extends Record<string, any>>({
 		hasTouch, setTouch, getTouch
 	} = useTouches<T>({
 		validationType,
-		touchesRef,
-		filterKeysError: splitterOptionsRef.current.filterKeysError
+		touchesRef
 	});
 
 	const errorRef = useRef<FormErrors<T>>({} as FormErrors<T>);
@@ -50,11 +46,28 @@ export const useErrors = <T extends Record<string, any>>({
 	const changedKeys = Array.from(changedKeysRef.current);
 
 	const setErrors = (errors: ValidationErrors) => {
+		// To only allow errors in areas 
+		// where the camps have being touched our previously had error
+		const newErrors = validationType !== 'always'
+			? errors
+			.filter(({ path }) => {
+				const touch = getTouch(path as FormKey<T>);
+
+				return (
+					touch
+					&& (
+						(validationType === 'onSubmit' && touch.submitted)
+						|| (validationType === 'onTouch' && touch.touch)
+					)
+				);
+			})
+			: errors;
+		
 		if (
-			!deepCompareValidationErrors(errors, validationErrorsRef.current)
+			!deepCompareValidationErrors(newErrors, validationErrorsRef.current)
 		) {
-			validationErrorsRef.current = errors;
-			errorRef.current = formatErrors(errors);
+			validationErrorsRef.current = newErrors;
+			errorRef.current = formatErrors(newErrors);
 
 			return true;
 		}
@@ -62,7 +75,7 @@ export const useErrors = <T extends Record<string, any>>({
 		return false;
 	};
 
-	const renderIfNewErrors = (errors: ValidationErrors) => {
+	const renderNewErrors = (errors: ValidationErrors) => {
 		if ( setErrors(errors) ) {
 			forceUpdate();
 		}
@@ -75,8 +88,13 @@ export const useErrors = <T extends Record<string, any>>({
 		}>
 	) => {
 		newErrors.forEach(({ path }) => {
-			setTouch(path, stateRef.current[path], true, validationType === 'onSubmit');
-			
+			setTouch(
+				path, 
+				stateRef.current[path], 
+				true, 
+				validationType === 'onSubmit'
+			);
+
 			changedKeysRef.current.add(path);
 		});
 
@@ -93,29 +111,56 @@ export const useErrors = <T extends Record<string, any>>({
 			});
 		});
 
-		renderIfNewErrors(_newErrors); 
+		renderNewErrors(_newErrors); 
 	};
 
-	const submitValidation = async () => {
+	const validateSubmission = async (
+		validateErrors?: ValidateSubmissionErrors,
+		filterKeysError?: (key: string) => boolean
+	) => {
 		let newErrors = await validate(changedKeys);
 
-		if (splitterOptionsRef.current.filterKeysError ) {
-			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-			newErrors = newErrors.filter(({ path }) => splitterOptionsRef.current.filterKeysError!(path));
-		}
-		
-		touchesRef.current
-		.forEach((_, key) => {
-			if (!splitterOptionsRef.current.filterKeysError || splitterOptionsRef.current.filterKeysError(key as FormKey<T>)) {
-				setTouch(key as FormKey<T>, true, true);
-			}
-		});
+		if ( validateErrors ) {
+			const result = await validateErrors(newErrors);
 
+			if ( typeof result === 'boolean' ) {
+				if ( !result ) {
+					// eslint-disable-next-line @typescript-eslint/only-throw-error
+					throw newErrors;
+				}
+			}
+			else {
+				newErrors = result;
+			}
+		}
+
+		switch ( validationType ) {
+			case 'onSubmit':
+				setSubmitDeepKeys(
+					stateRef.current, 
+					touchesRef.current,
+					filterKeysError
+				);
+				break;
+			case 'onTouch':
+				touchesRef.current
+				.forEach((_, key) => {
+					if (!filterKeysError || filterKeysError(key as FormKey<T>)) {
+						setTouch(key as FormKey<T>, true, true);
+					}
+				});
+				break;
+		}
+
+		// filterKeysError is not need because handleSubmit already filters
 		newErrors
 		.forEach((val) => {
+			if ( !touchesRef.current.has(val.path) ) {
+				setTouch(val.path as FormKey<T>, true, true);
+			}
 			if ( 
 				!changedKeysRef.current.has(val.path as FormKey<T>) 
-				|| !(
+				&& !(
 					validationErrorsRef.current
 					.some((prevVal) => (
 						prevVal.path === val.path
@@ -123,25 +168,21 @@ export const useErrors = <T extends Record<string, any>>({
 					))
 				)
 			) {
-				setTouch(val.path as FormKey<T>, true, true);
 				changedKeysRef.current.add(val.path as FormKey<T>);
 			}
 		});
 
-		renderIfNewErrors(newErrors);
+		renderNewErrors(newErrors);
 
-		return (errorRef.current['' as FormKey<T>]?.childFormErrors ?? {}) as unknown as FormErrors<T>;
+		if ( Object.keys(errorRef.current).length ) {
+			// eslint-disable-next-line @typescript-eslint/only-throw-error
+			throw newErrors;
+		}
 	};
 
 	if ( shouldUpdateErrorsRef.current ) {
 		const res = validate(changedKeys);
-
-		if ( res instanceof Promise ) {
-			res.then(renderIfNewErrors);
-		}
-		else {
-			setErrors(res);
-		}
+		res instanceof Promise ? res.then(renderNewErrors) : setErrors(res);
 	}
 
 	function getErrors<Model extends Record<string, any> = T>(
@@ -149,26 +190,24 @@ export const useErrors = <T extends Record<string, any>>({
 		{ includeChildsIntoArray = false }: GetErrorsOptions = {}
 	): string[] {
 		const errors = errorRef.current[key as unknown as FormKey<T>];
-		const touch = getTouch(key);
 
-		if (
-			!errors 
-			|| (validationType === 'onSubmit' && (!touch || touch.submitted === false) )
-			|| (validationType === 'onTouch' && (!touch || touch.touch === false))
-		) {
-			return [];
-		}
-
-		return includeChildsIntoArray ? errors.childErrors : errors.errors;
+		return !errors 
+			? []
+			: includeChildsIntoArray 
+				? errors.childErrors 
+				: errors.errors;
 	}
+
+	const hasError = (key: FormKey<T>, options: GetErrorsOptions = {}): boolean => !!getErrors(key, options).length;
 
 	return {
 		errorRef,
 		changedKeys,
 		changedKeysRef,
 
+		hasError,
 		getErrors,
-		submitValidation,
+		validateSubmission,
 		changeTouch,
 		clearTouches,
 		setError,

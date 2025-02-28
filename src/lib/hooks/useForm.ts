@@ -5,19 +5,17 @@ import {
 	useState
 } from 'react';
 
-import { type FieldForm, type GetErrorsOptions, type ResetMethod } from '../types';
+import { type FieldForm, type ResetMethod } from '../types';
 import { type FormKey } from '../types/FormKey';
 import { type ValidationErrors } from '../types/errorsTypes';
 import {
 	type FieldFormReturn,
 	type FieldOptions,
 	type FormOptions,
-	type OnFunctionChange,
-	type SplitterOptions,
 	type SubmitHandler,
 	type Touches,
 	type UseFormReturn,
-	type ValidateSubmission
+	type ValidateSubmissionErrors
 } from '../types/formTypes';
 import { isClass } from '../utils/utils';
 
@@ -80,6 +78,7 @@ export function useForm<T extends Record<string, any>>(
 	const [_, setState] = useState(0);
 	const forceUpdate = () => setState((x) => x + 1);
 	const touchesRef = useRef<Touches>(new Map());
+	const preventStateUpdateRef = useRef<boolean>(false);
 
 	const stateRef = useProxy<T>(
 		() => (
@@ -123,31 +122,29 @@ export function useForm<T extends Record<string, any>>(
 				}
 			}
 
-			options.onChange?.(stateRef.current, errorRef.current);
+			options.onChange?.(stateRef.current);
 
-			if ( !splitterOptionsRef.current.preventStateUpdate ) {
+			if ( !preventStateUpdateRef.current ) {
 				forceUpdate();
 			}
 		},
 		(key: string) => Array.from(touchesRef.current).filter(([touchKey]) => touchKey.startsWith(key))
 	);
 
-	const splitterOptionsRef = useRef<SplitterOptions & { preventStateUpdate?: boolean }>({});
-
 	const {
 		errorRef,
 		changedKeysRef, 
 		changedKeys,
 		
+		hasError,
 		getErrors,
-		submitValidation,
+		validateSubmission,
 		changeTouch, 
 		clearTouches,
 		setError,
 		hasTouch
 	} = useErrors<T>({
 		touchesRef,
-		splitterOptionsRef,
 		stateRef,
 		validate: (changedKeys) => validateState(
 			stateRef.current,
@@ -166,56 +163,45 @@ export function useForm<T extends Record<string, any>>(
 
 	const handleSubmit = <K = void>(
 		onValid: SubmitHandler<T, K>,
-		onInvalid?: ValidateSubmission<T>,
+		validateErrors?: ValidateSubmissionErrors,
 		filterKeysError?: (key: string) => boolean
 	) => async (e?: FormEvent<HTMLFormElement> | React.MouseEvent<any, React.MouseEvent> | React.BaseSyntheticEvent) => {
-		splitterOptionsRef.current.filterKeysError = filterKeysError;
-		try {
-			e?.preventDefault?.();
+		e?.preventDefault?.();
 
-			// This serves so onlyOnTouch validations still work on handleSubmit
-			changedKeysRef.current.add('*' as FormKey<T>);
+		// This serves so onlyOnTouch validations still work on handleSubmit
+		changedKeysRef.current.add('*' as FormKey<T>);
 
-			const errors = await submitValidation();
-			options.onSubmit?.(stateRef.current, errors);
+		await validateSubmission(validateErrors, filterKeysError);
 
-			if ( Object.keys(errors).length && !(await onInvalid?.(errors)) ) {
-				// eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
-				return await Promise.reject(errors);
-			}
-		
-			const result = await onValid(stateRef.current);
+		options.onSubmit?.(stateRef.current);
 
-			await onSubmitWatch(stateRef.current);
+		const result = await onValid(stateRef.current);
 
-			return result;
-		}
-		finally {
-			splitterOptionsRef.current = {};
-		}
+		await onSubmitWatch(stateRef.current);
+
+		return result;
 	};
 
 	const reset: ResetMethod<T> = (
 		newFrom, 
 		resetOptions = {}
 	) => {
-		splitterOptionsRef.current = resetOptions;
+		preventStateUpdateRef.current = true;
 
-		splitterOptionsRef.current.preventStateUpdate = true;
-
-		Object.assign(stateRef.current, newFrom);
+		(Object.keys(newFrom) as Array<keyof T>)
+		.forEach((key) => stateRef.current[key] = newFrom[key] as T[keyof T]);
 
 		if ( resetOptions.clearTouched ?? true ) {
 			clearTouches();
 		}
 		forceUpdate();
 
-		splitterOptionsRef.current = {};
+		preventStateUpdateRef.current = false;
 	};
 
 	const onChange = (
-		key: FormKey<T>, 
-		fieldOptions: FieldOptions = {}
+		key: FormKey<T>,
+		onChange?: (value: any) => any
 	) => (value: T[FormKey<T>] | ChangeEvent) => {
 		const _value = (
 			(value as ChangeEvent<HTMLInputElement> & { nativeEvent?: { text?: string } })?.nativeEvent?.text
@@ -223,11 +209,7 @@ export function useForm<T extends Record<string, any>>(
 			?? value
 		);
 
-		splitterOptionsRef.current = fieldOptions;
-
-		stateRef.current[key] = _value as T[FormKey<T>];
-
-		splitterOptionsRef.current = {};
+		stateRef.current[key] = onChange ? onChange(_value) : _value as T[FormKey<T>];
 	};
 
 	const field = ((
@@ -236,19 +218,6 @@ export function useForm<T extends Record<string, any>>(
 	): FieldFormReturn => {
 		const value = stateRef.current[key];
 
-		if ( fieldOptions.blur ) {
-			return {
-				name: key,
-				onChange: onChange(key, {
-					...fieldOptions,
-					// @ts-expect-error fieldOptions if going to change splitterOptionsRef, and that is where preventStateUpdate is going
-					preventStateUpdate: true
-				}),
-				onBlur: () => hasTouch(key) && forceUpdate(),
-				defaultValue: value
-			};
-		}
-
 		if ( fieldOptions.readOnly ) {
 			return {
 				name: key,
@@ -256,10 +225,27 @@ export function useForm<T extends Record<string, any>>(
 				value
 			};
 		}
+		
+		const _onChange = onChange(key, fieldOptions.onChange);
+
+		if ( fieldOptions.blur ) {
+			return {
+				name: key,
+				onChange: (value: T[FormKey<T>] | ChangeEvent) => {
+					preventStateUpdateRef.current = true;
+
+					_onChange(value);
+
+					preventStateUpdateRef.current = false;
+				},
+				onBlur: () => hasTouch(key) && forceUpdate(),
+				defaultValue: value
+			};
+		}
 
 		return {
 			name: key,
-			onChange: onChange(key, fieldOptions),
+			onChange: _onChange,
 			value
 		};
 	}) as FieldForm<T>;
@@ -273,40 +259,36 @@ export function useForm<T extends Record<string, any>>(
 			return errorRef.current['' as FormKey<T>]?.childFormErrors ?? {};
 		},
 		get isValid(): boolean {
-			return !errorRef.current['' as FormKey<T>]?.childErrors.length;
+			return !hasError('' as FormKey<T>, {
+				includeChildsIntoArray: true 
+			});
 		},
 		get isTouched() {
 			return hasTouch('');
 		},
 		field,
-		triggerChange: async (cb: OnFunctionChange<T>, produceOptions: SplitterOptions = {}) => {
-			splitterOptionsRef.current = produceOptions;
+		triggerChange: async (cb) => {
+			preventStateUpdateRef.current = true;
 			try {
-				splitterOptionsRef.current.preventStateUpdate = true;
 				await cb(stateRef.current);
 				forceUpdate();
 			}
 			finally {
-				splitterOptionsRef.current = {};
+				preventStateUpdateRef.current = false;
 			}
 		},
 		handleSubmit,
 		setError,
 		hasTouch,
-		hasError: (key: FormKey<T>, options: GetErrorsOptions = {}): boolean => !!getErrors(key, options).length,
+		hasError,
 		getErrors,
 
 		// @ts-expect-error changedKeys for UseFormReturnController
 		changedKeys,
 
 		reset,
-		onChange,
-		changeValue: (
-			key: FormKey<T>, 
-			value: T[FormKey<T>], 
-			produceOptions?: FieldOptions
-		) => onChange(key, produceOptions)(value),
-		getValue: (key: FormKey<T>) => stateRef.current[key],
+		changeValue: (key, value) => stateRef.current[key] = value,
+		getValue: (key) => stateRef.current[key],
 
 		resetTouch: () => {
 			clearTouches();

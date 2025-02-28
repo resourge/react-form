@@ -5,14 +5,8 @@ import { useControllerContext } from '../contexts/ControllerContext';
 import { useFormContext } from '../contexts/FormContext';
 import { type FormKey } from '../types/FormKey';
 import { type PathValue } from '../types/PathValue';
-import {
-	type SubmitHandler,
-	type ValidateSubmission,
-	type UseFormReturn,
-	type WatchMethod
-} from '../types/formTypes';
+import { type UseFormReturn, type WatchMethod } from '../types/formTypes';
 import { IS_DEV } from '../utils/constants';
-import { checkIfKeysExist } from '../utils/utils';
 
 export type FormSplitterResult<
 	O extends Record<string, any>,
@@ -79,63 +73,38 @@ export function useFormSplitter<
 				}
 			);
 		},
-		handleSubmit: ((
-			onValid: SubmitHandler<T, K>,
-			onInvalid: ValidateSubmission<T> | undefined,
+		handleSubmit: (
+			onValid,
+			onInvalid,
 			nextFilterKeysError?: (key: string) => boolean
 		) => context.handleSubmit(
 			() => onValid(context.getValue(_formFieldKey)),
-			(errors) =>
-				!checkIfKeysExist(errors, _formFieldKey)
-				&& (
+			(errors) => {
+				const newErrors = errors
+				.filter(({ path }) => path.startsWith(_formFieldKey));
+
+				return (
 					onInvalid
-						? onInvalid(context.errors[_formFieldKey]?.childFormErrors ?? {})
-						: true
-				),
+						? onInvalid(newErrors)
+						: newErrors
+				);
+			},
 			// @ts-expect-error I want this to be able to only occur inside FormSplitter
 			nextFilterKeysError ?? filterKeysError
-		)) as unknown as UseFormReturn<any>['handleSubmit'],
+		),
 		watch: (key, method) => context.watch(key !== 'submit' ? getKey(key) : key, method as WatchMethod<any>),
 		field: (key, options) => context.field(getKey(key), options) as any,
 		getErrors: (key, options) => context.getErrors(getKey(key), options),
 		hasError: (key, options) => context.hasError(getKey(key), options),
-		changeValue: (key, value, options) => context.changeValue(
-			getKey(key), 
-			value, 
-			{
-				filterKeysError,
-				...options
-			}
-		),
+		changeValue: (key, value) => context.changeValue(getKey(key), value),
 		getValue: (key) => context.getValue(getKey(key)),
 		hasTouch: (key) => context.hasTouch(getKey(key)),
-		onChange: (key, fieldOptions) => (value) => context.onChange(
-			getKey(key), 
-			{
-				filterKeysError,
-				...fieldOptions
-			}
-		)(value),
-		reset: (newFrom, resetOptions) => {
-			return context.reset({
-				[_formFieldKey]: newFrom
-			}, {
-				filterKeysError,
-				...resetOptions
-			});
-		},
+		reset: (newFrom, resetOptions) => context.reset({
+			[_formFieldKey]: newFrom 
+		}, resetOptions),
 		resetTouch: context.resetTouch,
 		setError: context.setError,
-		triggerChange: (
-			cb,
-			produceOptions
-		) => context.triggerChange(
-			(form: T) => cb(form[_formFieldKey]), 
-			{
-				filterKeysError,
-				...produceOptions
-			}
-		),
+		triggerChange: (cb) => context.triggerChange((form: T) => cb(form[_formFieldKey])),
 		updateController: (key) => context.updateController(getKey(key)),
 		toJSON() {
 			return {

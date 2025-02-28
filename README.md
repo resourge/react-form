@@ -2,17 +2,17 @@
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-`@resourge/react-form` package provides a set of utilities for managing form state in react applications with built-in storage synchronization. It offers hooks and components designed to streamline form development, optimize rendering performance, and seamlessly synchronize form data with storage solutions.
+`@resourge/react-form` package provides a set of utilities for managing form state in React applications with built-in storage synchronization. It offers hooks and components designed to streamline form development, optimize rendering performance and seamlessly synchronize form data with storage solutions.
 
 ## Features
 
-- `Form State Management`: Easily manage form state and data using the `useForm` hook, providing a convenient interface for handling form inputs, validation, and submission.
+- `Form State Management`: Handle form inputs, validation, and submission with `useForm`.
 - `Reactive Form State`: The form state is fully reactive, meaning any direct changes to the form trigger automatic updates across your components, ensuring your UI always reflects the current state.
-- `Automatic Storage Synchronization`: Using `useFormStorage` automatically synchronize form data with storage solutions such as `localStorage` or `AsyncStorage` to persist user input's across sessions.
-- `Performance Optimization`: Improve rendering performance for large forms with the `Controller` component, which updates only when relevant form fields change.
-- `Context-based Architecture`: Leverage the power of react context to provide form state and data to nested components with the `FormProvider` component.
+- `Automatic Storage Synchronization`: Sync form data with `localStorage` or `AsyncStorage` using `useFormStorage`.
+- `Performance Optimization`: Efficient rendering with the Controller component.
+- `Context-based Architecture`: Use `FormProvider` or `Form` to pass form state to nested components.
 - `Customization and Flexibility`: Customize storage options, synchronization behavior, and form submission handling to suit your application's specific requirements.
-- `Developer-friendly API`: Utilize intuitive hooks and components to simplify form development and reduce boilerplate code.
+- `Developer-friendly API`: Simplified API to reduce boilerplate code
 
 ## Table of Contents
 
@@ -41,326 +41,265 @@ or NPM:
 npm install @resourge/react-form --save
 ```
 
-# useForm
+or pnpm:
 
-`useForm` is a custom react hook for handling form state, validation, and submission in react applications. It simplifies form management by providing a set of methods and options to manage form state, handle form events, and perform form validation.
+```sh
+pnpm add @resourge/react-form
+```
 
-## Usage
+## Quick Start
+
+### Basic Usage (useForm)
 
 ```tsx
 import { useForm } from "@resourge/react-form";
 
-const MyFormComponent = () => {
-  const { form, handleSubmit, field, getErrors, hasError } = useForm({
+const MyForm = () => {
+  const { form, handleSubmit, field, hasError, getErrors } = useForm({
     username: "",
     password: "",
   });
 
-  const changeUserNameToDefault = () => {
-    // Direct changes to form are reactive, meaning it will trigger an update to the sate
-    form.username = "Default User";
-  };
-
-  const onSubmit = handleSubmit(async () => {
-    // handle form submission logic
-  });
+  const onSubmit = handleSubmit((data) => console.log("Form Submitted:", data));
 
   return (
     <form onSubmit={onSubmit}>
-      <input {...field("username")} />
-      <input {...field("password")} />
-      <button onClick={changeUserNameToDefault}>
-        Change Username to default
-      </button>
+      <input {...field("username")} placeholder="Username" />
+      {hasError("username") && <span>{getErrors("username")[0]}</span>}
+
+      <input {...field("password")} placeholder="Password" type="password" />
+      {hasError("password") && <span>{getErrors("password")[0]}</span>}
+
       <button type="submit">Submit</button>
-      {hasError("username") &&
-        getErrors("username").map((error) => <span key={error}>{error}</span>)}
-      {hasError("password") &&
-        getErrors("username").map((error) => <span key={error}>{error}</span>)}
     </form>
   );
 };
-
-export default MyFormComponent;
 ```
 
-## API
-
-`useForm(defaultValue: T | (() => T) | { new(): T }, options?: FormOptions<T>): UseFormReturn<T>`
-
-`useForm` is the main hook exported by this package. It takes two parameters:
-
-### Parameters
-
-- `initialState`: The initial value of the form. It can be an object, a function returning an object or a new instance of a class, or a constructor.
-- `options` (optional): Additional options for customizing form behavior.
-
-#### Options
-
-`onChange`
-Callback function triggered whenever the form state changes. It receives the current form state as an argument.
-
-`onSubmit`
-Upon successful form submission, this callback function is invoked, receiving the form data as its argument.
-
-`validate`
-Designed for custom validation of form fields, this function takes the form data and an array of changed keys as arguments. It returns and empty array for success, an array of error messages, or throws errors if validation fails.
-
-`validationType`
-Flag indicating when validation errors are displayed.
-
-- `onSubmit`: Errors appear only after submission. Newly added fields will display errors only after submitting, while previously interacted fields will update errors when touched.
-- `onTouch`: Errors are displayed as soon as a field is touched.
-- `always`: Errors are shown immediately regardless of touch or submission.
-
-### Returns
-
-Contains the following properties and methods:
-
-- `changeValue(key: string, value: any, produceOptions?: FieldOptions): void`: Facilitates altering the value of a designated form field. Parameters include the field's key, the new value, and optional field options.
-
-```typescript
-// Change the value of the 'name' field to 'John'
-changeValue("name", "John");
-```
-
-- `context`: Provides a context object primarily employed for seamless integration with the FormProvider/Controller pattern.
-- `errors`: Contains error messages associated with each form field.
+### Split Large Forms (useFormSplitter)
 
 ```tsx
-// Display error messages for the 'email' field
-{
-  errors["email"] && <span className="error">{errors["email"]}</span>;
-}
+import { useFormSplitter, useForm } from "@resourge/react-form";
+
+const PersonalDetails = () => {
+  const { form, field } = useFormSplitter("personalDetails");
+
+  return (
+    <>
+      <input {...field("firstName")} placeholder="First Name" />
+      <input {...field("lastName")} placeholder="Last Name" />
+    </>
+  );
+};
+
+const MyForm = () => {
+  const { form, handleSubmit, field, hasError, getErrors, context } = useForm({
+    personalDetails: {
+      username: "",
+      password: "",
+    },
+  });
+
+  const onSubmit = handleSubmit((data) => console.log("Form Submitted:", data));
+
+  return (
+    <Form context={context} onSubmit={onSubmit}>
+      <PersonalDetails />
+
+      <button type="submit">Submit</button>
+    </Form>
+  );
+  /*
+  or 
+  return (
+    <FormProvider context={context}> 
+      <PersonalDetails />
+
+      <button type="submit">Submit</button>
+    </FormProvider>
+  );
+  */
+};
 ```
 
-- `field(key: string, options?: FieldOptions): FieldForm`: Establishes connections between form elements and specific fields, offering native attributes such as onChange, name, and value.
+### Persist Form Data (useFormStorage)
 
 ```tsx
-// Connect an input field to the 'name' field
-<input {...field("name")} />
+import { useFormStorage } from "@resourge/react-form";
+
+const MyPersistentForm = () => {
+  const { form, handleSubmit, restoreFromStorage } = useFormStorage(
+    { username: "", password: "" },
+    {
+      storage: localStorage,
+      uniqueId: "myForm",
+      autoSyncWithStorage: true,
+      onLoading: (isLoading) => {
+        // Handle loading state
+      },
+      onStorageError: (error) => {
+        // Handle storage error
+      },
+      shouldClearAfterSubmit: true,
+      version: "1.0.0",
+    }
+  );
+
+  const onSubmit = handleSubmit((data) => console.log("Form Submitted:", data));
+
+  return (
+    <Form onSubmit={onSubmit}>
+      <input {...field("username")} placeholder="Username" />
+      {hasError("username") && <span>{getErrors("username")[0]}</span>}
+
+      <input {...field("password")} placeholder="Password" type="password" />
+      {hasError("password") && <span>{getErrors("password")[0]}</span>}
+
+      <button type="submit">Submit</button>
+    </Form>
+  );
+};
 ```
 
-- `form`: Reflects the current state of the form, encapsulating the values of all form fields.
+## useForm
 
-```tsx
-// Access the value of the 'email' field
-const emailValue = form.email;
-```
+Manages form state and validation.
 
-- `getErrors(key: string, options?: GetErrorsOptions): GetErrors`: Retrieves error messages pertinent to a particular form field, considering specified options.
+### Parameters:
 
-```tsx
-// Get error messages for the 'password' field
-const passwordErrors = getErrors("password");
-```
+- `initialState`: Initial form value (object, function returning an object, or class instance).
+- `options` (optional):
+  - `onChange`: Triggered on form state change, receiving the current state
+  - `onSubmit`: Triggered on successful form submission, receiving form data.
+  - `validate`: Custom validation function, takes form data and changed keys, returns error messages or throws errors.
+  - `validationType`: Controls when validation errors are shown:
+    - `onSubmit`: Appear only after submission. Newly added fields only display errors after submitting.
+    - `onTouch`: Errors show after field touch.
+    - `always`: Show immediately
 
-- `getValue(key: string): any`: Fetches the value of a designated form field.
+### Returns:
 
-```tsx
-// Get the value of the 'username' field
-const usernameValue = getValue("username");
-```
-
-- `handleSubmit(onValid: SubmitHandler, onInvalid?: ValidateSubmission): (event?: FormEvent<HTMLFormElement> | react.MouseEvent) => Promise<K | undefined>`: Manages form submission, executing a function upon valid submission and optionally controlling submission behavior when the form is invalid.
-
-```tsx
-// Handle form submission with custom validation logic
-const submitHandler = handleSubmit(
-  (form) => {
-    // Submit form data to the server
-  },
-  (errors) => {
-    // Handle form submission when there are validation errors
-    return true; // Continue with submission even if there are errors
-  }
-);
-```
-
-- `hasError(key: string, options?: GetErrorsOptions): boolean`: Checks if a specified form field contains errors, considering specified options.
-
-```tsx
-// Check if the 'username' field has errors
-const hasUsernameError = hasError("username");
-```
-
-- `hasTouch(key: string): boolean`: Checks if a specified form field was touched.
-
-```tsx
-// Check if the 'username' field was touched
-const hasUsernameTouch = hasTouch("username");
-```
-
-- `isTouched`: Indicates whether any form field has been interacted with by the user.
-- `isValid`: Indicates whether the form currently holds valid data, validating all form field values.
-- `onChange(key: string, fieldOptions?: FieldOptions): (value: any) => void`: Generates a callback function to manage changes to a specific form field.
-
-```tsx
-// Generate a callback function to handle changes to the 'password' field
-const handlePasswordChange = onChange("password");
-```
-
-- `reset(newForm?: Partial<Record<string, any>>, resetOptions?: ResetOptions): Promise<void>`: Resets the form state to its initial state or a specified new form state, with optional resetting of form options.
-
-```tsx
-// Reset the form state to its initial state
-reset();
-```
-
+- `changeValue(key: string, value: any): void`: Changes the value of a specific form field.
+  ```typescript
+  changeValue("name", "John");
+  ```
+- `context`: Provides a context object for integration with `FormProvider`/`Controller`/`Form`.
+- `errors`: Contains error messages for each form field.
+  ```tsx
+  errors["email"]?.errors && (
+    <span className="error">{errors["email"]?.errors}</span>
+  );
+  ```
+- `field(key: string, options?: FieldOptions): FieldForm`: Connects form elements to specific fields.
+  ```tsx
+  <input {...field("name")} />
+  ```
+- `form`: Reactive form state.
+  ```tsx
+  const emailValue = form.email;
+  form.email = "newEmail@email.email";
+  ```
+- `getErrors(key: string, options?: GetErrorsOptions): GetErrors`: Retrieves error messages for a form field.
+  ```tsx
+  const passwordErrors = getErrors("password");
+  ```
+- `getValue(key: string): any`: Fetches the value of a form field.
+  ```tsx
+  const usernameValue = getValue("username");
+  ```
+- `handleSubmit(onValid: SubmitHandler, validateErrors?: ValidateSubmissionErrors): (event?: FormEvent<HTMLFormElement> | react.MouseEvent) => Promise<K | undefined>`: Handles form submission, processing valid form data and managing invalid data based on custom logic.
+  ```tsx
+  const submitHandler = handleSubmit(
+    (form) => {
+      // Submit form data to the server
+    },
+    (errors) => {
+      // Control which validation errors are acceptable for submission.
+      // Allows dynamic error handling based on submission context.
+      return errors;
+    }
+  );
+  ```
+- `hasError(key: string, options?: GetErrorsOptions): boolean`: Checks if a form field has errors.
+  ```tsx
+  const hasUsernameError = hasError("username");
+  ```
+- `hasTouch(key: string): boolean`: Checks if a form field was touched.
+  ```tsx
+  const hasUsernameTouch = hasTouch("username");
+  ```
+- `isTouched`: Indicates if any field has been touched.
+- `isValid`: Indicates if the form is valid.
+- `reset(newForm?: Partial<Record<string, any>>, resetOptions?: ResetOptions): Promise<void>`: Resets the form state.
+  ```tsx
+  reset({});
+  ```
 - `resetTouch(): void`: Clears touch states for all form fields.
-
-```tsx
-// Clear touch states for all form fields
-resetTouch();
-```
-
+  ```tsx
+  resetTouch();
+  ```
 - `setError(errors: Array<{ errors: string[], path: string }>): void`: Sets custom errors for specific form fields.
-
-```tsx
-// Set custom errors for the 'email' field
-setError([{ path: "email", errors: ["Invalid email address"] }]);
-```
-
-- `triggerChange(cb: OnFunctionChange, produceOptions?: ProduceNewStateOptions): void`: Enables simultaneous changes to the form state within a single render cycle, accepting a callback function to modify the state and optional options for customization.
-
-```tsx
-triggerChange((form) => {
-  form.username = "john_doe";
-  form.email = "john@example.com";
-});
-```
-
-- `updateController(key: string): void`: Manually triggers an update of the Controller component associated with a specific form field.
-
-```tsx
-// Manually force the Controller component associated with the 'email' field to update
-updateController("email");
-```
-
-- `watch(key: string | 'submit', method: WatchMethod): void`: Monitors specific form fields or form submission events, executing specified methods upon occurrence of these events.
-
-```tsx
-// Watch changes to the 'email' field and execute a method
-watch("email", (form) => {
-  // Handle changes to the 'email' field
-});
-```
-
-# useFormSplitter
-
-`useFormSplitter` hook is designed to split a larger form into smaller, more manageable sections. It creates a separate form for the specified form field key, allowing you to interact with only a portion of the overall form data.
-
-## Usage
-
-```jsx
-import { useFormSplitter } from "@resourge/react-form";
-
-const MyComponent = () => {
-  const { form, handleSubmit, field } = useFormSplitter("personalDetails");
-
-  const onSubmit = handleSubmit((form) => {
-    // Handle form submission
-    console.log(form);
+  ```tsx
+  setError([{ path: "email", errors: ["Invalid email address"] }]);
+  ```
+- `triggerChange(cb: OnFunctionChange): void`: Ensures update form state within a single render cycle.
+  ```tsx
+  triggerChange((form) => {
+    form.username = "john_doe";
+    form.email = "john@example.com";
   });
-
-  return (
-    <form onSubmit={onSubmit}>
-      <label>
-        First Name:
-        <input {...field("firstName")} />
-      </label>
-      <label>
-        Last Name:
-        <input {...field("lastName")} />
-      </label>
-      <button type="submit">Submit</button>
-    </form>
-  );
-};
-```
-
-## API
-
-### Parameters
-
-- `formFieldKey` (optional): The key from the `form` state to create the splitter form. Note that if `useFormSplitter` is used inside a `Controller`, this parameter is not needed. Otherwise, it is mandatory.
-
-### Return
-
-`useFormSplitter` hook returns an object with properties and methods identical to those returned by the `useForm` hook. However, these properties and methods operate specifically within the context of the specified form field key (`formFieldKey`).
-
-# useFormStorage
-
-`useFormStorage` hook is designed to create a form where changes are automatically saved in a storage mechanism such as local storage or session storage. It extends the functionality of the useForm hook by integrating storage management capabilities.
-
-#### Note
-
-Class instances can seamlessly work with `useFormStorage` when accompanied by the `PreserveClass` or `registerClass` functions. These functions ensure that class prototypes are preserved, enabling class instances to function correctly with the form storage mechanism. This capability is especially beneficial when dealing with forms that involve complex data structures or encapsulation within classes.
-
-## Usage
-
-```tsx
-import { useFormStorage } from '@resourge/react-form';
-
-// Example usage with default value and options
-const MyComponent = () => {
-  const { form, handleSubmit, restoreFromStorage } = useFormStorage(initialFormValue, {
-    storage: localStorage,
-    uniqueId: 'myForm',
-    autoSyncWithStorage: true,
-    onLoading: (isLoading) => {
-      // Handle loading state
-    },
-    onStorageError: (error) => {
-      // Handle storage error
-    },
-    shouldClearAfterSubmit: true,
-    version: '1.0.0',
+  ```
+- `updateController(key: string): void`: Forces an update of the `Controller` for a form field.
+  ```tsx
+  updateController("email");
+  ```
+- `watch(key: string | 'submit', method: WatchMethod): void`: Watches form fields or submission events.
+  ```tsx
+  watch("email", (form) => {
+    // Handle changes to the 'email' field
   });
+  ```
 
-  // Use form, handleSubmit, and other methods as needed
+## useFormSplitter
 
-  return (
-    // Your JSX components
-  );
-};
-```
+Breaks up large forms into smaller parts.
 
-## API
+### Parameters:
 
-### Syntax
+- `formFieldKey` (optional): Key from the `form` state for the splitter form. It's required unless `useFormSplitter` is used inside a `Controller`.
 
-```typescript
-function useFormStorage<T extends Record<string, any>>(
-  defaultValue: T | (() => T) | { new (): T },
-  options: FormStorageOptions<T>
-): UseFormStorageReturn<T>;
-```
+### Return:
 
-### Parameters
+- Same as useForm, but scoped to the `formFieldKey`
 
-- `defaultValue`: Represents the initial value or a function that returns the initial value of the form.
-- `options`: An object containing various configuration options for form storage, extending the options available in the useForm hook
+## useFormStorage
 
-#### Options
+A specialized version of useForm that persists form state to local storage or session storage.
 
-- `storage`: The storage mechanism (e.g., localStorage) where form data will be saved.
-- `uniqueId`: A unique identifier for the form data within the storage.
-- `autoSyncWithStorage` (optional, default: `true`): Whether to automatically synchronize form data with storage.
-- `onLoading` (optional): A callback function to handle loading state while reading from storage.
-- `onStorageError` (optional): A callback function to handle errors that occur during storage operations.
-- `shouldClearAfterSubmit` (optional, default: `true`): A boolean value indicating whether to clear the form data from storage after successful form submission. Default is true.
-- `version` (optional, default: `'1.0.0'`): A version string used to track changes in form data and clear storage accordingly.
+### Parameters:
 
-### Return Value
+- `defaultValue`: Initial value or a function returning the initial value of the form.
+- `options`: Configuration options for form storage, extending those from `useForm` hook.
+  - `storage`: Storage mechanism (e.g., `localStorage`) for saving form data.
+  - `uniqueId`: A unique identifier for the form data in storage.
+  - `autoSyncWithStorage` (optional, default: `true`): Whether to sync form data with storage automatically.
+  - `onLoading` (optional): Callback for handling loading state when reading from storage.
+  - `onStorageError` (optional): Callback for handling errors during storage operations.
+  - `shouldClearAfterSubmit` (optional, default: `true`): Whether to clear form data from storage after submission.
+  - `version` (optional, default: `'1.0.0'`): Version string to track changes in form data and clear storage when needed.
 
-`useFormStorage` hook returns an object with properties and methods similar to those returned by the `useForm` hook. Additionally, it includes a `restoreFromStorage` method, which synchronizes the form data with the data stored in the storage mechanism.
+### Returns:
 
-## PreserveClass/registerClass Function
+- Same as useForm, but persists data in storage.
+- `restoreFromStorage`: Synchronizes the form data with the data stored in the storage mechanism.
 
-### PreserveClass
+### Note
 
-`PreserveClass` is a utility function provided alongside `useFormStorage` to register a class for serialization. It ensures that class instances are properly serialized and deserialized when stored in the storage mechanism. Here's how you can use it:
+Class instances work with `useFormStorage` when using the `PreserveClass` or `registerClass` functions. These functions preserve the class prototypes, ensuring that class instances interact correctly with the form storage mechanism. This is useful for forms with complex data structures or when data is encapsulated within classes.
+
+#### PreserveClass
+
+`PreserveClass` is a utility function for registering a class with `useFormStorage` to handle serialization. It ensures that instances of the class are correctly serialized and deserialized when interacting with the storage mechanism.
 
 ```typescript
 import { PreserveClass } from "useFormStorage";
@@ -378,11 +317,9 @@ class UserData {
 }
 ```
 
-`@PreserveClass` decorator ensures that the `UserData` class is registered for serialization, allowing instances of this class to be stored and retrieved from storage seamlessly.
+#### registerClass
 
-### registerClass
-
-`registerClass` is another utility function to manually register a class for serialization. It can be used if you prefer not to use decorators. Here's how you can use it:
+`registerClass` is a utility function that allows you to manually register a class for serialization, providing an alternative to using decorators.
 
 ```typescript
 import { registerClass } from "useFormStorage";
@@ -402,66 +339,9 @@ class UserData {
 registerClass(UserData);
 ```
 
-`registerClass` function ensures that instances of the `UserData` class are properly serialized and deserialized when stored in the storage mechanism.
+## FormProvider
 
-#### Example
-
-```tsx
-import { useFormStorage, PreserveClass } from '@resourge/react-form';
-
-// Define form data structure
-@PreserveClass
-class UserData {
-  name: string;
-  email: string;
-
-  constructor() {
-    this.name = '';
-    this.email = '';
-  }
-}
-
-// Register class for serialization (alternative method)
-registerClass(UserData);
-
-// Use useFormStorage hook
-const MyForm = () => {
-  const { formData, handleSubmit, field } = useFormStorage<UserData>(
-    UserData,
-    {
-      storage: localStorage,
-      uniqueId: 'userFormData',
-      autoSyncWithStorage: true,
-      onLoading: (isLoading) => {
-        // Handle loading state
-      },
-      onStorageError: (error) => {
-        // Handle storage error
-      },
-      shouldClearAfterSubmit: true,
-      version: '1.0.0',
-    }
-  );
-
-  return (
-    <form onSubmit={handleSubmit(() => {
-		....
-	})}>
-      <input type="text" { ...field('name') }/>
-      <input type="email" { ...field('email') }/>
-      <button type="submit">Submit</button>
-    </form>
-  );
-};
-
-export default MyForm;
-```
-
-# FormProvider
-
-`FormProvider` component is a provider for deep forms. It wraps your form components and provides the form context to its descendants. It is typically used in conjunction with the `useForm` | `useFormStorage` | `useFormSplitter` hook to manage form state.
-
-## Usage
+Provides form context to nested components.
 
 ```tsx
 import { FormProvider, useForm } from "@resourge/react-form";
@@ -476,11 +356,9 @@ const MyFormComponent = () => {
 };
 ```
 
-# Form
+## Form
 
-`Form` component is a wrapper for html form and FormProvider. It wraps your form components and provides the form context to its descendants. It is typically used in conjunction with the `useForm` | `useFormStorage` | `useFormSplitter` hook to manage form state.
-
-## Usage
+Wraps a form and provides context to nested components.
 
 ```tsx
 import { FormProvider, useForm } from "@resourge/react-form";
@@ -499,7 +377,7 @@ const MyFormComponent = () => {
 
 ## useFormContext
 
-`useFormContext` hook provides access to the form context created by the nearest `FormProvider` component. It returns the form context containing form data, state, and methods.
+Hook to access the state of a `FormProvider` or `Form`.
 
 ```typescript
 import { useFormContext } from "@resourge/react-form";
@@ -507,13 +385,9 @@ import { useFormContext } from "@resourge/react-form";
 const context = useFormContext<MyFormData>();
 ```
 
-# Controller
+## Controller
 
-`Controller` component is used to optimize rendering performance by only updating its children if the specified form field (`name`) changes. This is especially useful for large forms with many elements or components.
-
-`Controller` optimizes rendering performance by preventing unnecessary updates to its children when form data changes, thus improving the performance of large forms.
-
-## Usage
+Optimizes form field rendering for large forms.
 
 ```tsx
 import { Controller, useForm } from "@resourge/react-form";
@@ -534,7 +408,7 @@ const MyFormComponent = () => {
 
 ## useController
 
-`useController` hook provides access to the context of the nearest `Controller` component. It returns the form context associated with the specified form field name.
+Hook to access the state of a `Controller`.
 
 ```typescript
 import { useController } from "@resourge/react-form";

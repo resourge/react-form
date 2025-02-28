@@ -41,11 +41,11 @@ export type FormOptions<T extends Record<string, any>> = {
 	/**
 	 * Triggers when form is changed
 	 */
-	onChange?: (form: T, errors: FormErrors<T>) => Promise<void> | void
+	onChange?: (form: T) => Promise<void> | void
 	/**
 	 * Triggers when form is submitted
 	 */
-	onSubmit?: (form: T, errors: FormErrors<T>) => Promise<void> | void
+	onSubmit?: (form: T) => Promise<void> | void
 	/**
 	 * Method to validate form.
 	 * Usually with some kind of validator.
@@ -137,16 +137,7 @@ export type FieldForm<T extends Record<string, any>> = {
 
 export type FieldFormReturn<Value = any, Name = string> = FieldFormReadonly<Value, Name> | FieldFormBlur<Value, Name> | FieldFormChange<Value, Name>;
 
-export type SplitterOptions = {
-	/**
-	 * Method to make sure some keys are not triggering error
-	 */
-	filterKeysError?: (key: string) => boolean
-};
-
-export type ProduceNewStateOptionsHistory = SplitterOptions;
-
-export type ResetOptions = SplitterOptions & {
+export type ResetOptions = {
 	/**
 	 * On reset, `touches` will be cleared
 	 * 
@@ -161,21 +152,20 @@ export type FieldOptions = {
 	 */
 	blur?: boolean
 	/**
+	 * For cases where the onChange value needs to be different
+	 */
+	onChange?: (value: any) => any
+	/**
 	 * Disables `onChange` method
 	 */
 	readOnly?: boolean
-} & SplitterOptions;
+};
 
 export type OnFunctionChange<T extends Record<string, any>, Result = void> = ((form: T) => Result) | ((form: T) => Promise<Result>);
 
 export type SubmitHandler<T extends Record<string, any>, K = void> = (form: T) => K | Promise<K>;
 
-export type ValidateSubmission<T extends Record<string, any>> = (
-	/**
-	 * Form errors
-	 */
-	errors: FormErrors<T>
-) => boolean | Promise<boolean>;
+export type ValidateSubmissionErrors = (newErrors: ValidationErrors) => ValidationErrors | boolean | Promise<ValidationErrors | boolean>;
 
 export interface UseFormReturn<T extends Record<string, any>> {
 	/**
@@ -183,7 +173,6 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * 
 	 * @param key - key from `form` state
 	 * @param value - value for the param `key`
-	 * @param produceOptions 
 	 * @example 
 	 * ```Typescript
 	 * const {
@@ -201,7 +190,7 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * changeValue('name', 'Rimuru Tempest', { validate: true })
 	 * ```
 	 */
-	changeValue: (key: FormKey<T>, value: T[FormKey<T>], produceOptions?: FieldOptions | undefined) => void
+	changeValue: (key: FormKey<T>, value: T[FormKey<T>]) => void
 	/**
 	 * Context mainly for use in `FormProvider/Controller`, basically returns {@link UseFormReturn}
 	 */
@@ -292,10 +281,9 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * Method to handle form submission
 	 * 
 	 * @param onValid - on a valid `form`, this method will be triggered
-	 * @param onInvalid - method that control's the form submission when the form is invalid.
-	 * 	By default `onValid` will only be called when `form` is valid, with `onInvalid` returning true
-	 *  even if the `form` is invalid, `onValid` will be called
-	 * @returns 
+	 * @param validateErrors - A method that allows to control which validation errors 
+ 	 *                         are considered acceptable for this specific `handleSubmit` call.
+ 	 *                         This enables dynamic error handling based on the context of submission.
 	 * @example
 	 * ```Typescript
 	 * ...
@@ -309,14 +297,14 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * 			/// On `onSubmit` will always be called because the next method return true
 	 * 			/// do something with it
 	 * 		},
-	 * 		(errors) => true 
+	 *     (errors) => errors // Custom validation logic determining acceptable errors.
 	 * )
 	 * ...
 	 * ```
 	 */
 	handleSubmit: <K = void>(
 		onValid: SubmitHandler<T, K>, 
-		onInvalid?: ValidateSubmission<T> | undefined
+		validateErrors?: ValidateSubmissionErrors
 	) => (e?: FormEvent<HTMLFormElement> | React.MouseEvent<any, React.MouseEvent> | React.BaseSyntheticEvent) => Promise<K | undefined>
 	/**
 	 * Method to verify if `key` has errors
@@ -367,30 +355,6 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * Form state, by default is false if `errors` are undefined or an empty object
 	 */
 	isValid: boolean
-	/**
-	 * Returns a method to change key value
-	 * 
-	 * @param key - key from `form` state
-	 * @param fieldOptions - {@link FieldOptions} (@default undefined)
-	 * @returns - method to receive the new value
-	 * @example 
-	 * ```Typescript
-	 * const {
-	 *   onChange
-	 * } = useForm(
-	 *	 {
-	 * 		name: 'Rimuru'
-	 *	 }
-	 * )
-	 * ...
-	 * onChange('name')
-	 * 
-	 * /// Validates form on change
-	 * onChange('name', { validate: true })
-	 * <input onChange={onChange('name')} />
-	 * ```
-	 */
-	onChange: (key: FormKey<T>, fieldOptions?: FieldOptions | undefined) => (value: T[FormKey<T>]) => void
 	/**
 	 * Resets form state
 	 * 
@@ -468,7 +432,6 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * Method to make multiple changes in one render
 	 * 
 	 * @param cb - method that receives the `form`
-	 * @param produceOptions - {@link SplitterOptions}
 	 * @example
 	 * ```Typescript
 	 * const {
@@ -485,7 +448,7 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * ...
 	 * ```
 	 */
-	triggerChange: (cb: OnFunctionChange<T, void>, produceOptions?: SplitterOptions | undefined) => Promise<void>
+	triggerChange: (cb: OnFunctionChange<T, void>) => Promise<void>
 	/**
 	 * Manually force Controller component to update.
 	 * 

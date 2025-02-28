@@ -1,12 +1,11 @@
 import { useEffect, useRef } from 'react';
 
 import { type FormKey } from '../types';
-import { type FormValidationType, type Touches } from '../types/formTypes';
+import { type ToucheType, type FormValidationType, type Touches } from '../types/formTypes';
 import { forEachPossibleKey } from '../utils/formatErrors';
 
 type TouchesProps = {
 	touchesRef: React.MutableRefObject<Touches>
-	filterKeysError?: (key: string) => boolean
 	/**
 	 * Validation type, specifies the type of validation.
 	 * @default 'onSubmit'
@@ -14,9 +13,7 @@ type TouchesProps = {
 	validationType?: FormValidationType
 };
 
-export const useTouches = <T extends Record<string, any>>({
-	validationType, filterKeysError, touchesRef
-}: TouchesProps) => {
+export const useTouches = <T extends Record<string, any>>({ validationType, touchesRef }: TouchesProps) => {
 	const changedKeysRef = useRef<Set<FormKey<T>>>(new Set());
 	const shouldUpdateErrorsRef = useRef<boolean>(validationType === 'always');
 
@@ -24,15 +21,16 @@ export const useTouches = <T extends Record<string, any>>({
 		touchesRef.current.clear();
 	};
 
-	const getTouch = <Model extends Record<string, any> = T>(key: FormKey<Model>) => {
-		const newTouch = touchesRef.current.get(key) ?? {
-			submitted: false,
-			touch: false
-		};
+	const getTouch = <Model extends Record<string, any> = T>(key: FormKey<Model>): ToucheType => {
+		if ( !touchesRef.current.has(key) ) {
+			touchesRef.current.set(key, {
+				submitted: false,
+				touch: false
+			});
+		}
 
-		touchesRef.current.set(key, newTouch);
-
-		return newTouch;
+		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+		return touchesRef.current.get(key)!;
 	};
 
 	function setTouch<Model extends Record<string, any> = T>(
@@ -64,10 +62,8 @@ export const useTouches = <T extends Record<string, any>>({
 		key: FormKey<T> | string,
 		touch: boolean = true
 	) => {
-		if ( filterKeysError && !filterKeysError(key) ) {
-			return;
-		}
 		setTouch(key as FormKey<T>, touch);
+
 		changedKeysRef.current.add(key as FormKey<T>);
 
 		shouldUpdateErrorsRef.current = !(

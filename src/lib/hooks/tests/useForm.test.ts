@@ -350,7 +350,7 @@ describe('useForm', () => {
 		const { result } = renderHook(() => useForm(getDefaultValues()));
 
 		act(() => {
-			result.current.onChange('name')('Jane Doe');
+			result.current.changeValue('name', 'Jane Doe');
 		});
 
 		expect(result.current.form.name).toBe('Jane Doe');
@@ -440,7 +440,7 @@ describe('useForm', () => {
 		});
 
 		act(() => {
-			result.current.onChange('name')('Jane Doe');
+			result.current.changeValue('name', 'Jane Doe');
 		});
 
 		await vi.waitFor(() => {
@@ -470,35 +470,6 @@ describe('useForm', () => {
 		});
 
 		expect(result.current.form.name).toBe('Jane');
-	});
-
-	it('should validate fields and set errors', () => {
-		const initialValues = {
-			name: '',
-			age: 30 
-		};
-		const validate = (values: any) => {
-			const errors = [];
-			if (!values.name) {
-				errors.push({
-					path: 'name',
-					error: 'Name is required'
-				});
-			}
-			return errors;
-		};
-
-		const { result } = renderHook(() => useForm(initialValues, {
-			validate,
-			validationType: 'onTouch'
-
-		}));
-
-		act(() => {
-			result.current.changeValue('age', 31);
-		});
-
-		expect(result.current.errors.name?.errors).toContain('Name is required');
 	});
 
 	it('should handle form submission', async () => {

@@ -35,8 +35,6 @@ export {
 	type GetErrorsOptions,
 	type OnErrors,
 	type OnFunctionChange,
-	type SplitterOptions,
-	type ProduceNewStateOptionsHistory,
 	type ResetMethod,
 	type ResetOptions,
 	type SubmitHandler,
