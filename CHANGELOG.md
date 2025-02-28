@@ -1,3 +1,17 @@
+# [1.30.0](https://github.com/resourge/react-form/compare/v1.29.0...v1.30.0) (2025-02-28)
+
+
+### Bug Fixes
+
+* **useerrors:** fix onSubmit not working for cases where getErrors was not used ([2c92901](https://github.com/resourge/react-form/commit/2c92901c11a635085917e4848dd7b3721d34bc1b))
+* **useform:** improve handleSubmit in case of error ([ca7f6bf](https://github.com/resourge/react-form/commit/ca7f6bf097b6ecb35aa5b93ce8443f764d51d04a))
+* **useformsplitter:** fix isValid not working as intended ([81584ed](https://github.com/resourge/react-form/commit/81584eddea68d0f3520f22a73f9c7c9a6561b445))
+
+
+### Features
+
+* **form:** add form component for compatibility with html form and formProvider ([f8a6c8a](https://github.com/resourge/react-form/commit/f8a6c8a2b5626511ccfd67c22c708f5c2356b4b5))
+
 # [1.29.0](https://github.com/resourge/react-form/compare/v1.28.8...v1.29.0) (2025-02-20)
 
 
