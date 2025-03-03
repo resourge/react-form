@@ -128,6 +128,8 @@ export const useErrors = <T extends Record<string, any>>({
 					// eslint-disable-next-line @typescript-eslint/only-throw-error
 					throw newErrors;
 				}
+				
+				newErrors = [];
 			}
 			else {
 				newErrors = result;
