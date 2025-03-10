@@ -1,14 +1,14 @@
 import { createContext, useContext } from 'react';
 
-import { type UseFormReturn } from '../types/formTypes';
+import { type UseFormSplitterResult } from '../types/formTypes';
 import { IS_DEV } from '../utils/constants';
 
 import { ControllerContext } from './ControllerContext';
 
-export const FormContext = createContext<UseFormReturn<any> | null>(null);
+export const FormSplitterContext = createContext<UseFormSplitterResult<any> | null>(null);
 
-export const useFormContext = <T extends object>(): UseFormReturn<T> => {
-	const context = useContext(FormContext) as unknown as UseFormReturn<T>;
+export const useFormSplitterContext = <T extends object>(): UseFormSplitterResult<T> => {
+	const context = useContext(FormSplitterContext) as unknown as UseFormSplitterResult<T>;
 
 	if ( IS_DEV ) {
 		// eslint-disable-next-line react-hooks/rules-of-hooks

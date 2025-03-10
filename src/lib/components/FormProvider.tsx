@@ -1,9 +1,11 @@
 import { type JSX } from 'react';
 
-import { FormContext, type FormContextObject } from '../contexts/FormContext';
+import { FormContext } from '../contexts/FormContext';
+import { type UseFormReturn } from '../types';
+import { IS_DEV } from '../utils/constants';
 
 export type FormProviderProps<T extends Record<string, any>> = React.PropsWithChildren<{
-	context: FormContextObject<T>
+	context: UseFormReturn<T, 'form'>
 }>;
 
 /**
@@ -21,8 +23,15 @@ export type FormProviderProps<T extends Record<string, any>> = React.PropsWithCh
  * </FormProvider>
  * ```
  */
-export const FormProvider = <T extends Record<string, any>>({ children, context }: FormProviderProps<T>): JSX.Element => (
-	<FormContext.Provider value={context as FormContextObject<Record<string, any>>}>
-		{ children }
-	</FormContext.Provider>
-);
+export const FormProvider = <T extends Record<string, any>>({ children, context }: FormProviderProps<T>): JSX.Element => {
+	if ( IS_DEV ) {
+		if ( context.type !== 'form' ) {
+			throw new Error(`Can only accepts 'context' from the 'useFrom'. For 'useFormSplitter' context use '<FormSplitterContext>'.`);
+		}
+	}
+	return (
+		<FormContext.Provider value={context}>
+			{ children }
+		</FormContext.Provider>
+	);
+};

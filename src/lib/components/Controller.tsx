@@ -2,18 +2,17 @@
 import { type JSX, memo } from 'react';
 
 import { ControllerContext } from '../contexts/ControllerContext';
-import { type FormContextObject } from '../contexts/FormContext';
 import { type FormKey } from '../types/FormKey';
 import { type UseFormReturn } from '../types/formTypes';
 
 export type ControllerProps<T extends Record<string, any>> = {
 	children: React.ReactNode
-	context: FormContextObject<T>
+	context: UseFormReturn<T, any>
 	name: FormKey<T>
 	deps?: any[]
 };
 
-export type UseFormReturnController<T extends Record<string, any>> = UseFormReturn<T> & {
+export type UseFormReturnController<T extends Record<string, any>> = UseFormReturn<T, any> & {
 	/**
 	 * Current changed keys. It is used in the `Controller` component
 	 */

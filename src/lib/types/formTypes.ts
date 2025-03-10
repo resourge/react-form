@@ -2,8 +2,6 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { type FormEvent } from 'react';
 
-import { type FormContextObject } from '../contexts/FormContext';
-
 import { type FormKey } from './FormKey';
 import { type ValidationErrors } from './errorsTypes';
 
@@ -167,7 +165,7 @@ export type SubmitHandler<T extends Record<string, any>, K = void> = (form: T) =
 
 export type ValidateSubmissionErrors = (newErrors: ValidationErrors) => ValidationErrors | boolean | Promise<ValidationErrors | boolean>;
 
-export interface UseFormReturn<T extends Record<string, any>> {
+export type UseFormReturn<T extends Record<string, any>, FormType extends 'form' | 'formSplitter' = 'form'> = {
 	/**
 	 * Simplified version of `onChange`, without the return method
 	 * 
@@ -194,7 +192,7 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	/**
 	 * Context mainly for use in `FormProvider/Controller`, basically returns {@link UseFormReturn}
 	 */
-	context: FormContextObject<T>
+	context: UseFormReturn<T, FormType>
 	/**
 	 * Form errors
 	 * * Note: Depends on {@link FormOptions#validate}.
@@ -449,6 +447,7 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * ```
 	 */
 	triggerChange: (cb: OnFunctionChange<T, void>) => Promise<void>
+	type: FormType
 	/**
 	 * Manually force Controller component to update.
 	 * 
@@ -504,4 +503,8 @@ export interface UseFormReturn<T extends Record<string, any>> {
 	 * ```
 	 */
 	watch: (key: FormKey<T> | 'submit', method: WatchMethod<T>) => void
-}
+};
+
+export type UseFormSplitterResult<
+	T extends Record<string, any>
+> = UseFormReturn<T, 'formSplitter'>;

@@ -305,6 +305,7 @@ export function useForm<T extends Record<string, any>>(
 					return 'To Prevent circular dependency';
 				}
 			};
-		}
+		},
+		type: 'form'
 	};
 }

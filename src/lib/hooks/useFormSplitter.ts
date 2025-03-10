@@ -3,23 +3,16 @@
 
 import { useControllerContext } from '../contexts/ControllerContext';
 import { useFormContext } from '../contexts/FormContext';
+import { useFormSplitterContext } from '../contexts/FormSplitterContext';
 import { type FormKey } from '../types/FormKey';
 import { type PathValue } from '../types/PathValue';
-import { type UseFormReturn, type WatchMethod } from '../types/formTypes';
+import { type UseFormSplitterResult, type WatchMethod } from '../types/formTypes';
 import { IS_DEV } from '../utils/constants';
 
-export type FormSplitterResult<
-	O extends Record<string, any>,
-	T extends Record<string, any>
-> = UseFormReturn<T>
-& {
-	originalContext: UseFormReturn<O>['context']
-}; 
-
-export type FormSplitterResultFormKey<
+type UseFormSplitterResultByKey<
 	T extends Record<string, any>,
-	K = FormKey<T>
-> = FormSplitterResult<T, PathValue<T, K>>; 
+	K extends FormKey<T>
+> = UseFormSplitterResult<PathValue<T, K>>;
 
 /**
  * Hook to create a splitter form. Serves to create a form for the specific "formFieldKey"
@@ -29,20 +22,18 @@ export type FormSplitterResultFormKey<
 export function useFormSplitter<
 	T extends Record<string, any>,
 	K extends FormKey<T>
->(): FormSplitterResultFormKey<T, K>;
+>(): UseFormSplitterResultByKey<T, K>;
 export function useFormSplitter<
 	T extends Record<string, any>,
 	K extends FormKey<T>
->(formFieldKey: K): FormSplitterResultFormKey<T, K>;
+>(formFieldKey: K): UseFormSplitterResultByKey<T, K>;
 export function useFormSplitter<
 	T extends Record<string, any>,
 	K extends FormKey<T>
->(
-	formFieldKey?: K
-): FormSplitterResultFormKey<T, K> {
+>(formFieldKey?: K): UseFormSplitterResultByKey<T, K> {
 	const controllerContext = useControllerContext<any>();
 	// eslint-disable-next-line react-hooks/rules-of-hooks
-	const context = controllerContext?.context ?? useFormContext<any>();
+	const context = controllerContext?.context ?? useFormSplitterContext<PathValue<T, K>>() ?? useFormContext<PathValue<T, K>>();
 	const _formFieldKey = formFieldKey ?? (controllerContext?.name as K);
 
 	if ( IS_DEV ) {
@@ -106,20 +97,11 @@ export function useFormSplitter<
 		setError: context.setError,
 		triggerChange: (cb) => context.triggerChange((form: T) => cb(form[_formFieldKey])),
 		updateController: (key) => context.updateController(getKey(key)),
-		toJSON() {
-			return {
-				...this,
-				get splitterContext() {
-					return 'To Prevent circular dependency';
-				},
-				get context() {
-					return 'To Prevent circular dependency';
-				}
-			};
-		},
-		originalContext: context.context,
+		// @ts-expect-error It's to prevent circular dependency
+		toJSON: context.toJSON,
 		get context() {
 			return this;
-		}
-	} as FormSplitterResultFormKey<T, K>;
+		},
+		type: 'formSplitter'
+	};
 }

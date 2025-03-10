@@ -16,5 +16,7 @@ export type {
 	FieldFormChange,
 	FieldFormReadonly,
 	FieldForm,
-	ResetMethod
+	ResetMethod,
+	UseFormSplitterResult, 
+	UseFormSplitterResult as UseFormSplitterResultFormKey
 } from './formTypes';
