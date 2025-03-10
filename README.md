@@ -191,6 +191,10 @@ Manages form state and validation.
   );
   ```
 - `field(key: string, options?: FieldOptions): FieldForm`: Connects form elements to specific fields.
+  - options:
+    - `blur`: For changes only in blur
+    - `onChange`: Custom changes on value change.
+    - `readOnly`: Readonly only
   ```tsx
   <input {...field("name")} />
   ```
@@ -200,6 +204,9 @@ Manages form state and validation.
   form.email = "newEmail@email.email";
   ```
 - `getErrors(key: string, options?: GetErrorsOptions): GetErrors`: Retrieves error messages for a form field.
+  - options:
+    - `includeChildsIntoArray`: Include all errors from child's.
+    - `unique`: By default it will only return unique errors, filtering repeating.
   ```tsx
   const passwordErrors = getErrors("password");
   ```
@@ -220,7 +227,9 @@ Manages form state and validation.
     }
   );
   ```
-- `hasError(key: string, options?: GetErrorsOptions): boolean`: Checks if a form field has errors.
+- `hasError(key: string, options?: ErrorsOptions): boolean`: Checks if a form field has errors.
+  - options:
+    - `includeChildsIntoArray`: Include all errors from child's.
   ```tsx
   const hasUsernameError = hasError("username");
   ```
@@ -231,6 +240,8 @@ Manages form state and validation.
 - `isTouched`: Indicates if any field has been touched.
 - `isValid`: Indicates if the form is valid.
 - `reset(newForm?: Partial<Record<string, any>>, resetOptions?: ResetOptions): Promise<void>`: Resets the form state.
+  - options:
+    - `clearTouched`: Clear's touches on reset (default).
   ```tsx
   reset({});
   ```

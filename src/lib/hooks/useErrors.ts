@@ -189,15 +189,23 @@ export const useErrors = <T extends Record<string, any>>({
 
 	function getErrors<Model extends Record<string, any> = T>(
 		key: FormKey<Model>, 
-		{ includeChildsIntoArray = false }: GetErrorsOptions = {}
+		options: GetErrorsOptions = {}
 	): string[] {
+		const includeChildsIntoArray = options.includeChildsIntoArray ?? false;
+		const unique = options.unique ?? true;
 		const errors = errorRef.current[key as unknown as FormKey<T>];
 
-		return !errors 
-			? []
-			: includeChildsIntoArray 
-				? errors.childErrors 
-				: errors.errors;
+		if ( !errors ) {
+			return [];
+		}
+
+		const e = unique 
+			? errors.form
+			: errors.every;
+
+		return includeChildsIntoArray 
+			? e.child
+			: e.errors;
 	}
 
 	const hasError = (key: FormKey<T>, options: GetErrorsOptions = {}): boolean => !!getErrors(key, options).length;

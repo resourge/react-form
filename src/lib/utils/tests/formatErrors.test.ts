@@ -50,46 +50,98 @@ describe('formatErrors', () => {
 			}
 		]);
 
-		expect(JSON.parse(JSON.stringify(result['']?.childFormErrors))).toEqual({
+		expect(JSON.parse(JSON.stringify(result['']?.formErrors))).toEqual({
 			description: {
-				errors: [
-					'validations.required'
-				],
-				childErrors: [
-					'validations.required'
-				]
+				every: {
+					errors: [
+						'validations.required'
+					],
+					child: [
+						'validations.required'
+					]
+				},
+				form: {
+					errors: [
+						'validations.required'
+					],
+					child: [
+						'validations.required'
+					]
+				}
 			},
 			'nodes[0].data.prompt.content': {
-				errors: [
-					'promptModel.promptIsRequired'
-				],
-				childErrors: [
-					'promptModel.promptIsRequired'
-				]
+				every: {
+					errors: [
+						'promptModel.promptIsRequired'
+					],
+					child: [
+						'promptModel.promptIsRequired'
+					]
+				},
+				form: {
+					errors: [
+						'promptModel.promptIsRequired'
+					],
+					child: [
+						'promptModel.promptIsRequired'
+					]
+				}
 			},
 			'nodes[0].data.prompt': {
-				errors: [],
-				childErrors: [
-					'promptModel.promptIsRequired'
-				]
+				every: {
+					errors: [],
+					child: [
+						'promptModel.promptIsRequired'
+					]
+				},
+				form: {
+					errors: [],
+					child: [
+						'promptModel.promptIsRequired'
+					]
+				}
 			},
 			'nodes[0].data': {
-				errors: [],
-				childErrors: [
-					'promptModel.promptIsRequired'
-				]
+				every: {
+					errors: [],
+					child: [
+						'promptModel.promptIsRequired'
+					]
+				},
+				form: {
+					errors: [],
+					child: [
+						'promptModel.promptIsRequired'
+					]
+				}
 			},
 			'nodes[0]': {
-				errors: [],
-				childErrors: [
-					'promptModel.promptIsRequired'
-				]
+				every: {
+					errors: [],
+					child: [
+						'promptModel.promptIsRequired'
+					]
+				},
+				form: {
+					errors: [],
+					child: [
+						'promptModel.promptIsRequired'
+					]
+				}
 			},
 			nodes: {
-				errors: [],
-				childErrors: [
-					'promptModel.promptIsRequired'
-				]
+				every: {
+					errors: [],
+					child: [
+						'promptModel.promptIsRequired'
+					]
+				},
+				form: {
+					errors: [],
+					child: [
+						'promptModel.promptIsRequired'
+					]
+				}
 			}
 		});
 	});

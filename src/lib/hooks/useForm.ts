@@ -256,7 +256,7 @@ export function useForm<T extends Record<string, any>>(
 			return this;
 		},
 		get errors() {
-			return errorRef.current['' as FormKey<T>]?.childFormErrors ?? {};
+			return errorRef.current['' as FormKey<T>]?.formErrors ?? {};
 		},
 		get isValid(): boolean {
 			return !hasError('' as FormKey<T>, {

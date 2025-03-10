@@ -416,8 +416,8 @@ describe('useForm', () => {
 			]);
 		});
 
-		expect(result.current.errors.name?.errors).toEqual(['Name is required']);
-		expect(result.current.errors.name?.childErrors).toEqual(['Name is required']);
+		expect(result.current.errors.name?.form.errors).toEqual(['Name is required']);
+		expect(result.current.errors.name?.form.child).toEqual(['Name is required']);
 	});
 
 	// Test triggerChange function
@@ -517,7 +517,7 @@ describe('useForm', () => {
 		expect(mockCallback).not.toHaveBeenCalled();
 
 		await vi.waitFor(() => {
-			expect(result.current.errors.name?.errors).toContain('Name is required');
+			expect(result.current.errors.name?.form.errors).toContain('Name is required');
 		});
 	});
 
@@ -569,7 +569,7 @@ describe('useForm', () => {
 
 		await waitFor(() => {
 		// Verify if errors are set
-			expect(result.current.errors.name?.errors).toContain('Name is required');
+			expect(result.current.errors.name?.form.errors).toContain('Name is required');
 		});
 	});
 });

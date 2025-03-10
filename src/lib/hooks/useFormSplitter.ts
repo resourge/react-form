@@ -51,7 +51,7 @@ export function useFormSplitter<
 			return context.getValue(_formFieldKey);
 		},
 		get errors() {
-			return context.errors[_formFieldKey]?.childFormErrors ?? {};
+			return context.errors[_formFieldKey]?.formErrors ?? {};
 		},
 		get isTouched() {
 			return context.hasTouch(_formFieldKey);
@@ -85,7 +85,7 @@ export function useFormSplitter<
 		),
 		watch: (key, method) => context.watch(key !== 'submit' ? getKey(key) : key, method as WatchMethod<any>),
 		field: (key, options) => context.field(getKey(key), options) as any,
-		getErrors: (key, options) => context.getErrors(getKey(key), options),
+		getErrors: (key, options) => context.getErrors(getKey(key), options) as any,
 		hasError: (key, options) => context.hasError(getKey(key), options),
 		changeValue: (key, value) => context.changeValue(getKey(key), value),
 		getValue: (key) => context.getValue(getKey(key)),

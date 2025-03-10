@@ -15,20 +15,46 @@ export type Touches = Map<any, ToucheType>;
 export type WatchMethod<T extends Record<string, any>> = (form: T) => void | Promise<void>;
 
 export type FormError<T extends Record<string, any>> = {
-	childErrors: string[]
-	childFormErrors: FormErrors<T>
-	errors: string[]
+	every: {
+		/**
+		 * Child Errors, includes repeating
+		 */
+		child: string[]
+		/**
+		 * Errors, includes repeating
+		 */
+		errors: string[]
+	}
+	form: {
+		/**
+		 * Child Errors, doesn't include repeating
+		 */
+		child: string[]
+		/**
+		 * Errors, doesn't include repeating
+		 */
+		errors: string[]
+	}
+	formErrors: FormErrors<T>
 };
 
 export type FormErrors<T extends Record<string, any>> = {
 	[K in FormKey<T>]?: FormError<T[K]>
 };
 
-export type GetErrorsOptions = {
+export type ErrorsOptions = {
 	/**
 	 * Includes the children errors on the array (@default false)
 	 */
 	includeChildsIntoArray?: boolean
+};
+
+export type GetErrorsOptions = ErrorsOptions & {
+	/**
+	 * Filters repeating errors
+	 * @default true
+	 */
+	unique?: boolean
 };
 
 export type ResetMethod<T extends Record<string, any>> = (newFrom: Partial<T>, resetOptions?: ResetOptions | undefined) => void;
@@ -132,6 +158,11 @@ export type FieldForm<T extends Record<string, any>> = {
 	(key: FormKey<T>, options: FieldOptions & { readonly: true }): FieldFormReadonly
 	(key: FormKey<T>, options?: FieldOptions): FieldFormChange
 };
+
+export type GetErrors<T extends Record<string, any>> = (
+	key: FormKey<T>, 
+	options?: GetErrorsOptions
+) => string[];
 
 export type FieldFormReturn<Value = any, Name = string> = FieldFormReadonly<Value, Name> | FieldFormBlur<Value, Name> | FieldFormChange<Value, Name>;
 
@@ -255,7 +286,7 @@ export type UseFormReturn<T extends Record<string, any>, FormType extends 'form'
 	 * ///
 	 * ```
 	 */
-	getErrors: (key: FormKey<T>, options?: GetErrorsOptions) => string[]
+	getErrors: GetErrors<T>
 	/**
 	 * Return the value for the matched key
 	 * 
@@ -308,7 +339,7 @@ export type UseFormReturn<T extends Record<string, any>, FormType extends 'form'
 	 * Method to verify if `key` has errors
 	 * 
 	 * @param key - key from `form` state
-	 * @param options - {@link GetErrorsOptions}
+	 * @param options - {@link ErrorsOptions}
 	 * @returns `true` for error on form
 	 * @example
 	 * ```Typescript
@@ -324,7 +355,7 @@ export type UseFormReturn<T extends Record<string, any>, FormType extends 'form'
 	 * ///
 	 * ```
 	 */
-	hasError: (key: FormKey<T>, options?: GetErrorsOptions) => boolean
+	hasError: (key: FormKey<T>, options?: ErrorsOptions) => boolean
 	/**
 	 * Method to verify if `key` has being 'touched'
 	 * 

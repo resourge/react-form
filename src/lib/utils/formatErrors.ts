@@ -15,32 +15,43 @@ function addErrorToFormErrors<T extends Record<string, any>>(
 	prev?: PrevFormError<T>
 ): PrevFormError<T> {
 	const entry: FormError<T[FormKey<T>]> = formErrors[path as FormKey<T>] ||= {
-		errors: [],
-		childErrors: [],
-		childFormErrors: {},
+		form: {
+			errors: [],
+			child: []
+		},
+		every: {
+			errors: [],
+			child: []
+		},
+		formErrors: {},
 		// @ts-expect-error To prevent circular dependency
 		toJSON() {
 			return {
-				errors: this.errors,
-				childErrors: this.childErrors
+				form: this.form,
+				every: this.every
 			};
 		}
 	};
 
 	if ( prev ) {
-		entry.childFormErrors = {
-			...entry.childFormErrors,
-			...prev.entry.childFormErrors,
+		entry.formErrors = {
+			...entry.formErrors,
+			...prev.entry.formErrors,
 			[prev.path]: prev.entry
 		};
 	}
 
 	const message = validationError.error;
-	if ( !isChildError && !entry.errors.includes(message) ) {
-		entry.errors.push(message);
+	if ( !isChildError ) {
+		entry.every.errors.push(message);
+		if ( !entry.form.errors.includes(message) ) {
+			entry.form.errors.push(message);
+		}
 	}
-	if ( !entry.childErrors.includes(message) ) {
-		entry.childErrors.push(message);
+
+	entry.every.child.push(message);
+	if ( !entry.form.child.includes(message) ) {
+		entry.form.child.push(message);
 	}
 
 	return {
