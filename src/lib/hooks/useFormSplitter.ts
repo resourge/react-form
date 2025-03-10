@@ -3,7 +3,7 @@
 
 import { useControllerContext } from '../contexts/ControllerContext';
 import { useFormContext } from '../contexts/FormContext';
-import { useFormSplitterContext } from '../contexts/FormSplitterContext';
+import { useBaseFormSplitterContext } from '../contexts/FormSplitterContext';
 import { type FormKey } from '../types/FormKey';
 import { type PathValue } from '../types/PathValue';
 import { type UseFormSplitterResult, type WatchMethod } from '../types/formTypes';
@@ -33,7 +33,7 @@ export function useFormSplitter<
 >(formFieldKey?: K): UseFormSplitterResultByKey<T, K> {
 	const controllerContext = useControllerContext<any>();
 	// eslint-disable-next-line react-hooks/rules-of-hooks
-	const context = controllerContext?.context ?? useFormSplitterContext<PathValue<T, K>>() ?? useFormContext<PathValue<T, K>>();
+	const context = controllerContext?.context ?? useBaseFormSplitterContext<PathValue<T, K>>() ?? useFormContext<PathValue<T, K>>();
 	const _formFieldKey = formFieldKey ?? (controllerContext?.name as K);
 
 	if ( IS_DEV ) {
