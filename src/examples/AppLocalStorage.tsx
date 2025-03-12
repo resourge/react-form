@@ -49,16 +49,6 @@ const ControllerFormSplitterExample: React.FC<Props> = ({ KeyName }: Props) => {
 
 	return (
 		<>
-			<button
-				onClick={() => {
-					triggerChange((form, setFormParent) => {
-						setFormParent(Math.random() * 10);
-						console.log('form', form)
-					})
-				}}
-			>
-				Test
-			</button>
 			<tr>
 				<td>
 					Form:
@@ -161,7 +151,6 @@ function App() {
 
 	const {
 		form,
-		touches,
 		errors,
 		isTouched,
 		isValid,
@@ -181,19 +170,19 @@ function App() {
 				return [
 					{
 						path: 'rafael',
-						errors: ['error']
+						error: 'error'
 					},
 					{
 						path: 'jose',
-						errors: ['error']
+						error: 'error'
 					},
 					{
 						path: 'alfredo[1]',
-						errors: ['[0] error']
+						error: '[0] error'
 					},
 					{
 						path: `alfredo[${Math.random() * 10}].zordon`,
-						errors: ['zordon error']
+						error: 'zordon error'
 					}
 				]
 			},
@@ -222,16 +211,6 @@ function App() {
 	})
 
 	watch('alfredo[0].zordon', (form) => {
-		// console.log('Watch alfredo[0]')
-	})
-
-	watch('submit', (form) => {
-		// console.log('Submit 1')
-		// console.log('Watch alfredo[0]')
-	})
-
-	watch('submit', (form) => {
-		// console.log('Submit 2')
 		// console.log('Watch alfredo[0]')
 	})
 
@@ -312,14 +291,6 @@ function App() {
 				<input { ...field('rafael')} />
 				<table>
 					<tbody>
-						<tr>
-							<td>
-								Touches:
-							</td>
-							<td>
-								{ JSON.stringify(touches, null, 4) }
-							</td>
-						</tr>
 						<tr>
 							<td>
 								Errors:

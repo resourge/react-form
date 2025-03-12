@@ -17,7 +17,7 @@ import { useTouches } from './useTouches';
 
 type UseErrorsConfig<T extends Record<string, any>> = {
 	forceUpdate: () => void
-	stateRef: React.MutableRefObject<T>
+	form: T
 	touchesRef: React.MutableRefObject<Touches>
 	validate: (changedKeys: Array<FormKey<T>>) => ValidationErrors | Promise<ValidationErrors> 
 	/**
@@ -29,7 +29,7 @@ type UseErrorsConfig<T extends Record<string, any>> = {
 
 export const useErrors = <T extends Record<string, any>>({
 	validate, forceUpdate, 
-	stateRef, touchesRef,
+	form, touchesRef,
 	validationType = 'onSubmit'
 }: UseErrorsConfig<T>) => {
 	const {
@@ -90,7 +90,7 @@ export const useErrors = <T extends Record<string, any>>({
 		newErrors.forEach(({ path }) => {
 			setTouch(
 				path, 
-				stateRef.current[path], 
+				form[path], 
 				true, 
 				validationType === 'onSubmit'
 			);
@@ -139,7 +139,7 @@ export const useErrors = <T extends Record<string, any>>({
 		switch ( validationType ) {
 			case 'onSubmit':
 				setSubmitDeepKeys(
-					stateRef.current, 
+					form, 
 					touchesRef.current,
 					filterKeysError
 				);

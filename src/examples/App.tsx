@@ -96,7 +96,6 @@ function App() {
 	const [randomNumber, setRandomNumber] = useState(Math.random())
 	const {
 		form,
-		touches,
 		errors,
 		isTouched,
 		isValid,
@@ -111,8 +110,6 @@ function App() {
 		reset,
 		handleSubmit,
 		getValue,
-		merge,
-		onChange,
 		resetTouch,
 		setError,
 		updateController
@@ -132,25 +129,22 @@ function App() {
 		},
 		{
 			validate: () => {
-				throw new Error()
-			},
-			onErrors: () => {
 				return [
 					{
 						path: 'rafael',
-						errors: ['error']
+						error: 'error'
 					},
 					{
 						path: 'jose',
-						errors: ['error']
+						error: 'error'
 					},
 					{
 						path: 'alfredo[1]',
-						errors: ['[0] error']
+						error: '[0] error'
 					},
 					{
 						path: `alfredo[${Math.random() * 10}].zordon`,
-						errors: ['zordon error']
+						error: 'zordon error'
 					}
 				]
 			}
@@ -159,10 +153,6 @@ function App() {
 
 	getErrors('alfredo', {
 		includeChildsIntoArray: true,
-		includeKeyInChildErrors: false,
-		onlyOnTouch: true,
-		onlyOnTouchKeys: undefined,
-		strict: true
 	})
 
 	const submit = handleSubmit((form) => {
@@ -184,16 +174,6 @@ function App() {
 	})
 
 	watch('alfredo[0].zordon', (form) => {
-		// console.log('Watch alfredo[0]')
-	})
-
-	watch('submit', (form) => {
-		// console.log('Submit 1')
-		// console.log('Watch alfredo[0]')
-	})
-
-	watch('submit', (form) => {
-		// console.log('Submit 2')
 		// console.log('Watch alfredo[0]')
 	})
 
@@ -271,25 +251,13 @@ function App() {
 				</button>
 				<input { ...field('rafael', { 
 					blur: false,
-					filterKeysError: () => false,
-					forceValidation: false,
 					onChange: () => {},
 					readOnly: false,
-					triggerTouched: true,
-					validate: true
 				})} />
 				<textarea { ...field('rafael')}/>
 				<input { ...field('rafael')} />
 				<table>
 					<tbody>
-						<tr>
-							<td>
-								Touches:
-							</td>
-							<td>
-								{ JSON.stringify(touches, null, 4) }
-							</td>
-						</tr>
 						<tr>
 							<td>
 								Errors:
@@ -390,5 +358,4 @@ type Q = FormKey<B>
 */
 /*
 "a" | "b" | "a.a" | "a.b" | "a.c" | "a.d" | "a.f" | "a.g" | "a.gb" | `a.c[${number}]` | `a.g[${number}]` | `a.f[${number}]` | `a.f[${number}].g` | `a.f[${number}].id` | `a.f[${number}].g[${number}]` | `a.gb[${number}]`
-*/
 */

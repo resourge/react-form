@@ -6,7 +6,7 @@ import { useFormContext } from '../contexts/FormContext';
 import { useBaseFormSplitterContext } from '../contexts/FormSplitterContext';
 import { type FormKey } from '../types/FormKey';
 import { type PathValue } from '../types/PathValue';
-import { type UseFormSplitterResult, type WatchMethod } from '../types/formTypes';
+import { type UseFormSplitterResult } from '../types/formTypes';
 import { IS_DEV } from '../utils/constants';
 
 type UseFormSplitterResultByKey<
@@ -83,7 +83,7 @@ export function useFormSplitter<
 			// @ts-expect-error I want this to be able to only occur inside FormSplitter
 			nextFilterKeysError ?? filterKeysError
 		),
-		watch: (key, method) => context.watch(key !== 'submit' ? getKey(key) : key, method as WatchMethod<any>),
+		watch: (key, method) => context.watch(getKey(key), method),
 		field: (key, options) => context.field(getKey(key), options) as any,
 		getErrors: (key, options) => context.getErrors(getKey(key), options) as any,
 		hasError: (key, options) => context.hasError(getKey(key), options),
