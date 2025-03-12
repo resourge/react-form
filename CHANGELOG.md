@@ -1,3 +1,17 @@
+# [1.31.0](https://github.com/resourge/react-form/compare/v1.30.0...v1.31.0) (2025-03-10)
+
+
+### Bug Fixes
+
+* **useerrors:** validateErrors on true was not submitting the form ([6133b93](https://github.com/resourge/react-form/commit/6133b93c04123e0934883a9f17d455f653f25a37))
+* **useformsplitter:** change using useFormSplitterContext to useBaseFormSplitterContext ([df69587](https://github.com/resourge/react-form/commit/df695871d3b6d1630f4661b95585c65decad4462))
+
+
+### Features
+
+* **formsplittercontext:** add FormSplitterContext to have better ways to access initial form ([07fd279](https://github.com/resourge/react-form/commit/07fd279ba4afc87e9c97bd8d574bff5ae2521eca))
+* **useerrors:** add unique to getErrors ([c27ba49](https://github.com/resourge/react-form/commit/c27ba490cabaa9e5e56c825923e347260f7f3496))
+
 # [1.30.0](https://github.com/resourge/react-form/compare/v1.29.0...v1.30.0) (2025-02-28)
 
 
