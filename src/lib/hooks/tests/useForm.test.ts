@@ -1,6 +1,6 @@
 import { act } from 'react';
 
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook } from '@testing-library/react';
 import {
 	describe,
 	expect,
@@ -420,23 +420,16 @@ describe('useForm', () => {
 		expect(result.current.errors.name?.form.child).toEqual(['Name is required']);
 	});
 
-	// Test triggerChange function
-	it('should trigger change event for a specific field', async () => {
-		const { result } = renderHook(() => useForm(getDefaultValues()));
-
-		await act(() => result.current.triggerChange((form) => form.name = 'Jane Doe'));
-
-		expect(result.current.form.name).toBe('Jane Doe');
-	});
-
 	// Test watch function
 	it('should watch changes to a field', async () => {
-		const { result } = renderHook(() => useForm(getDefaultValues()));
-
 		const watchFn = vi.fn();
 
-		act(() => {
-			result.current.watch('name', watchFn);
+		const { result } = renderHook(() => {
+			return useForm(getDefaultValues(), {
+				watch: {
+					name: watchFn
+				} 
+			});
 		});
 
 		act(() => {
@@ -535,41 +528,5 @@ describe('useForm', () => {
 
 		// Verify the form state
 		expect(result.current.form.name).toBe('Jane');
-	});
-
-	it('should validate form and set errors', async () => {
-		const initialForm = {
-			name: 'John',
-			age: 30 
-		};
-		// Set up mock validation
-		const mockValidation = vi.fn(() => {
-			return [
-				{
-					error: 'Name is required',
-					path: 'name'
-				}
-			];
-		});
-
-		const { result } = renderHook(() => useForm(
-			initialForm, 
-			{
-				validate: mockValidation,
-				validationType: 'onTouch'
-			}
-		));
-
-		// Trigger form validation
-		act(() => {
-			result.current.triggerChange((form) => {
-				form.name = 'Jon';
-			});
-		});
-
-		await waitFor(() => {
-		// Verify if errors are set
-			expect(result.current.errors.name?.form.errors).toContain('Name is required');
-		});
 	});
 });

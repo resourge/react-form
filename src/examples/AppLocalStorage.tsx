@@ -44,7 +44,6 @@ const ControllerFormSplitterExample: React.FC<Props> = ({ KeyName }: Props) => {
 		isValid,
 		isTouched,
 		handleSubmit,
-		triggerChange
 	} = useFormSplitter<AppTest, any>();
 
 	return (
@@ -157,7 +156,6 @@ function App() {
 		context,
 
 		changeValue,
-		triggerChange,
 		field,
 		watch,
 		reset,
@@ -249,27 +247,6 @@ function App() {
 				}}
 				>
 					Update Jose
-				</button>
-				<button onClick={() => {
-					triggerChange((form) => {
-						form.alfredo[0].zordon = Math.random()
-					})
-				}}
-				>
-					Update Alfredo
-				</button>
-				<button onClick={() => {
-					triggerChange((form) => {
-						form.alfredo = Array.from({
-							length: 1000 
-						})
-						.map(() => ({
-							zordon: Math.random()
-						}))
-					})
-				}}
-				>
-					Change Alfredo
 				</button>
 				<button onClick={() => {
 					reset({

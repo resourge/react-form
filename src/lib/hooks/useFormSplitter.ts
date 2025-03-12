@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-
 import { useControllerContext } from '../contexts/ControllerContext';
 import { useFormContext } from '../contexts/FormContext';
 import { useBaseFormSplitterContext } from '../contexts/FormSplitterContext';
@@ -8,6 +7,9 @@ import { type FormKey } from '../types/FormKey';
 import { type PathValue } from '../types/PathValue';
 import { type UseFormSplitterResult } from '../types/formTypes';
 import { IS_DEV } from '../utils/constants';
+import { TARGET_VALUE } from '../utils/observeObject/observeObject';
+
+import { useProxy } from './useProxy';
 
 type UseFormSplitterResultByKey<
 	T extends Record<string, any>,
@@ -45,11 +47,23 @@ export function useFormSplitter<
 	const getKey = (key: string): any => `${_formFieldKey}${key ? (key.startsWith('[') ? key : `.${key}`) : ''}` as FormKey<PathValue<T, K>>; ;
 
 	const filterKeysError = (key: string) => key.includes(_formFieldKey) || _formFieldKey.includes(key);
+	const hasTouch = (key: string) => context.hasTouch(getKey(key));
+	const updateController = (key: string) => context.updateController(getKey(key));
+
+	const {
+		form, changeValue, getValue, field, reset, onKeyTouch
+	} = useProxy<PathValue<T, K>>({
+		// @ts-expect-error I KNOW
+		touchesRef: context._options.touchesRef,
+		// @ts-expect-error I KNOW
+		onKeyTouch: (key, metadata) => context._options.onKeyTouch(getKey(key), metadata),
+
+		defaultValue: () => context.getValue(_formFieldKey)[TARGET_VALUE], 
+		hasTouch
+	});
 
 	return {
-		get form() {
-			return context.getValue(_formFieldKey);
-		},
+		form,
 		get errors() {
 			return context.errors[_formFieldKey]?.formErrors ?? {};
 		},
@@ -83,25 +97,26 @@ export function useFormSplitter<
 			// @ts-expect-error I want this to be able to only occur inside FormSplitter
 			nextFilterKeysError ?? filterKeysError
 		),
-		watch: (key, method) => context.watch(getKey(key), method),
-		field: (key, options) => context.field(getKey(key), options) as any,
+		field,
 		getErrors: (key, options) => context.getErrors(getKey(key), options) as any,
 		hasError: (key, options) => context.hasError(getKey(key), options),
-		changeValue: (key, value) => context.changeValue(getKey(key), value),
-		getValue: (key) => context.getValue(getKey(key)),
-		hasTouch: (key) => context.hasTouch(getKey(key)),
-		reset: (newFrom, resetOptions) => context.reset({
-			[_formFieldKey]: newFrom 
-		}, resetOptions),
+		changeValue,
+		getValue,
+		hasTouch,
+		reset,
 		resetTouch: context.resetTouch,
 		setError: context.setError,
-		triggerChange: (cb) => context.triggerChange((form: T) => cb(form[_formFieldKey])),
-		updateController: (key) => context.updateController(getKey(key)),
+		updateController,
 		// @ts-expect-error It's to prevent circular dependency
 		toJSON: context.toJSON,
 		get context() {
 			return this;
 		},
-		type: 'formSplitter'
+		type: 'formSplitter',
+		_options: {
+			// @ts-expect-error I KNOW
+			touchesRef: context._options.touchesRef,
+			onKeyTouch
+		}
 	};
 }

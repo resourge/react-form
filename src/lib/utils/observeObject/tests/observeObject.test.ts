@@ -18,8 +18,15 @@ describe('observeObject', () => {
 			}
 		};
 		const onKeyTouch = vi.fn();
-		const onGetTouch = vi.fn();
-		const proxy = observeObject(target, onKeyTouch, onGetTouch);
+		const getTouches = vi.fn();
+		const isRendering = vi.fn();
+		const onKeyGet = vi.fn();
+		const proxy = observeObject(target, {
+			onKeyTouch,
+			isRendering,
+			onKeyGet,
+			getTouches
+		});
 
 		proxy.a = undefined;
 
@@ -37,8 +44,15 @@ describe('observeObject', () => {
 			a: 1 
 		};
 		const onKeyTouch = vi.fn();
-		const onGetTouch = vi.fn();
-		const proxy = observeObject(target, onKeyTouch, onGetTouch);
+		const getTouches = vi.fn();
+		const isRendering = vi.fn();
+		const onKeyGet = vi.fn();
+		const proxy = observeObject(target, {
+			onKeyTouch,
+			isRendering,
+			onKeyGet,
+			getTouches
+		});
 
 		proxy.a = 2;
 
@@ -57,8 +71,15 @@ describe('observeObject', () => {
 			date
 		};
 		const onKeyTouch = vi.fn();
-		const onGetTouch = vi.fn();
-		const proxy = observeObject(target, onKeyTouch, onGetTouch);
+		const getTouches = vi.fn();
+		const isRendering = vi.fn();
+		const onKeyGet = vi.fn();
+		const proxy = observeObject(target, {
+			onKeyTouch,
+			isRendering,
+			onKeyGet,
+			getTouches
+		});
 
 		expect(proxy.date.toISOString()).toBe(date.toISOString());
 
@@ -81,8 +102,15 @@ describe('observeObject', () => {
 			languages: undefined
 		};
 		const onKeyTouch = vi.fn();
-		const onGetTouch = vi.fn();
-		const proxy = observeObject<any>(target, onKeyTouch, onGetTouch);
+		const getTouches = vi.fn();
+		const isRendering = vi.fn();
+		const onKeyGet = vi.fn();
+		const proxy = observeObject<any>(target, {
+			onKeyTouch,
+			isRendering,
+			onKeyGet,
+			getTouches
+		});
 
 		proxy.languages = proxy.languagesOptions[0];
 
@@ -101,8 +129,15 @@ describe('observeObject', () => {
 			languages: []
 		};
 		const onKeyTouch = vi.fn();
-		const onGetTouch = vi.fn();
-		const proxy = observeObject<any>(target, onKeyTouch, onGetTouch);
+		const getTouches = vi.fn();
+		const isRendering = vi.fn();
+		const onKeyGet = vi.fn();
+		const proxy = observeObject<any>(target, {
+			onKeyTouch,
+			isRendering,
+			onKeyGet,
+			getTouches
+		});
 
 		const item = proxy.languagesOptions[0];
 
@@ -167,8 +202,15 @@ describe('observeObject', () => {
 			}
 		};
 		const onKeyTouch = vi.fn();
-		const onGetTouch = vi.fn();
-		const proxy = observeObject(target, onKeyTouch, onGetTouch);
+		const getTouches = vi.fn();
+		const isRendering = vi.fn();
+		const onKeyGet = vi.fn();
+		const proxy = observeObject(target, {
+			onKeyTouch,
+			isRendering,
+			onKeyGet,
+			getTouches
+		});
 
 		expect(proxy.a).toBe(1);
 
@@ -181,8 +223,15 @@ describe('observeObject', () => {
 			a: 1 
 		};
 		const onKeyTouch = vi.fn();
-		const onGetTouch = vi.fn();
-		const proxy = observeObject(target, onKeyTouch, onGetTouch);
+		const getTouches = vi.fn();
+		const isRendering = vi.fn();
+		const onKeyGet = vi.fn();
+		const proxy = observeObject(target, {
+			onKeyTouch,
+			isRendering,
+			onKeyGet,
+			getTouches
+		});
 
 		proxy.a = 1;
 
@@ -195,8 +244,15 @@ describe('observeObject', () => {
 			a: 1 
 		};
 		const onKeyTouch = vi.fn();
-		const onGetTouch = vi.fn();
-		const proxy = observeObject(target, onKeyTouch, onGetTouch);
+		const getTouches = vi.fn();
+		const isRendering = vi.fn();
+		const onKeyGet = vi.fn();
+		const proxy = observeObject(target, {
+			onKeyTouch,
+			isRendering,
+			onKeyGet,
+			getTouches
+		});
 
 		// @ts-expect-error Expected
 		delete proxy.a;
@@ -218,8 +274,15 @@ describe('observeObject', () => {
 			arr: [1, 2, 3] 
 		};
 		const onKeyTouch = vi.fn();
-		const onGetTouch = vi.fn();
-		const proxy = observeObject(target, onKeyTouch, onGetTouch);
+		const getTouches = vi.fn();
+		const isRendering = vi.fn();
+		const onKeyGet = vi.fn();
+		const proxy = observeObject(target, {
+			onKeyTouch,
+			isRendering,
+			onKeyGet,
+			getTouches
+		});
 
 		proxy.a.b = 2;
 		proxy.arr[1] = 4;
@@ -249,8 +312,15 @@ describe('observeObject', () => {
 			arr: [[1, 2], [3, 4]] 
 		};
 		const onKeyTouch = vi.fn();
-		const onGetTouch = vi.fn();
-		const proxy = observeObject(target, onKeyTouch, onGetTouch);
+		const getTouches = vi.fn();
+		const isRendering = vi.fn();
+		const onKeyGet = vi.fn();
+		const proxy = observeObject(target, {
+			onKeyTouch,
+			isRendering,
+			onKeyGet,
+			getTouches
+		});
 
 		proxy.a.b.c.d = 2;
 		proxy.arr[0][1] = 5;
@@ -276,8 +346,15 @@ describe('observeObject', () => {
 			set: new Set([1, 2, 3])
 		};
 		const onKeyTouch = vi.fn();
-		const onGetTouch = vi.fn();
-		const proxy = observeObject(target, onKeyTouch, onGetTouch);
+		const getTouches = vi.fn();
+		const isRendering = vi.fn();
+		const onKeyGet = vi.fn();
+		const proxy = observeObject(target, {
+			onKeyTouch,
+			isRendering,
+			onKeyGet,
+			getTouches
+		});
 
 		// Date manipulation
 		const oldTime = proxy.date.getTime();
@@ -306,8 +383,15 @@ describe('observeObject', () => {
 			sets: [new Set([1, 2, 3]), new Set([4, 5, 6])]
 		};
 		const onKeyTouch = vi.fn();
-		const onGetTouch = vi.fn();
-		const proxy = observeObject(target, onKeyTouch, onGetTouch);
+		const getTouches = vi.fn();
+		const isRendering = vi.fn();
+		const onKeyGet = vi.fn();
+		const proxy = observeObject(target, {
+			onKeyTouch,
+			isRendering,
+			onKeyGet,
+			getTouches
+		});
 
 		proxy.maps[0].set('key3', 'value3');
 		proxy.sets[1].add(7);
@@ -323,8 +407,15 @@ describe('observeObject', () => {
 			a: 1 
 		};
 		const onKeyTouch = vi.fn();
-		const onGetTouch = vi.fn();
-		const proxy = observeObject(target, onKeyTouch, onGetTouch);
+		const getTouches = vi.fn();
+		const isRendering = vi.fn();
+		const onKeyGet = vi.fn();
+		const proxy = observeObject(target, {
+			onKeyTouch,
+			isRendering,
+			onKeyGet,
+			getTouches
+		});
 
 		proxy.a = 2;
 		proxy.a = 3;
@@ -342,8 +433,15 @@ describe('observeObject', () => {
 	it('should correctly handle adding new properties to objects', () => {
 		const target: any = {};
 		const onKeyTouch = vi.fn();
-		const onGetTouch = vi.fn();
-		const proxy = observeObject(target, onKeyTouch, onGetTouch);
+		const getTouches = vi.fn();
+		const isRendering = vi.fn();
+		const onKeyGet = vi.fn();
+		const proxy = observeObject(target, {
+			onKeyTouch,
+			isRendering,
+			onKeyGet,
+			getTouches
+		});
 
 		proxy.newProp = {
 			nestedProp: 'value' 
@@ -363,8 +461,15 @@ describe('observeObject', () => {
 			date 
 		};
 		const onKeyTouch = vi.fn();
-		const onGetTouch = vi.fn();
-		const proxy = observeObject(target, onKeyTouch, onGetTouch);
+		const getTouches = vi.fn();
+		const isRendering = vi.fn();
+		const onKeyGet = vi.fn();
+		const proxy = observeObject(target, {
+			onKeyTouch,
+			isRendering,
+			onKeyGet,
+			getTouches
+		});
 
 		const newDate = new Date();
 		newDate.setFullYear(2025);
@@ -381,8 +486,15 @@ describe('observeObject', () => {
 	it('should correctly handle Map objects', () => {
 		const map = new Map();
 		const onKeyTouch = vi.fn();
-		const onGetTouch = vi.fn();
-		const proxy = observeObject(map, onKeyTouch, onGetTouch);
+		const getTouches = vi.fn();
+		const isRendering = vi.fn();
+		const onKeyGet = vi.fn();
+		const proxy = observeObject(map, {
+			onKeyTouch,
+			isRendering,
+			onKeyGet,
+			getTouches
+		});
 
 		proxy.set('key', 'value');
 		expect(onKeyTouch).toHaveBeenCalledWith('');
@@ -395,8 +507,15 @@ describe('observeObject', () => {
 		const target: any = {};
 		target.self = target;
 		const onKeyTouch = vi.fn();
-		const onGetTouch = vi.fn();
-		const proxy = observeObject(target, onKeyTouch, onGetTouch);
+		const getTouches = vi.fn();
+		const isRendering = vi.fn();
+		const onKeyGet = vi.fn();
+		const proxy = observeObject(target, {
+			onKeyTouch,
+			isRendering,
+			onKeyGet,
+			getTouches
+		});
 		proxy.self.a = 1;
 
 		expect(onKeyTouch).toHaveBeenCalledWith('a', {
@@ -417,8 +536,15 @@ describe('observeObject', () => {
 			}]
 		};
 		const onKeyTouch = vi.fn();
-		const onGetTouch = vi.fn();
-		const proxy = observeObject(target, onKeyTouch, onGetTouch);
+		const getTouches = vi.fn();
+		const isRendering = vi.fn();
+		const onKeyGet = vi.fn();
+		const proxy = observeObject(target, {
+			onKeyTouch,
+			isRendering,
+			onKeyGet,
+			getTouches
+		});
 
 		proxy.c.sort((a, b) => a.id - b.id); 
 
@@ -471,8 +597,15 @@ describe('observeObject', () => {
 		};
 		
 		const onKeyTouch = vi.fn();
-		const onGetTouch = vi.fn();
-		const proxy = observeObject(target, onKeyTouch, onGetTouch);
+		const getTouches = vi.fn();
+		const isRendering = vi.fn();
+		const onKeyGet = vi.fn();
+		const proxy = observeObject(target, {
+			onKeyTouch,
+			isRendering,
+			onKeyGet,
+			getTouches
+		});
 
 		expect(
 			proxy.categories
@@ -508,8 +641,15 @@ describe('Caching and Performance', () => {
 			} 
 		};
 		const onKeyTouch = vi.fn();
-		const onGetTouch = vi.fn();
-		const proxy = observeObject(target, onKeyTouch, onGetTouch);
+		const getTouches = vi.fn();
+		const isRendering = vi.fn();
+		const onKeyGet = vi.fn();
+		const proxy = observeObject(target, {
+			onKeyTouch,
+			isRendering,
+			onKeyGet,
+			getTouches
+		});
 
 		const nestedProxy1 = proxy.b;
 		const nestedProxy2 = proxy.b;

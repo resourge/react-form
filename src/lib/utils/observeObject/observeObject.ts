@@ -1,14 +1,19 @@
 import { type ToucheType } from '../../types/formTypes';
+import { deepCompare } from '../comparationUtils';
 import { IS_DEV } from '../constants';
 import { isObjectOrArray } from '../utils';
 
 export type TouchType = Array<[string, ToucheType]>;
 
-export type ObserveObjectConfig = {
+export type CacheConfig = {
 	cache: WeakMap<any, any>
-	getTouches: OnGetTouches
+	function: Map<Function, {
+		args: any[]
+		observed: Set<string>
+		result: any
+		touched: Set<string>
+	}>
 	hasOriginalTouch: WeakMap<any, any>
-	onKeyTouch: OnKeyTouch
 	originalTouch: WeakMap<
 		any, 
 		Array<[
@@ -19,6 +24,13 @@ export type ObserveObjectConfig = {
 			} | undefined
 		]>
 	>
+};
+
+export type FunctionsConfig = {
+	getTouches: OnGetTouches
+	isRendering: () => boolean
+	onKeyGet: (key: string) => void
+	onKeyTouch: OnKeyTouch
 };
 
 export type ValueMetadataType = {
@@ -67,7 +79,7 @@ const constructKey = (
 		: _prop;
 };
 
-function getCurrentTouch(deepTarget: any, config: ObserveObjectConfig, value: any) {
+function getCurrentTouch(deepTarget: any, config: CacheConfig, value: any) {
 	const originalTouch = config.originalTouch.get(deepTarget);
 
 	if ( originalTouch ) {
@@ -85,9 +97,10 @@ function getCurrentTouch(deepTarget: any, config: ObserveObjectConfig, value: an
  * Extracts deep properties while ensuring they exist to avoid errors.
  */
 function getDeepPath<T>({
-	prop, receiver, target, config, key
+	prop, receiver, target, cacheConfig, functionConfig, key
 }: {
-	config: ObserveObjectConfig
+	cacheConfig: CacheConfig
+	functionConfig: FunctionsConfig
 	key: string
 	prop: any
 	target: any
@@ -105,16 +118,13 @@ function getDeepPath<T>({
 
 		const proxy = getProxy(
 			target, 
-			config,
+			functionConfig,
+			cacheConfig,
 			key,
 			!isNaN(lastKey as unknown as number) ? lastKey : undefined
 		);
 
-		// This is intended for it to cycle
-		// const receiverKey = parts.join('.');
-
 		const deepReceiver = parts.reduce((obj, key) => obj?.[key], proxy);
-		// const _receiver = proxy[receiverKey];
 
 		if (deepReceiver) {
 			return {
@@ -135,12 +145,14 @@ function getDeepPath<T>({
 	};
 }
 
+let observed: Set<string>;
 /**
  * Proxy handler for tracking property accesses and mutations.
  */
 function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | WeakMap<any, any>>(
 	target2: T, 
-	config: ObserveObjectConfig,
+	functionConfig: FunctionsConfig,
+	cacheConfig: CacheConfig,
 	key: string
 ): ProxyHandler<T> {
 	if ( isMutableBuiltin(target2) ) {
@@ -159,7 +171,7 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 						const oldValue = target.getTime();
 						const result = origMethod.call(target, args);
 						if (oldValue !== target.getTime()) {
-							config.onKeyTouch(key);
+							functionConfig.onKeyTouch(key);
 						}
 						return result;
 					};
@@ -172,7 +184,7 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 
 							const result = origMethod.apply(target, args);
 							if (!hasValue) {
-								config.onKeyTouch(key);
+								functionConfig.onKeyTouch(key);
 							}
 							return result;
 						};
@@ -183,7 +195,7 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 
 							const result = origMethod.apply(target, args);
 							if ( !Object.is(oldValue, args[1]) ) {
-								config.onKeyTouch(key);
+								functionConfig.onKeyTouch(key);
 							}
 							return result;
 						};
@@ -192,7 +204,7 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 						return function(...args: any[]) {
 							const result = origMethod.apply(target, args);
 							if (result) {
-								config.onKeyTouch(key);
+								functionConfig.onKeyTouch(key);
 							}
 							return result;
 						};
@@ -203,7 +215,7 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 
 							const result = origMethod.apply(target);
 							if (oldSize !== (target as Map<any, any>).size) {
-								config.onKeyTouch(key);
+								functionConfig.onKeyTouch(key);
 							}
 							return result;
 						};
@@ -226,7 +238,8 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 				deepTarget
 			} = getDeepPath<T>({
 				target,
-				config,
+				functionConfig,
+				cacheConfig,
 				prop,
 				receiver,
 				key
@@ -236,15 +249,15 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 			const isArray = Array.isArray(deepTarget);
 			const isPropNumber = isNaN(deepProp.toString() as unknown as number);
 			const originalValue = getTargetValue(value);
-			const originalTouch = config.originalTouch.get(deepTarget);
+			const originalTouch = cacheConfig.originalTouch.get(deepTarget);
 			
 			if ( 
 				isArray
 				&& deepProp !== 'constructor'
 				&& typeof Array.prototype[deepProp as keyof typeof Array.prototype] === 'function'
 			) {
-				config.originalTouch.set(deepTarget, []);
-				config.hasOriginalTouch.set(
+				cacheConfig.originalTouch.set(deepTarget, []);
+				cacheConfig.hasOriginalTouch.set(
 					deepTarget, 
 					new Set()
 				);
@@ -252,11 +265,11 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 
 			// Important to maintain references
 			if ( originalTouch && !isPropNumber ) {
-				const hasOriginalTouch = config.hasOriginalTouch.get(deepTarget);
+				const hasOriginalTouch = cacheConfig.hasOriginalTouch.get(deepTarget);
 				const K = constructKey(prop, key, isArray);
 
 				if ( !hasOriginalTouch?.has(K) ) {
-					const touch = config.getTouches(K);
+					const touch = functionConfig.getTouches(K);
 					
 					originalTouch.push([
 						originalValue, 
@@ -270,13 +283,57 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 				}
 			}
 
+			if ( !isArray && typeof value === 'function' && functionConfig.isRendering() ) {
+				const functionCache = cacheConfig.function.get(value) ?? {
+					result: undefined,
+					touched: new Set(),
+					args: [],
+					observed: new Set()
+				};
+
+				cacheConfig.function.set(value, functionCache);
+			
+				return function (...args: any[]) {
+					if ( 
+						functionCache.touched.size
+						&& deepCompare(args, functionCache.args)
+					) {
+						return functionCache.result;
+					}
+
+					const prevObserved = observed;
+					observed = functionCache.observed;
+					observed.clear();
+
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+					const result = value.apply(receiver, args);
+
+					const touched = observed;
+					if ( prevObserved ) {
+						touched.forEach(prevObserved.add, prevObserved);
+					}
+					observed = prevObserved;
+
+					functionCache.args = args;
+					functionCache.result = result;
+					functionCache.touched = touched;
+
+					return result;
+				};
+			}
+
+			const _key = constructKey(prop, key, isArray);
+			functionConfig.onKeyGet(_key);
+			observed?.add(_key);
+
 			return (
 				isObjectOrArray(originalValue) 
 				&& !isImmutableBuiltin(originalValue) 
 			) ? getProxy(
 					originalValue, 
-					config, 
-					constructKey(prop, key, isArray),
+					functionConfig,
+					cacheConfig, 
+					_key,
 					!isPropNumber ? deepProp : undefined
 				)
 				: originalValue;
@@ -290,7 +347,8 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 				prop,
 				receiver,
 				target,
-				config,
+				functionConfig,
+				cacheConfig,
 				key
 			});
 		
@@ -301,7 +359,11 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 			
 			const _key = constructKey(prop, key, isArray);
 
-			const touch = getCurrentTouch(deepTarget, config, value);
+			cacheConfig.function.forEach((cache) => {
+				cache.touched.delete(_key);
+			});
+
+			const touch = getCurrentTouch(deepTarget, cacheConfig, value);
 
 			if ( 
 				success 
@@ -312,7 +374,7 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 				) 
 				&& prop !== 'length'
 			) {
-				config.onKeyTouch(
+				functionConfig.onKeyTouch(
 					_key, 
 					{
 						touch,
@@ -330,16 +392,22 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 			} = getDeepPath<object>({
 				prop,
 				target,
-				config,
+				functionConfig,
+				cacheConfig,
 				key
 			});
 
 			const success = Reflect.deleteProperty(deepTarget, deepProp);
 
+			const isArray = Array.isArray(deepTarget);
+			const _key = constructKey(prop, key, isArray);
+			cacheConfig.function.forEach((cache) => {
+				cache.touched.delete(_key);
+			});
+
 			if ( success ) {
-				const isArray = Array.isArray(deepTarget);
-				config.onKeyTouch(
-					constructKey(prop, key, isArray),
+				functionConfig.onKeyTouch(
+					_key,
 					{
 						isArray
 					}
@@ -353,7 +421,8 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 
 function getProxy<T extends object>(
 	target: T, 
-	config: ObserveObjectConfig,
+	functionConfig: FunctionsConfig,
+	cacheConfig: CacheConfig,
 	key: string = '',
 	currentIndex?: string
 ): T {
@@ -373,33 +442,32 @@ function getProxy<T extends object>(
 	reference ??= target as any;
 
 	// Return existing proxy if this object is already in cache
-	if (!config.cache.has(reference as object)) {
+	if (!cacheConfig.cache.has(reference as object)) {
 		// Store the proxy in the WeakMap to handle circular references
-		config.cache.set(
+		cacheConfig.cache.set(
 			reference as object, 
 			new Proxy<T>(
 				target, 
-				getProxyHandler(target, config, key)
+				getProxyHandler(target, functionConfig, cacheConfig, key)
 			)
 		);
 	}
 
-	return config.cache.get(reference as object);
+	return cacheConfig.cache.get(reference as object);
 }
 
 export function observeObject<T extends object>(
 	target: T, 
-	onKeyTouch: OnKeyTouch, 
-	getTouches: OnGetTouches
+	config: FunctionsConfig
 ): T {
 	return getProxy(
 		target, 
+		config,
 		{
-			onKeyTouch, 
-			getTouches, 
 			cache: new WeakMap(),
 			hasOriginalTouch: new WeakMap(),
-			originalTouch: new WeakMap()
+			originalTouch: new WeakMap(),
+			function: new Map()
 		}
 	);
 }

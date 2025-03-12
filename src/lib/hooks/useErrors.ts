@@ -3,6 +3,7 @@ import { useRef } from 'react';
 import { type FormKey } from '../types/FormKey';
 import { type ValidationErrors } from '../types/errorsTypes';
 import {
+	type ToucheType,
 	type FormErrors,
 	type FormValidationType,
 	type GetErrorsOptions,
@@ -13,13 +14,16 @@ import { deepCompareValidationErrors } from '../utils/comparationUtils';
 import { formatErrors } from '../utils/formatErrors';
 import { setSubmitDeepKeys } from '../utils/utils';
 
-import { useTouches } from './useTouches';
-
 type UseErrorsConfig<T extends Record<string, any>> = {
-	forceUpdate: () => void
+	changedKeysRef: React.MutableRefObject<Set<FormKey<T>>>
 	form: T
+	getTouch: <Model extends Record<string, any> = T>(key: FormKey<Model>) => ToucheType
+	setTouch: <Model extends Record<string, any> = T>(key: FormKey<Model>, touch: boolean, submitted?: boolean, isPossibilityKey?: boolean) => void
+	shouldUpdateErrorsRef: React.MutableRefObject<boolean>
 	touchesRef: React.MutableRefObject<Touches>
-	validate: (changedKeys: Array<FormKey<T>>) => ValidationErrors | Promise<ValidationErrors> 
+	update: () => void
+	validate: (changedKeys: Array<FormKey<T>>) => ValidationErrors | Promise<ValidationErrors>
+	onSubmit?: (form: T) => Promise<void> | void
 	/**
 	 * Validation type, specifies the type of validation.
 	 * @default 'onSubmit'
@@ -28,19 +32,13 @@ type UseErrorsConfig<T extends Record<string, any>> = {
 };
 
 export const useErrors = <T extends Record<string, any>>({
-	validate, forceUpdate, 
+	validate, update, 
 	form, touchesRef,
-	validationType = 'onSubmit'
-}: UseErrorsConfig<T>) => {
-	const {
-		shouldUpdateErrorsRef, changedKeysRef, 
-		changeTouch, clearTouches, 
-		hasTouch, setTouch, getTouch
-	} = useTouches<T>({
-		validationType,
-		touchesRef
-	});
+	validationType = 'onSubmit',
 
+	changedKeysRef, getTouch, setTouch, shouldUpdateErrorsRef, 
+	onSubmit
+}: UseErrorsConfig<T>) => {
 	const errorRef = useRef<FormErrors<T>>({} as FormErrors<T>);
 	const validationErrorsRef = useRef<ValidationErrors>([]);
 	const changedKeys = Array.from(changedKeysRef.current);
@@ -77,7 +75,7 @@ export const useErrors = <T extends Record<string, any>>({
 
 	const renderNewErrors = (errors: ValidationErrors) => {
 		if ( setErrors(errors) ) {
-			forceUpdate();
+			update();
 		}
 	};
 
@@ -118,6 +116,9 @@ export const useErrors = <T extends Record<string, any>>({
 		validateErrors?: ValidateSubmissionErrors,
 		filterKeysError?: (key: string) => boolean
 	) => {
+		// This serves so onlyOnTouch validations still work on handleSubmit
+		changedKeysRef.current.add('*' as FormKey<T>);
+
 		let newErrors = await validate(changedKeys);
 
 		if ( validateErrors ) {
@@ -180,6 +181,8 @@ export const useErrors = <T extends Record<string, any>>({
 			// eslint-disable-next-line @typescript-eslint/only-throw-error
 			throw newErrors;
 		}
+
+		onSubmit?.(form);
 	};
 
 	if ( shouldUpdateErrorsRef.current ) {
@@ -218,9 +221,6 @@ export const useErrors = <T extends Record<string, any>>({
 		hasError,
 		getErrors,
 		validateSubmission,
-		changeTouch,
-		clearTouches,
-		setError,
-		hasTouch
+		setError
 	};
 };

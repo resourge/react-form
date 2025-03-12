@@ -1,27 +1,17 @@
-import {
-	type ChangeEvent,
-	type FormEvent,
-	useRef,
-	useState
-} from 'react';
+import { type FormEvent } from 'react';
 
-import { type FieldForm, type ResetMethod } from '../types';
 import { type FormKey } from '../types/FormKey';
 import { type ValidationErrors } from '../types/errorsTypes';
 import {
-	type FieldFormReturn,
-	type FieldOptions,
 	type FormOptions,
 	type SubmitHandler,
-	type Touches,
 	type UseFormReturn,
 	type ValidateSubmissionErrors
 } from '../types/formTypes';
-import { isClass } from '../utils/utils';
 
 import { useErrors } from './useErrors';
 import { useProxy } from './useProxy';
-import { useWatch } from './useWatch';
+import { useTouches } from './useTouches';
 
 /**
  * Validates the form
@@ -74,22 +64,22 @@ export function useForm<T extends Record<string, any>>(
 	defaultValue: T | (() => T) | ((new() => T)), 
 	options: FormOptions<T> = {}
 ): UseFormReturn<T> {
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	const [_, setState] = useState(0);
-	const forceUpdate = () => setState((x) => x + 1);
-	const touchesRef = useRef<Touches>(new Map());
-	const preventStateUpdateRef = useRef<boolean>(false);
+	const {
+		touchesRef, shouldUpdateErrorsRef, changedKeysRef, 
 
-	const stateRef = useProxy<T>(
-		() => (
-			typeof defaultValue === 'function' 
-				? (
-					isClass(defaultValue) 
-						? new (defaultValue as new () => T)() 
-						: (defaultValue as () => T)()
-				) : defaultValue
-		),
-		async (key, metadata) => {
+		changeTouch, hasTouch, 
+		setTouch, getTouch
+	} = useTouches<T>({
+		validationType: options.validationType
+	});
+
+	const {
+		form, changeValue, getValue, field, reset, update, onKeyTouch
+	} = useProxy<T>({
+		hasTouch,
+		touchesRef,
+		defaultValue,
+		onKeyTouch: async (key, metadata) => {
 			if ( metadata?.isArray ) {
 				metadata.touch?.touch
 				.forEach(([oldKey, value]) => {
@@ -111,55 +101,48 @@ export function useForm<T extends Record<string, any>>(
 				(metadata && metadata.isArray ? hasTouch(key as FormKey<T>) : undefined)
 			);
 
-			for (const [watchedKey, method] of watchedRefs.current) {
-				if ( watchedKey === key ) {
-					const res = method(stateRef.current);
+			if ( options.watch ) {
+				for (const watchKey of Object.keys(options.watch)) {
+					if ( watchKey === key ) {
+						const watch = options.watch[watchKey as FormKey<T>];
+						// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+						const res = watch!(form);
 
-					if ( res instanceof Promise ) {
+						if ( res instanceof Promise ) {
 						// eslint-disable-next-line no-await-in-loop
-						await res;
+							await res;
+						}
 					}
 				}
 			}
 
-			options.onChange?.(stateRef.current);
-
-			if ( !preventStateUpdateRef.current ) {
-				forceUpdate();
-			}
-		},
-		(key: string) => Array.from(touchesRef.current).filter(([touchKey]) => touchKey.startsWith(key))
-	);
+			options.onChange?.(form);
+		}
+	});
 
 	const {
 		errorRef,
-		changedKeysRef, 
 		changedKeys,
 		
 		hasError,
 		getErrors,
 		validateSubmission,
-		changeTouch, 
-		clearTouches,
-		setError,
-		hasTouch
+		setError
 	} = useErrors<T>({
 		touchesRef,
-		stateRef,
+		form,
 		validate: (changedKeys) => validateState(
-			stateRef.current,
+			form,
 			changedKeys,
 			options.validate
 		),
-		forceUpdate,
-		validationType: options.validationType
+		update,
+		validationType: options.validationType,
+		changedKeysRef,
+		getTouch,
+		setTouch,
+		shouldUpdateErrorsRef
 	});
-
-	const {
-		watch,
-		watchedRefs,
-		onSubmitWatch
-	} = useWatch<T>();
 
 	const handleSubmit = <K = void>(
 		onValid: SubmitHandler<T, K>,
@@ -173,85 +156,13 @@ export function useForm<T extends Record<string, any>>(
 
 		await validateSubmission(validateErrors, filterKeysError);
 
-		options.onSubmit?.(stateRef.current);
+		options.onSubmit?.(form);
 
-		const result = await onValid(stateRef.current);
-
-		await onSubmitWatch(stateRef.current);
-
-		return result;
+		return await onValid(form);
 	};
-
-	const reset: ResetMethod<T> = (
-		newFrom, 
-		resetOptions = {}
-	) => {
-		preventStateUpdateRef.current = true;
-
-		(Object.keys(newFrom) as Array<keyof T>)
-		.forEach((key) => stateRef.current[key] = newFrom[key] as T[keyof T]);
-
-		if ( resetOptions.clearTouched ?? true ) {
-			clearTouches();
-		}
-		forceUpdate();
-
-		preventStateUpdateRef.current = false;
-	};
-
-	const onChange = (
-		key: FormKey<T>,
-		onChange?: (value: any) => any
-	) => (value: T[FormKey<T>] | ChangeEvent) => {
-		const _value = (
-			(value as ChangeEvent<HTMLInputElement> & { nativeEvent?: { text?: string } })?.nativeEvent?.text
-			?? (value as ChangeEvent<HTMLInputElement>)?.currentTarget?.value
-			?? value
-		);
-
-		stateRef.current[key] = onChange ? onChange(_value) : _value as T[FormKey<T>];
-	};
-
-	const field = ((
-		key: FormKey<T>, 
-		fieldOptions: FieldOptions = {}
-	): FieldFormReturn => {
-		const value = stateRef.current[key];
-
-		if ( fieldOptions.readOnly ) {
-			return {
-				name: key,
-				readOnly: true,
-				value
-			};
-		}
-		
-		const _onChange = onChange(key, fieldOptions.onChange);
-
-		if ( fieldOptions.blur ) {
-			return {
-				name: key,
-				onChange: (value: T[FormKey<T>] | ChangeEvent) => {
-					preventStateUpdateRef.current = true;
-
-					_onChange(value);
-
-					preventStateUpdateRef.current = false;
-				},
-				onBlur: () => hasTouch(key) && forceUpdate(),
-				defaultValue: value
-			};
-		}
-
-		return {
-			name: key,
-			onChange: _onChange,
-			value
-		};
-	}) as FieldForm<T>;
-
+	
 	return {
-		form: stateRef.current,
+		form,
 		get context() {
 			return this;
 		},
@@ -267,16 +178,6 @@ export function useForm<T extends Record<string, any>>(
 			return hasTouch('');
 		},
 		field,
-		triggerChange: async (cb) => {
-			preventStateUpdateRef.current = true;
-			try {
-				await cb(stateRef.current);
-				forceUpdate();
-			}
-			finally {
-				preventStateUpdateRef.current = false;
-			}
-		},
 		handleSubmit,
 		setError,
 		hasTouch,
@@ -287,15 +188,14 @@ export function useForm<T extends Record<string, any>>(
 		changedKeys,
 
 		reset,
-		changeValue: (key, value) => stateRef.current[key] = value,
-		getValue: (key) => stateRef.current[key],
+		changeValue,
+		getValue,
 
 		resetTouch: () => {
-			clearTouches();
+			touchesRef.current.clear();
 
-			forceUpdate();
+			update();
 		},
-		watch,
 		updateController: changeTouch,
 		// #endregion Form actions
 		toJSON() {
@@ -306,6 +206,10 @@ export function useForm<T extends Record<string, any>>(
 				}
 			};
 		},
-		type: 'form'
+		type: 'form',
+		_options: {
+			touchesRef,
+			onKeyTouch
+		}
 	};
 }

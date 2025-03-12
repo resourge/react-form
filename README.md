@@ -172,6 +172,7 @@ Manages form state and validation.
   - `onChange`: Triggered on form state change, receiving the current state
   - `onSubmit`: Triggered on successful form submission, receiving form data.
   - `validate`: Custom validation function, takes form data and changed keys, returns error messages or throws errors.
+  - `watch`: Triggered when a specified key changes. Useful for updating dependent data, especially in asynchronous scenarios (e.g., fetching async data).
   - `validationType`: Controls when validation errors are shown:
     - `onSubmit`: Appear only after submission. Newly added fields only display errors after submitting.
     - `onTouch`: Errors show after field touch.
@@ -253,23 +254,11 @@ Manages form state and validation.
   ```tsx
   setError([{ path: "email", errors: ["Invalid email address"] }]);
   ```
-- `triggerChange(cb: OnFunctionChange): void`: Ensures update form state within a single render cycle.
-  ```tsx
-  triggerChange((form) => {
-    form.username = "john_doe";
-    form.email = "john@example.com";
-  });
-  ```
 - `updateController(key: string): void`: Forces an update of the `Controller` for a form field.
   ```tsx
   updateController("email");
   ```
-- `watch(key: string | 'submit', method: WatchMethod): void`: Watches form fields or submission events.
-  ```tsx
-  watch("email", (form) => {
-    // Handle changes to the 'email' field
-  });
-  ```
+- `watch<V>(key: string, method: WatchMethod): V`: (REMOVED) Changed to `useForm` options.
 
 ## useFormSplitter
 

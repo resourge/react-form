@@ -16,7 +16,6 @@ function App() {
 		hasError,
 
 		changeValue,
-		triggerChange,
 		field,
 		watch,
 		reset,

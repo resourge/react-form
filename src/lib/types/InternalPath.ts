@@ -38,13 +38,8 @@ export type InternalArrayPath<
 	BaseKey extends string | undefined = undefined
 > = BaseKey | InternalPath<T, HasExtra, TraversedTypes, BaseKey>;
 
-type Index = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
-
-export type LiteralUnion<
-	LiteralType,
-	BaseType extends Primitive
-> = LiteralType | (BaseType & Record<never, never>);
-
+// type Index = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+// InternalArrayPath<E, HasExtra, TraversedTypes, ConcatString<BaseKey, `[${Index}]`>>
 export type InternalPath<
 	T,
 	HasExtra extends boolean = false, 
@@ -60,11 +55,8 @@ export type InternalPath<
 		: (
 			T extends Array<infer E> 
 				? (
-					LiteralUnion<
-						InternalArrayPath<E, HasExtra, TraversedTypes, ConcatString<BaseKey, `[${Index}]`>>, 
 						InternalArrayPath<E, HasExtra, TraversedTypes, ConcatString<BaseKey, `[${number}]`>>
-					>
-					| (
+						| (
 							HasExtra extends true 
 								? InternalArrayPath<E, HasExtra, TraversedTypes, ConcatString<BaseKey, `[*]`>>
 								: never

@@ -5,7 +5,6 @@ import { type ToucheType, type FormValidationType, type Touches } from '../types
 import { forEachPossibleKey } from '../utils/formatErrors';
 
 type TouchesProps = {
-	touchesRef: React.MutableRefObject<Touches>
 	/**
 	 * Validation type, specifies the type of validation.
 	 * @default 'onSubmit'
@@ -13,13 +12,10 @@ type TouchesProps = {
 	validationType?: FormValidationType
 };
 
-export const useTouches = <T extends Record<string, any>>({ validationType, touchesRef }: TouchesProps) => {
+export const useTouches = <T extends Record<string, any>>({ validationType }: TouchesProps) => {
+	const touchesRef = useRef<Touches>(new Map());
 	const changedKeysRef = useRef<Set<FormKey<T>>>(new Set());
 	const shouldUpdateErrorsRef = useRef<boolean>(validationType === 'always');
-
-	const clearTouches = () => {
-		touchesRef.current.clear();
-	};
 
 	const getTouch = <Model extends Record<string, any> = T>(key: FormKey<Model>): ToucheType => {
 		if ( !touchesRef.current.has(key) ) {
@@ -77,11 +73,10 @@ export const useTouches = <T extends Record<string, any>>({ validationType, touc
 	});
 
 	return {
-		shouldUpdateErrorsRef,
 		touchesRef,
+		shouldUpdateErrorsRef,
 		changedKeysRef,
 		changeTouch,
-		clearTouches,
 		hasTouch,
 		setTouch,
 		getTouch

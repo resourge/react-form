@@ -12,8 +12,6 @@ export type ToucheType = {
 
 export type Touches = Map<any, ToucheType>;
 
-export type WatchMethod<T extends Record<string, any>> = (form: T) => void | Promise<void>;
-
 export type FormError<T extends Record<string, any>> = {
 	every: {
 		/**
@@ -92,12 +90,16 @@ export type FormOptions<T extends Record<string, any>> = {
 	 * ```
 	 */
 	validate?: (form: T, changedKeys: Array<FormKey<T>>) => void | Promise<void> | ValidationErrors | Promise<ValidationErrors>
-
 	/**
 	 * Validation type, specifies the type of validation.
 	 * @default 'onSubmit'
 	 */
 	validationType?: FormValidationType
+
+	/**
+	 * Triggered when a specified key changes. Useful for updating dependent data, especially in asynchronous scenarios (e.g., fetching async data).
+	 */
+	watch?: { [K in FormKey<T>]?: (form: T) => Promise<void> | void }
 };
 
 export type FieldFormBlur<Value = any, Name = string> = {
@@ -457,27 +459,6 @@ export type UseFormReturn<T extends Record<string, any>, FormType extends 'form'
 		errors: string[]
 		path: FormKey<T> 
 	}>) => void
-	/**
-	 * Method to make multiple changes in one render
-	 * 
-	 * @param cb - method that receives the `form`
-	 * @example
-	 * ```Typescript
-	 * const {
-	 *   triggerChange
-	 * } = useForm(
-	 *	 ...
-	 * )
-	 * ...
-	 * triggerChange((form) => {
-	 *		form.name = 'Rimuru';
-	 * 		form.age = '39';
-	 * 		form.sex = 'sexless';
-	 * })
-	 * ...
-	 * ```
-	 */
-	triggerChange: (cb: OnFunctionChange<T, void>) => Promise<void>
 	type: FormType
 	/**
 	 * Manually force Controller component to update.
@@ -505,35 +486,6 @@ export type UseFormReturn<T extends Record<string, any>, FormType extends 'form'
 	 * ```
 	 */
 	updateController: (key: FormKey<T>) => void
-	/**
-	 * After all changes are done, it will execute all "watched keys" methods.
-	 * Watch key, then executes the method to update itself or others values.
-	 * Watch 'submit' to execute when the form is submitted
-	 * 
-	 * @param key - key from `form` state
-	 * @param method - method that will be executed on key touch
-	 * @example 
-	 * ```Typescript
-	 * const {
-	 *	 watch
-	 * } = useForm(
-	 *	 {
-	 * 		name: 'Rimuru'
-	 *	 }
-	 * )
-	 * ...
-	 * // When 'name' is `touched` it will update again with the new name
-	 * // It does not rerender again, its a one time deal for every watch
-	 * // Order is important as well, as it will be executed by order in render
-	 * watch('name', (form) => {
-	 *   form.name = 'Rimuru Tempest';
-	 * })
-	 * // When form is submitted
-	 * watch('submit', (form) => {
-	 * })
-	 * ```
-	 */
-	watch: (key: FormKey<T> | 'submit', method: WatchMethod<T>) => void
 };
 
 export type UseFormSplitterResult<
