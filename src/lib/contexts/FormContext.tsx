@@ -1,11 +1,11 @@
 import { createContext, useContext } from 'react';
 
-import { type UseFormReturn } from '../types/formTypes';
+import { type FormContextType, type UseFormReturn } from '../types/formTypes';
 import { IS_DEV } from '../utils/constants';
 
 import { ControllerContext } from './ControllerContext';
 
-export const FormContext = createContext<UseFormReturn<any> | null>(null);
+export const FormContext = createContext<FormContextType<any, any> | null>(null);
 
 export const useFormContext = <T extends object>(): UseFormReturn<T> => {
 	const context = useContext(FormContext) as unknown as UseFormReturn<T>;

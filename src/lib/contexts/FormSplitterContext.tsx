@@ -1,11 +1,11 @@
 import { createContext, useContext } from 'react';
 
-import { type UseFormSplitterResult } from '../types/formTypes';
+import { type FormContextType, type UseFormSplitterResult } from '../types/formTypes';
 import { IS_DEV } from '../utils/constants';
 
 import { ControllerContext } from './ControllerContext';
 
-export const FormSplitterContext = createContext<UseFormSplitterResult<any> | null>(null);
+export const FormSplitterContext = createContext<FormContextType<any, any> | null>(null);
 
 export const useBaseFormSplitterContext = <T extends object>(): UseFormSplitterResult<T> => useContext(FormSplitterContext) as unknown as UseFormSplitterResult<T>;
 

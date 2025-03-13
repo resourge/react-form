@@ -1,11 +1,11 @@
 import { type JSX } from 'react';
 
 import { FormSplitterContext } from '../contexts/FormSplitterContext';
-import { type UseFormSplitterResult } from '../types';
+import { type FormContextType } from '../types/formTypes';
 import { IS_DEV } from '../utils/constants';
 
 export type FormSplitterProviderProps<T extends Record<string, any>> = React.PropsWithChildren<{
-	context: UseFormSplitterResult<T>
+	context: FormContextType<T, 'formSplitter'>
 }>;
 
 /**

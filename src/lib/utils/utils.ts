@@ -1,3 +1,4 @@
+import { type FormKey } from '../types';
 import { type Touches } from '../types/formTypes';
 
 export function isObjectOrArray(value: any): value is object {
@@ -14,8 +15,9 @@ export function isClass(x: any): x is new (...args: any[]) => any {
 
 export function setSubmitDeepKeys(
 	obj: any, 
-	touches: Touches, 
-	filterKeysError?: ((key: string) => boolean),
+	touches: Touches,
+	resolveKey: (key: string) => FormKey<any>, 
+	shouldIncludeError?: ((key: string) => boolean),
 	seen = new WeakSet(), 
 	prefix = ''
 ) {
@@ -26,10 +28,12 @@ export function setSubmitDeepKeys(
 	seen.add(obj as WeakKey);
 	
 	for (const key of Object.keys(obj as WeakKey)) {
-		const fullKey = Array.isArray(obj) 
-			? `${prefix}[${key}]` 
-			: (prefix ? `${prefix}.${key}` : key);
-		if (!filterKeysError || filterKeysError(fullKey)) {
+		const fullKey = resolveKey(
+			Array.isArray(obj) 
+				? `${prefix}[${key}]` 
+				: (prefix ? `${prefix}.${key}` : key)
+		);
+		if (!shouldIncludeError || shouldIncludeError(fullKey)) {
 			const touch = touches.get(fullKey);
 			if ( !touch ) {
 				touches.set(fullKey, {
@@ -41,7 +45,19 @@ export function setSubmitDeepKeys(
 				touch.submitted = true;
 				touch.touch = true;
 			}
-			setSubmitDeepKeys(obj[key], touches, filterKeysError, seen, fullKey);
+			setSubmitDeepKeys(obj[key], touches, resolveKey, shouldIncludeError, seen, fullKey);
 		}
 	}
 }
+
+export function mergeKeys(baseKey: string = '', key: string) {
+	return `${baseKey}${key ? (key.startsWith('[') ? key : `${baseKey ? '.' : ''}${key}`) : ''}`;
+} 
+
+export const forEachPossibleKey = (key: string, onKey: (key: string) => void) => {
+	(
+		key.match(/(?:\.\w+|\[\d+\]|\w+)/g) ?? []
+	).forEach((_, index, arr) => onKey(arr.slice(0, arr.length - index).join('')));
+
+	onKey('');
+};

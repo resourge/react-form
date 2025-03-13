@@ -5,7 +5,6 @@ export {
 	type FormProps,
 	FormProvider,
 	type FormProviderProps,
-	type UseFormReturnController,
 	FormSplitterProvider,
 	type FormSplitterProviderProps
 } from './components';

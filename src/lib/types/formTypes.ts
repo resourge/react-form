@@ -4,6 +4,7 @@ import { type FormEvent } from 'react';
 
 import { type FormKey } from './FormKey';
 import { type ValidationErrors } from './errorsTypes';
+import { type FormCoreOptions } from './types';
 
 export type ToucheType = {
 	submitted: boolean
@@ -198,7 +199,17 @@ export type SubmitHandler<T extends Record<string, any>, K = void> = (form: T) =
 
 export type ValidateSubmissionErrors = (newErrors: ValidationErrors) => ValidationErrors | boolean | Promise<ValidationErrors | boolean>;
 
-export type UseFormReturn<T extends Record<string, any>, FormType extends 'form' | 'formSplitter' = 'form'> = {
+export type FormTypes = 'form' | 'formSplitter';
+
+export type FormContextType<T extends Record<string, any>, FT extends FormTypes = 'form'> = {
+	changedKeys: Array<FormKey<T>>
+	formState: UseFormReturn<T, FT>
+	options: FormCoreOptions<T>
+	toJSON: () => object
+	type: FT
+};
+
+export type UseFormReturn<T extends Record<string, any>, FT extends FormTypes = 'form'> = {
 	/**
 	 * Simplified version of `onChange`, without the return method
 	 * 
@@ -225,7 +236,7 @@ export type UseFormReturn<T extends Record<string, any>, FormType extends 'form'
 	/**
 	 * Context mainly for use in `FormProvider/Controller`, basically returns {@link UseFormReturn}
 	 */
-	context: UseFormReturn<T, FormType>
+	context: FormContextType<T, FT>
 	/**
 	 * Form errors
 	 * * Note: Depends on {@link FormOptions#validate}.
@@ -459,7 +470,6 @@ export type UseFormReturn<T extends Record<string, any>, FormType extends 'form'
 		errors: string[]
 		path: FormKey<T> 
 	}>) => void
-	type: FormType
 	/**
 	 * Manually force Controller component to update.
 	 * 

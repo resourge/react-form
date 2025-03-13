@@ -44,7 +44,7 @@ export type ValueMetadataType = {
 export type OnKeyTouch = (
 	key: string, 
 	metadata?: ValueMetadataType
-) => void;
+) => void | Promise<void>;
 
 export type OnGetTouches = (key: string) => TouchType;
 

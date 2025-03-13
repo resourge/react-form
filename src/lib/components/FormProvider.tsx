@@ -1,11 +1,11 @@
 import { type JSX } from 'react';
 
 import { FormContext } from '../contexts/FormContext';
-import { type UseFormReturn } from '../types';
+import { type FormContextType } from '../types/formTypes';
 import { IS_DEV } from '../utils/constants';
 
 export type FormProviderProps<T extends Record<string, any>> = React.PropsWithChildren<{
-	context: UseFormReturn<T, 'form'>
+	context: FormContextType<T, 'form'>
 }>;
 
 /**

@@ -4,7 +4,7 @@ export const deepCompareValidationErrors = (
 	arr1: ValidationErrors,
 	arr2: ValidationErrors
 ): boolean => {
-	if (arr1 !== arr2) return false;
+	if (arr1 === arr2) return true;
 
 	if (arr1.length !== arr2.length) return false;
 

@@ -3,20 +3,13 @@ import { type JSX, memo } from 'react';
 
 import { ControllerContext } from '../contexts/ControllerContext';
 import { type FormKey } from '../types/FormKey';
-import { type UseFormReturn } from '../types/formTypes';
+import { type FormContextType } from '../types/formTypes';
 
 export type ControllerProps<T extends Record<string, any>> = {
 	children: React.ReactNode
-	context: UseFormReturn<T, any>
+	context: FormContextType<T, any>
 	name: FormKey<T>
 	deps?: any[]
-};
-
-export type UseFormReturnController<T extends Record<string, any>> = UseFormReturn<T, any> & {
-	/**
-	 * Current changed keys. It is used in the `Controller` component
-	 */
-	changedKeys: Array<FormKey<T>>
 };
 
 /**
@@ -69,8 +62,8 @@ export const Controller = memo(function Controller({
 		)!;
 
 	// Determine if any of the changed keys are related to the name prop
-	const shouldUpdate = (nextProps.context as UseFormReturnController<Record<string, any>>)
-	.changedKeys.some((changedKey) => changedKey.includes(nextProps.name) || nextProps.name.includes(changedKey));
+	const shouldUpdate = nextProps.context.changedKeys
+	.some((changedKey) => changedKey.includes(nextProps.name) || nextProps.name.includes(changedKey));
 
 	return (
 		prevProps.name === nextProps.name && !shouldUpdate && isSameDeps

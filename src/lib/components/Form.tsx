@@ -34,7 +34,7 @@ export const Form = <T extends Record<string, any>>({
 		>
 			<form 
 				{...formProps}
-				onSubmit={onSubmit ? context.handleSubmit(onSubmit) : undefined}
+				onSubmit={onSubmit ? context.formState.handleSubmit(onSubmit) : undefined}
 			>
 				{ children }
 			</form>

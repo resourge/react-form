@@ -2,6 +2,8 @@ import { type FormKey } from '../types';
 import { type ValidationErrors, type ValidationError } from '../types/errorsTypes';
 import { type FormError, type FormErrors } from '../types/formTypes';
 
+import { forEachPossibleKey } from './utils';
+
 type PrevFormError<T extends Record<string, any>> = {
 	entry: FormError<T[FormKey<T>]>
 	path: string
@@ -60,21 +62,13 @@ function addErrorToFormErrors<T extends Record<string, any>>(
 	};
 }
 
-export const forEachPossibleKey = (key: string, onKey: (key: string) => void) => {
-	(
-		key.match(/(?:\.\w+|\[\d+\]|\w+)/g) ?? []
-	).forEach((_, index, arr) => onKey(arr.slice(0, arr.length - index).join('')));
-
-	onKey('');
-};
-
 export const formatErrors = <T extends Record<string, any>>(
 	errors: ValidationErrors = {} as ValidationErrors
 ) => {
 	return errors
 	.reduce<FormErrors<T>>((val, value) => {
 		let prev: PrevFormError<T> | undefined;
-		
+
 		forEachPossibleKey(value.path, (possibilityKey) => {
 			prev = addErrorToFormErrors(val, possibilityKey, value, value.path !== possibilityKey, prev);
 		});

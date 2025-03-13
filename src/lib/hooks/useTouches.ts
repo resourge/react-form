@@ -2,17 +2,19 @@ import { useEffect, useRef } from 'react';
 
 import { type FormKey } from '../types';
 import { type ToucheType, type FormValidationType, type Touches } from '../types/formTypes';
-import { forEachPossibleKey } from '../utils/formatErrors';
+import { forEachPossibleKey } from '../utils/utils';
 
-type TouchesProps = {
-	/**
-	 * Validation type, specifies the type of validation.
-	 * @default 'onSubmit'
-	 */
-	validationType?: FormValidationType
+export type TouchesResult<T extends Record<string, any>> = {
+	changedKeysRef: React.MutableRefObject<Set<FormKey<T>>>
+	changeTouch: (key: FormKey<T> | string, touch?: boolean) => void
+	getTouch: <Model extends Record<string, any> = T>(key: FormKey<Model>) => ToucheType
+	hasTouch: <Model extends Record<string, any> = T>(key: FormKey<Model>) => boolean
+	setTouch: <Model extends Record<string, any> = T>(key: FormKey<Model>, touch: boolean, submitted?: boolean, isPossibilityKey?: boolean) => void
+	shouldUpdateErrorsRef: React.MutableRefObject<boolean>
+	touchesRef: React.MutableRefObject<Touches>
 };
 
-export const useTouches = <T extends Record<string, any>>({ validationType }: TouchesProps) => {
+export const useTouches = <T extends Record<string, any>>(validationType: FormValidationType = 'onSubmit'): TouchesResult<T> => {
 	const touchesRef = useRef<Touches>(new Map());
 	const changedKeysRef = useRef<Set<FormKey<T>>>(new Set());
 	const shouldUpdateErrorsRef = useRef<boolean>(validationType === 'always');

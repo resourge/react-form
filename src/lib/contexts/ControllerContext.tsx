@@ -1,12 +1,13 @@
 import { createContext, useContext } from 'react';
 
 import { type UseFormReturn } from '../types';
+import { type FormContextType } from '../types/formTypes';
 import { IS_DEV } from '../utils/constants';
 
 export type ControllerContextObject<
 	T extends Record<string, any>,
 > = {
-	context: UseFormReturn<T, any>
+	context: FormContextType<T, any>
 	name: string
 };
 
@@ -33,4 +34,4 @@ const useControllerBase = <
 
 export const useController = <
 	T extends Record<string, any>
->(): UseFormReturn<T> => useControllerBase<T>().context;
+>(): UseFormReturn<T> => useControllerBase<T>().context.formState;
