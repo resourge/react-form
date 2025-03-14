@@ -12,3 +12,8 @@ export type FormCoreOptions<T extends Record<string, any>> = {
 	baseKey?: string
 	onKeyTouch?: OnKeyTouch
 };
+
+export type DebounceOptions = { 
+	timeout: NodeJS.Timeout
+	value: any 
+};

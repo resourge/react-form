@@ -58,7 +58,19 @@ const MyForm = () => {
   const { form, handleSubmit, field, hasError, getErrors } = useForm({
     username: "",
     password: "",
+    products: Array.from(
+      {
+        length: 100,
+      },
+      (_, i) => ({ productId: i + 1 })
+    ),
+    getProducts() {
+      return this.products.map(({ productId }) => productId);
+    },
   });
+
+  // Methods used in render will have the return cached (cache expires when camps used or parameters change).
+  const productIds = form.getProducts();
 
   const onSubmit = handleSubmit((data) => console.log("Form Submitted:", data));
 
@@ -165,6 +177,8 @@ const MyPersistentForm = () => {
 
 Manages form state and validation.
 
+_Note: Methods used in render will have the return cached (cache expires when camps used or parameters change)._
+
 ### Parameters:
 
 - `initialState`: Initial form value (object, function returning an object, or class instance).
@@ -196,6 +210,7 @@ Manages form state and validation.
     - `blur`: For changes only in blur
     - `onChange`: Custom changes on value change.
     - `readOnly`: Readonly only
+    - `debounce`: Built-in debouncing
   ```tsx
   <input {...field("name")} />
   ```

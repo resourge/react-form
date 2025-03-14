@@ -15,7 +15,7 @@ import {
 	type UseFormReturn,
 	type ValidateSubmissionErrors
 } from '../types/formTypes';
-import { type FormCoreOptions } from '../types/types';
+import { type DebounceOptions, type FormCoreOptions } from '../types/types';
 
 import { createErrors } from './createErrors';
 import { observeObject, type ValueMetadataType } from './observeObject/observeObject';
@@ -29,19 +29,25 @@ export type FormCoreConfig<T extends Record<string, any>, FT extends FormTypes> 
 };
 
 export function createFormCore<T extends Record<string, any>, FT extends FormTypes = 'form'>(
-	{ 
-		defaultValue, options, type, baseKey: formFieldKey = '' as FormKey<T>
-	}: FormCoreConfig<T, FT>,
 	{
-		setState, 
+		state, 
 		isRenderingRef, 
-		keysOnRender
+		keysOnRender,
+		config: { 
+			defaultValue, 
+			options, 
+			type, 
+			baseKey: formFieldKey = '' as FormKey<T>
+		}
 	}: {
+		config: FormCoreConfig<T, FT>
 		isRenderingRef: React.MutableRefObject<boolean>
 		keysOnRender: React.MutableRefObject<Set<string>>
-		setState: React.Dispatch<React.SetStateAction<number>>
+		state: [number, React.Dispatch<React.SetStateAction<number>>]
 	}
 ) {
+	const setState = state[1];
+
 	const preventStateUpdateRef = {
 		current: false 
 	};
@@ -58,12 +64,13 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 	const {
 		onChange, onSubmit, validationType = 'onSubmit', watch
 	} = formOptions;
-	const baseKey = mergeKeys(options.baseKey, formFieldKey) as FormKey<T>;
 
-	const resolveKey = (key: string): FormKey<T> => mergeKeys(baseKey, key) as FormKey<T>;
+	const formKey = mergeKeys(options.baseKey, formFieldKey) as FormKey<T>;
+
+	const resolveKey = (key: string): FormKey<T> => mergeKeys(formKey, key) as FormKey<T>;
 	
 	const triggerRender = (key?: string) => {
-		if ( !key || !keysOnRender.current.has(key) ) {
+		if ( !key || keysOnRender.current.has(key) ) {
 			setState((x) => x + 1);
 		}
 	};
@@ -118,8 +125,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 			if ( !preventStateUpdateRef.current ) {
 				triggerRender(key);
 			}
-		}
-	;
+		};
 
 	const form = observeObject<T>(
 		(
@@ -133,12 +139,11 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		{
 			onKeyTouch: handleKeyTouch,
 			getTouches: (key: string) => Array.from(touchesRef.current).filter(([touchKey]) => touchKey.startsWith(key)),
-			isRendering: () => isRenderingRef.current,
+			isRenderingRef,
 			onKeyGet: (key) => isRenderingRef.current && keysOnRender.current.add(key)
 		}
 	);
 
-	// #region Errors
 	const {
 		getErrors, hasError, validateSubmission, setErrors, formValidate
 	} = createErrors({
@@ -146,7 +151,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		validationErrorsRef,
 		validationType,
 		resolveKey,
-		shouldIncludeError: (key: string) => key.includes(baseKey) || baseKey.includes(key)
+		shouldIncludeError: (key: string) => key.includes(formKey) || formKey.includes(key)
 	});
 
 	const renderNewErrors = (errors: ValidationErrors) => setErrors(errors) && triggerRender();
@@ -168,20 +173,15 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 			changedKeysRef.current.add(path);
 		});
 	
-		const _newErrors = [
-			...validationErrorsRef.current
-		];
-	
-		newErrors.forEach(({ path, errors }) => {
-			errors.forEach((error) => {
-				_newErrors.push({
+		renderNewErrors([
+			...validationErrorsRef.current, 
+			...newErrors.flatMap(({ path, errors }) => 
+				errors.map((error) => ({
 					path,
-					error
-				});
-			});
-		});
-	
-		renderNewErrors( _newErrors); 
+					error 
+				}))
+			) 
+		]); 
 	};
 
 	const getChangedKeys = () => Array.from(changedKeysRef.current);
@@ -192,9 +192,19 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 			res instanceof Promise ? res.then(renderNewErrors) : setErrors(res);
 		}
 	};
-	// #endregion Errors
+
+	const resetTouch = () => {
+		if ( formKey ) {
+			return touchesRef.current.forEach((_, key) => {
+				if ( key.startsWith(formKey) ) {
+					touchesRef.current.delete(key);
+				}
+			});
+		}
+
+		touchesRef.current.clear();
+	};
 	
-	// #region Form functions
 	const reset: ResetMethod<T> = (
 		newFrom, 
 		{ clearTouched = true } = {}
@@ -206,55 +216,94 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		.forEach((key) => form[key] = newFrom[key] as T[keyof T]);
 
 		if ( clearTouched ) {
-			touchesRef.current.clear();
+			resetTouch();
 		}
 		triggerRender();
 
 		preventStateUpdateRef.current = false;
 	};
 
+	const debounces = new Map<
+		string, 
+		DebounceOptions
+	>();
+
+	const getParsedValue = (value: T[FormKey<T>] | ChangeEvent, onChange?: (value: any) => any) => {
+		const parsedValue = (
+			(value as ChangeEvent<HTMLInputElement> & { nativeEvent?: { text?: string } })?.nativeEvent?.text
+			?? (value as ChangeEvent<HTMLInputElement>)?.currentTarget?.value
+			?? value
+		);
+	
+		return onChange ? onChange(parsedValue) : parsedValue as T[FormKey<T>];
+	};
+
 	const field = ((
-		key: FormKey<T>, 
+		name: FormKey<T>, 
 		fieldOptions: FieldOptions = {}
 	): FieldFormReturn => {
-		const value = form[key];
+		let value = form[name];
 
 		if ( fieldOptions.readOnly ) {
 			return {
-				name: key,
+				name,
 				readOnly: true,
 				value
 			};
 		}
 
-		const onChange = (value: T[FormKey<T>] | ChangeEvent) => {
-			const parsedValue = (
-				(value as ChangeEvent<HTMLInputElement> & { nativeEvent?: { text?: string } })?.nativeEvent?.text
-				?? (value as ChangeEvent<HTMLInputElement>)?.currentTarget?.value
-				?? value
-			);
-		
-			form[key] = fieldOptions.onChange ? fieldOptions.onChange(parsedValue) : parsedValue as T[FormKey<T>];
-		};
+		let onChangeFn = (value: T[FormKey<T>] | ChangeEvent) => form[name] = getParsedValue(value, onChange);
 
+		if ( fieldOptions.debounce ) {
+			let deb: DebounceOptions = debounces.get(name) ?? {
+				timeout: undefined,
+				value
+			} as unknown as DebounceOptions;
+
+			if (!deb) {
+				deb = {
+					timeout: undefined,
+					value 
+				} as unknown as DebounceOptions;
+				debounces.set(name, deb);
+			}
+				
+			value = deb.value;
+
+			onChangeFn = (value: T[FormKey<T>] | ChangeEvent) => {
+				const parsedVal = getParsedValue(value, onChange);
+				if (parsedVal === deb.value) return;
+
+				deb.value = parsedVal;
+				clearTimeout(deb.timeout);
+					
+				deb.timeout = setTimeout(() => {
+					debounces.delete(name);
+					form[name] = deb.value;
+				}, fieldOptions.debounce);
+				
+				triggerRender();
+			};
+		}
+				
 		if ( fieldOptions.blur ) {
 			return {
-				name: key,
+				name,
 				onChange: (value: T[FormKey<T>] | ChangeEvent) => {
 					preventStateUpdateRef.current = true;
 
-					onChange(value);
+					onChangeFn(value);
 
 					preventStateUpdateRef.current = false;
 				},
-				onBlur: () => hasTouch(resolveKey(key)) && triggerRender(key),
+				onBlur: () => hasTouch(resolveKey(name)) && triggerRender(name),
 				defaultValue: value
 			};
 		}
 
 		return {
-			name: key,
-			onChange,
+			name,
+			onChange: onChangeFn,
 			value
 		};
 	}) as FieldForm<T>;
@@ -281,7 +330,6 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 	
 		return await onValid(form);
 	};
-	// #endregion Form functions
 
 	// Necessary for references
 	const formState: UseFormReturn<T, FT> = {
@@ -290,7 +338,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 			return context;
 		},
 		get errors() {
-			return errorRef.current[baseKey]?.formErrors ?? {};
+			return errorRef.current[formKey]?.formErrors ?? {};
 		},
 		get isValid(): boolean {
 			return !hasError('' as FormKey<T>, {
@@ -298,7 +346,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 			});
 		},
 		get isTouched() {
-			return hasTouch(baseKey);
+			return hasTouch(formKey);
 		},
 		changeValue: (key: FormKey<T>, value: any) => form[key] = value,
 		getValue: (key: FormKey<T>) => form[key],
@@ -309,18 +357,9 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		setError,
 		handleSubmit,
 		hasTouch: (key) => hasTouch(resolveKey(key)),
-
+		
 		resetTouch: () => {
-			if ( !formFieldKey ) {
-				touchesRef.current.clear();
-			}
-			else {
-				touchesRef.current.forEach((_, key) => {
-					if ( key.startsWith(formFieldKey) ) {
-						touchesRef.current.delete(key);
-					}
-				});
-			}
+			resetTouch();
 
 			triggerRender();
 		},
@@ -339,7 +378,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 			formOptions,
 			onKeyTouch: handleKeyTouch,
 			errorRef,
-			baseKey
+			baseKey: formKey
 		},
 
 		toJSON() {

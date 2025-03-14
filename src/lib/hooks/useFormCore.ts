@@ -18,14 +18,14 @@ export const useFormCore = <T extends Record<string, any>, FT extends FormTypes 
 			proxy, 
 			verifyErrors
 		]
-	] = useState(() => createFormCore<T, FT>(
-		config, 
-		{
+	] = useState(() => 
+		createFormCore<T, FT>({
+			config, 
 			isRenderingRef,
-			setState: state[1],
+			state,
 			keysOnRender
-		}
-	));
+		})
+	);
 
 	verifyErrors();
 

@@ -1,3 +1,5 @@
+import { type MutableRefObject } from 'react';
+
 import { type ToucheType } from '../../types/formTypes';
 import { deepCompare } from '../comparationUtils';
 import { IS_DEV } from '../constants';
@@ -28,7 +30,7 @@ export type CacheConfig = {
 
 export type FunctionsConfig = {
 	getTouches: OnGetTouches
-	isRendering: () => boolean
+	isRenderingRef: MutableRefObject<boolean>
 	onKeyGet: (key: string) => void
 	onKeyTouch: OnKeyTouch
 };
@@ -283,7 +285,7 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 				}
 			}
 
-			if ( !isArray && typeof value === 'function' && functionConfig.isRendering() ) {
+			if ( !isArray && typeof value === 'function' && functionConfig.isRenderingRef.current ) {
 				const functionCache = cacheConfig.function.get(value) ?? {
 					result: undefined,
 					touched: new Set(),

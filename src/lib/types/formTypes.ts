@@ -184,6 +184,11 @@ export type FieldOptions = {
 	 */
 	blur?: boolean
 	/**
+	 * Built-in debouncing number
+	 * @default 0 (no debounce)
+	 */
+	debounce?: number
+	/**
 	 * For cases where the onChange value needs to be different
 	 */
 	onChange?: (value: any) => any

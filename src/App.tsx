@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 
 import {
+	Controller,
 	FormProvider,
 	FormSplitterContext,
 	FormSplitterProvider,
@@ -175,7 +176,7 @@ const Child3: React.FC<Props> = ({ }) => {
 function App() {
 	console.time('1');
 	const {
-		changeValue, form, context, handleSubmit
+		changeValue, form, context, handleSubmit, field
 	} = useForm({
 		test: 10,
 		test1: 11,
@@ -218,12 +219,7 @@ function App() {
 	});
 	console.timeEnd('1');
 
-	const a = useMemo(() => {
-		console.log('ASDASDAS');
-		return context;
-	}, [context]);
-
-	console.log('render Parent', form);
+	console.log('render Parent', form.test);
 
 	return (
 		<FormProvider context={context}>
@@ -235,6 +231,11 @@ function App() {
 			{ ' ' }
 			{ form.test2.test1 }
 			<br />
+			<input 
+				{...field('test', {
+					debounce: 600 
+				})}
+			/>
 			<button
 				onClick={handleSubmit(() => {
 
@@ -265,7 +266,12 @@ function App() {
 				Change form.test2.test1
 			</button>
 
-			<Child />
+			<Controller
+				context={context}
+				name="test2"
+			>
+				<Child />
+			</Controller>
 			<Child3 />
 		</FormProvider>
 	);
