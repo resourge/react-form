@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { useControllerContext } from '../contexts/ControllerContext';
-import { useFormContext } from '../contexts/FormContext';
+import { useBaseFormContext } from '../contexts/FormContext';
 import { useBaseFormSplitterContext } from '../contexts/FormSplitterContext';
 import { type FormKey } from '../types/FormKey';
 import { type PathValue } from '../types/PathValue';
@@ -33,9 +33,9 @@ export function useFormSplitter<
 	T extends Record<string, any>,
 	K extends FormKey<T>
 >(fieldKey?: K): UseFormSplitterResultByKey<T, K> {
-	const controllerContext = useControllerContext<any>();
+	const controllerContext = useControllerContext();
 	// eslint-disable-next-line react-hooks/rules-of-hooks
-	const context = controllerContext?.context ?? useBaseFormSplitterContext<PathValue<T, K>>() ?? useFormContext<PathValue<T, K>>();
+	const context = useBaseFormSplitterContext<PathValue<T, K>>() ?? useBaseFormContext<PathValue<T, K>>();
 	const formFieldKey = fieldKey ?? (controllerContext?.name as K);
 
 	if ( IS_DEV ) {

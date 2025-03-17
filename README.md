@@ -421,16 +421,6 @@ const MyFormComponent = () => {
 };
 ```
 
-## useController
-
-Hook to access the state of a `Controller`.
-
-```typescript
-import { useController } from "@resourge/react-form";
-
-const context = useController<MyFormData>("fieldName");
-```
-
 ## Documentation
 
 For comprehensive documentation and usage examples, visit the [react-form documentation](https://resourge.vercel.app/docs/react-form/intro).

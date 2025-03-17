@@ -1,26 +1,27 @@
 import { createContext, useContext } from 'react';
 
-import { type FormContextType, type UseFormSplitterResult } from '../types/formTypes';
+import { useFormCore } from '../hooks/useFormCore';
+import { type UseFormSplitterResult, type FormContextType } from '../types/formTypes';
 import { IS_DEV } from '../utils/constants';
-
-import { ControllerContext } from './ControllerContext';
+import { TARGET_VALUE } from '../utils/observeObject/observeObject';
 
 export const FormSplitterContext = createContext<FormContextType<any, any> | null>(null);
 
-export const useBaseFormSplitterContext = <T extends object>(): UseFormSplitterResult<T> => useContext(FormSplitterContext) as unknown as UseFormSplitterResult<T>;
+export const useBaseFormSplitterContext = <T extends object>(): FormContextType<T> => useContext(FormSplitterContext) as unknown as FormContextType<T>;
 
 export const useFormSplitterContext = <T extends object>(): UseFormSplitterResult<T> => {
 	const context = useBaseFormSplitterContext<T>();
 
 	if ( IS_DEV ) {
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		if ( useContext(ControllerContext) ) {
-			throw new Error('Don\'t use useFormSplitterContext inside a Controller component as it will defeat the purpose of a Controller component.');
-		}
 		if ( !context ) {
 			throw new Error('useFormSplitterContext can only be used in the context of a <FormSplitterProvider> component.');
 		}
 	}
 
-	return context;
+	return useFormCore<T, 'formSplitter'>({
+		options: context.options,
+
+		defaultValue: () => (context.formState.form as any)[TARGET_VALUE] as T,
+		type: 'formSplitter'
+	}) as UseFormSplitterResult<T>;
 };

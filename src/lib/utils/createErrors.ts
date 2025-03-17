@@ -8,6 +8,7 @@ import { formatErrors } from './formatErrors';
 import { setSubmitDeepKeys } from './utils';
 
 export type UseErrorsConfig<T extends Record<string, any>> = {
+	keysOnRender: React.MutableRefObject<Set<string>>
 	resolveKey: (key: string) => FormKey<T>
 	shouldIncludeError: (key: string) => boolean
 	validationErrorsRef: React.MutableRefObject<ValidationErrors>
@@ -25,7 +26,8 @@ export function createErrors<T extends Record<string, any>>(
 		validationType,
 		validationErrorsRef,
 		resolveKey,
-		shouldIncludeError
+		shouldIncludeError,
+		keysOnRender
 	}: UseErrorsConfig<T>
 ) {
 	const setErrors = (errors: ValidationErrors) => {
@@ -157,8 +159,11 @@ export function createErrors<T extends Record<string, any>>(
 		key: FormKey<Model>, 
 		{ includeChildsIntoArray = false, unique = true }: GetErrorsOptions = {}
 	): string[] {
-		const errors = errorRef.current[resolveKey(key)];
+		const _key = resolveKey(key);
+		const errors = errorRef.current[_key];
 
+		keysOnRender.current.add(_key);
+		
 		if ( !errors ) {
 			return [];
 		}

@@ -12,7 +12,6 @@ export {
 	ControllerContext,
 	type ControllerContextObject,
 	FormContext,
-	useController,
 	useFormContext,
 	FormSplitterContext,
 	useFormSplitterContext

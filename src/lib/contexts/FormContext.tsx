@@ -1,24 +1,32 @@
 import { createContext, useContext } from 'react';
 
+import { useFormCore } from '../hooks/useFormCore';
 import { type FormContextType, type UseFormReturn } from '../types/formTypes';
 import { IS_DEV } from '../utils/constants';
-
-import { ControllerContext } from './ControllerContext';
+import { TARGET_VALUE } from '../utils/observeObject/observeObject';
 
 export const FormContext = createContext<FormContextType<any, any> | null>(null);
 
-export const useFormContext = <T extends object>(): UseFormReturn<T> => {
-	const context = useContext(FormContext) as unknown as UseFormReturn<T>;
+export const useBaseFormContext = <T extends object>(): FormContextType<T> => {
+	const context = useContext(FormContext) as FormContextType<T>;
 
 	if ( IS_DEV ) {
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		if ( useContext(ControllerContext) ) {
-			throw new Error('Don\'t use useFormContext inside a Controller component as it will defeat the purpose of a Controller component.');
-		}
 		if ( !context ) {
 			throw new Error('useFormContext can only be used in the context of a <FormProvider> component.');
 		}
 	}
 
 	return context;
+};
+
+export const useFormContext = <T extends object>(): UseFormReturn<T> => {
+	// eslint-disable-next-line react-hooks/rules-of-hooks
+	const context = useBaseFormContext<T>();
+
+	return useFormCore<T, 'formSplitter'>({
+		options: context.options,
+
+		defaultValue: () => (context.formState.form as any)[TARGET_VALUE] as T,
+		type: 'formSplitter'
+	}) as unknown as UseFormReturn<T>;
 };

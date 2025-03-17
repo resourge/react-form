@@ -6,6 +6,7 @@ import {
 	FormSplitterContext,
 	FormSplitterProvider,
 	useForm,
+	useFormContext,
 	useFormSplitter
 } from './lib';
 
@@ -16,7 +17,8 @@ const ChildAsd: React.FC<ChildAsdProps> = ({ }) => {
 	const {
 		changeValue, form, handleSubmit, getErrors, context, errors, reset
 	} = useFormSplitter('asd');
-	console.log('render Child asd', errors);
+	const { form: paForm } = useFormContext<any>();
+	console.log('render Child asd', errors, paForm.test10);
 
 	return (
 		<>
@@ -93,6 +95,10 @@ const Child: React.FC<Props> = ({ }) => {
 			{ ' ' }
 			{ form.test }
 			<br />
+			test2.test1: 
+			{ ' ' }
+			{ form.test1 }
+			<br />
 			test2.asd.asd: 
 			{ ' ' }
 			{ form.asd.asd }
@@ -125,19 +131,16 @@ const Child: React.FC<Props> = ({ }) => {
 };
 
 const Child3: React.FC<Props> = ({ }) => {
-	console.log('render Child');
-	console.time('2');
+	console.log('render Child3');
 	const {
 		changeValue, form, handleSubmit, getErrors
 	} = useFormSplitter('test3');
-	console.timeEnd('2');
-	console.log('test1', form.test1);
 	return (
 		<>
 			<br />
 			<br />
 			<br />
-			Child
+			Child 3
 			<br />
 			Errors: 
 			{ ' ' }
@@ -174,12 +177,11 @@ const Child3: React.FC<Props> = ({ }) => {
 };
 
 function App() {
-	console.time('1');
 	const {
 		changeValue, form, context, handleSubmit, field
 	} = useForm({
 		test: 10,
-		test1: 11,
+		test10: 11,
 		test2: {
 			test: 11,
 			test1: 12,
@@ -197,6 +199,7 @@ function App() {
 		}
 	}, {
 		validate() {
+			console.log('ola');
 			return [
 				{
 					path: 'test',
@@ -217,7 +220,6 @@ function App() {
 			];
 		}
 	});
-	console.timeEnd('1');
 
 	console.log('render Parent', form.test);
 
@@ -230,6 +232,10 @@ function App() {
 			test2.test1: 
 			{ ' ' }
 			{ form.test2.test1 }
+			<br />
+			test3.test: 
+			{ ' ' }
+			{ form.test3.test }
 			<br />
 			<input 
 				{...field('test', {
@@ -253,10 +259,10 @@ function App() {
 			<br />
 			<button
 				onClick={() => {
-					changeValue('test1', Math.random());
+					changeValue('test10', Math.random());
 				}}
 			>
-				Change test1
+				Change test10
 			</button>
 			<button
 				onClick={() => {
@@ -264,6 +270,13 @@ function App() {
 				}}
 			>
 				Change form.test2.test1
+			</button>
+			<button
+				onClick={() => {
+					form.test3.test = Math.random();
+				}}
+			>
+				Change form.test3.test
 			</button>
 
 			<Controller

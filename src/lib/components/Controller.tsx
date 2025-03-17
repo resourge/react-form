@@ -40,14 +40,11 @@ export type ControllerProps<T extends Record<string, any>> = {
  * )
  * ```
  */
-export const Controller = memo(function Controller({
-	name, context, children 
-}: ControllerProps<Record<string, any>>): JSX.Element {
+export const Controller = memo(function Controller({ name, children }: ControllerProps<Record<string, any>>): JSX.Element {
 	return (
 		<ControllerContext.Provider
 			value={{
-				name,
-				context 
+				name
 			}}
 		>
 			{ children }
