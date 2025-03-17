@@ -1,9 +1,8 @@
 import { createContext, useContext } from 'react';
 
-import { useFormCore } from '../hooks/useFormCore';
+import { useBaseContext } from '../hooks/useBaseContext';
 import { type FormContextType, type UseFormReturn } from '../types/formTypes';
 import { IS_DEV } from '../utils/constants';
-import { TARGET_VALUE } from '../utils/observeObject/observeObject';
 
 export const FormContext = createContext<FormContextType<any, any> | null>(null);
 
@@ -19,14 +18,6 @@ export const useBaseFormContext = <T extends object>(): FormContextType<T> => {
 	return context;
 };
 
-export const useFormContext = <T extends object>(): UseFormReturn<T> => {
-	// eslint-disable-next-line react-hooks/rules-of-hooks
-	const context = useBaseFormContext<T>();
-
-	return useFormCore<T, 'formSplitter'>({
-		options: context.options,
-
-		defaultValue: () => (context.formState.form as any)[TARGET_VALUE] as T,
-		type: 'formSplitter'
-	}) as unknown as UseFormReturn<T>;
-};
+export const useFormContext = <T extends object>(): UseFormReturn<T> => useBaseContext<T, 'formSplitter'>(
+	useBaseFormContext<T>()
+) as unknown as UseFormReturn<T>;

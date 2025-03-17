@@ -61,7 +61,7 @@ export function useForm<T extends Record<string, any>>(
 	formOptions: FormOptions<T> = {}
 ): UseFormReturn<T> {
 	return useFormCore<T>({
-		options: {
+		context: {
 			touchHook: useTouches<T>(formOptions.validationType),
 			formOptions,
 			errorRef: useRef<FormErrors<T>>({} as FormErrors<T>)

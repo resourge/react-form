@@ -22,7 +22,7 @@ export function setSubmitDeepKeys(
 	seen = new WeakSet(), 
 	prefix = ''
 ) {
-	if (typeof obj !== 'object' || obj === null || seen.has(obj as WeakKey)) {
+	if (!isObjectOrArray(obj) || seen.has(obj as WeakKey)) {
 		return;
 	}
 	
@@ -46,7 +46,7 @@ export function setSubmitDeepKeys(
 				touch.submitted = true;
 				touch.touch = true;
 			}
-			setSubmitDeepKeys(obj[key], touches, resolveKey, shouldIncludeError, seen, fullKey);
+			setSubmitDeepKeys((obj as Record<string, unknown>)[key], touches, resolveKey, shouldIncludeError, seen, fullKey);
 		}
 	}
 }
@@ -110,15 +110,14 @@ export function createTriggers(
 	}
 
 	const events = triggers.splitters.get(formKey) ?? [];
-
 	events.push(triggerRender);
-	
 	triggers.splitters.set(formKey, events);
 
 	const removeForm = () => {
 		const index = events.indexOf(triggerRender);
-			
-		events.splice(index);
+		if (index !== -1) {
+			events.splice(index, 1);
+		};
 	};
 	
 	return {

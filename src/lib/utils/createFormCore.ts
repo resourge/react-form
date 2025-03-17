@@ -15,15 +15,15 @@ import {
 	type UseFormReturn,
 	type ValidateSubmissionErrors
 } from '../types/formTypes';
-import { type DebounceOptions, type FormCoreOptions } from '../types/types';
+import { type DebounceOptions } from '../types/types';
 
 import { createErrors } from './createErrors';
 import { observeObject, type OnKeyTouch, type ValueMetadataType } from './observeObject/observeObject';
 import { createTriggers, isClass, mergeKeys } from './utils';
 
 export type FormCoreConfig<T extends Record<string, any>, FT extends FormTypes> = {
+	context: Omit<FormContextType<T, FT>, 'changedKeys' | 'toJSON' | 'type' | 'formState'>
 	defaultValue: T | (() => T) | ((new() => T))
-	options: FormCoreOptions<T>
 	type: FT
 	baseKey?: FormKey<T>
 	onKeyTouch?: OnKeyTouch
@@ -36,7 +36,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		keysOnRender,
 		config: { 
 			defaultValue, 
-			options, 
+			context: options, 
 			type, 
 			baseKey: formFieldKey = '' as FormKey<T>
 		}
@@ -54,7 +54,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		current: [] as ValidationErrors
 	};
 	const {
-		errorRef, formOptions, touchHook
+		errorRef, formOptions, touchHook 
 	} = options;
 	const {
 		touchesRef, changedKeysRef, 
@@ -91,7 +91,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		{
 			onKeyTouch: type === 'formSplitter'
 				? (key: string) => {
-					const _key = mergeKeys(formKey, key);
+					const _key = resolveKey(key);
 					triggers.formTrigger(_key);
 	
 					if ( !preventStateUpdateRef.current ) {
@@ -121,17 +121,10 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 					);
 	
 					if ( watch ) {
-						for (const watchKey of Object.keys(watch)) {
-							if ( watchKey === key ) {
-								const watchFn = watch[watchKey as FormKey<T>];
-								// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-								const res = watchFn!(form);
-	
-								if ( res instanceof Promise ) {
-									// eslint-disable-next-line no-await-in-loop
-									await res;
-								}
-							}
+						const res = watch?.[key as keyof typeof watch]?.(form);
+						if ( res instanceof Promise ) {
+							// eslint-disable-next-line no-await-in-loop
+							await res;
 						}
 					}
 	
@@ -143,7 +136,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 				},
 			getTouches: (key: string) => Array.from(touchesRef.current).filter(([touchKey]) => touchKey.startsWith(key)),
 			isRenderingRef,
-			onKeyGet: (key) => isRenderingRef.current && keysOnRender.current.add(mergeKeys(formKey, key))
+			onKeyGet: (key) => isRenderingRef.current && keysOnRender.current.add(resolveKey(key))
 		}
 	);
 
@@ -200,7 +193,8 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 
 	const resetTouch = () => {
 		if ( formKey ) {
-			return touchesRef.current.forEach((_, key) => {
+			return touchesRef.current
+			.forEach((_, key) => {
 				if ( key.startsWith(formKey) ) {
 					touchesRef.current.delete(key);
 				}
@@ -378,13 +372,12 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		get changedKeys() {
 			return getChangedKeys();
 		},
-		options: {
-			touchHook, 
-			formOptions,
-			errorRef,
-			baseKey: formKey,
-			triggers
-		},
+		
+		touchHook, 
+		formOptions,
+		errorRef,
+		baseKey: formKey,
+		triggers,
 
 		toJSON() {
 			return {

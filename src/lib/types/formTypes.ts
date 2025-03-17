@@ -209,10 +209,9 @@ export type FormTypes = 'form' | 'formSplitter';
 export type FormContextType<T extends Record<string, any>, FT extends FormTypes = 'form'> = {
 	changedKeys: Array<FormKey<T>>
 	formState: UseFormReturn<T, FT>
-	options: FormCoreOptions<T>
 	toJSON: () => object
 	type: FT
-};
+} & FormCoreOptions<T>;
 
 export type UseFormReturn<T extends Record<string, any>, FT extends FormTypes = 'form'> = {
 	/**

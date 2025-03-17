@@ -45,7 +45,7 @@ export function useFormSplitter<
 	}
 
 	return useFormCore<PathValue<T, K>, 'formSplitter'>({
-		options: context.options,
+		context,
 
 		defaultValue: () => context.formState.getValue(formFieldKey)[TARGET_VALUE],
 		type: 'formSplitter',
