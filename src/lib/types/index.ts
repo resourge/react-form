@@ -9,7 +9,7 @@ export type {
 	FieldOptions,
 	ResetOptions,
 	SubmitHandler,
-	ValidateSubmissionErrors as ValidateSubmission,
+	ValidateSubmissionErrors,
 	GetErrorsOptions,
 	UseFormReturn,
 	FieldFormBlur,
@@ -18,5 +18,5 @@ export type {
 	FieldForm,
 	ResetMethod,
 	UseFormSplitterResult, 
-	UseFormSplitterResult as UseFormSplitterResultFormKey
+	FormContextType
 } from './formTypes';

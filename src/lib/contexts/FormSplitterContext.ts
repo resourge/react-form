@@ -7,6 +7,6 @@ export const FormSplitterContext = createContext<FormContextType<any, any> | nul
 
 export const useBaseFormSplitterContext = <T extends object>(): FormContextType<T> => useContext(FormSplitterContext) as unknown as FormContextType<T>;
 
-export const useFormSplitterContext = <T extends object>(): UseFormSplitterResult<T> => useBaseContext<T, 'formSplitter'>(
+export const useFormSplitterContext = <T extends object>(): UseFormSplitterResult<T> => useBaseContext<T>(
 	useBaseFormSplitterContext<T>()
 ) as unknown as UseFormSplitterResult<T>;

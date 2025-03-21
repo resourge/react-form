@@ -1,5 +1,5 @@
 import { type FormKey } from '../types';
-import { type FormTypes, type Touches } from '../types/formTypes';
+import { type Touches } from '../types/formTypes';
 import { type FormTrigger } from '../types/types';
 
 export function isObjectOrArray(value: any): value is object {
@@ -27,7 +27,7 @@ export function setSubmitDeepKeys(
 	}
 	
 	seen.add(obj as WeakKey);
-	
+
 	for (const key of Object.keys(obj as WeakKey)) {
 		const fullKey = resolveKey(
 			Array.isArray(obj) 
@@ -64,7 +64,7 @@ export const forEachPossibleKey = (key: string, onKey: (key: string) => void) =>
 };
 
 export function createTriggers(
-	type: FormTypes,
+	isForm: boolean,
 	formKey: string,
 	keysOnRender: React.MutableRefObject<Set<string>>,
 	state: [number, React.Dispatch<React.SetStateAction<number>>],
@@ -80,7 +80,7 @@ export function createTriggers(
 		}
 	};
 
-	if ( type === 'form' ) {
+	if ( isForm ) {
 		const splitters = new Map<string, Array<(key?: string) => void>>();
 
 		const formTrigger = (key?: string) => {

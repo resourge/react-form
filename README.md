@@ -210,7 +210,7 @@ _Note: Methods used in render will have the return cached (cache expires when ca
     - `blur`: For changes only in blur
     - `onChange`: Custom changes on value change.
     - `readOnly`: Readonly only
-    - `debounce`: Built-in debouncing
+    - `debounce`: Built-in debouncing (ms)
   ```tsx
   <input {...field("name")} />
   ```

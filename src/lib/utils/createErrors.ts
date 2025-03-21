@@ -10,21 +10,23 @@ import { setSubmitDeepKeys } from './utils';
 export type UseErrorsConfig<T extends Record<string, any>> = {
 	keysOnRender: React.MutableRefObject<Set<string>>
 	resolveKey: (key: string) => FormKey<T>
-	shouldIncludeError: (key: string) => boolean
-	validationErrorsRef: React.MutableRefObject<ValidationErrors>
-	validationType: FormValidationType
-} & FormCoreOptions<T>;
+	stateRef: NonNullable<FormCoreOptions<T>['stateRef']>
+	touchHook: FormCoreOptions<T>['touchHook']
+	validate: FormCoreOptions<T>['formOptions']['validate']
+
+	shouldIncludeError?: (key: string) => boolean
+	validationType?: FormValidationType
+};
 
 export function createErrors<T extends Record<string, any>>(
 	{
-		formOptions,
+		validate,
 		touchHook: {
 			touchesRef, changedKeysRef, 
-			setTouch, getTouch
+			setTouch
 		},
-		errorRef,
-		validationType,
-		validationErrorsRef,
+		stateRef,
+		validationType = 'onSubmit',
 		resolveKey,
 		shouldIncludeError,
 		keysOnRender
@@ -37,30 +39,20 @@ export function createErrors<T extends Record<string, any>>(
 			? errors
 			: errors
 			.filter(({ path }) => {
-				const touch = getTouch(path as FormKey<T>);
+				const touch = touchesRef.current.get(path);
 
 				return touch && (validationType === 'onSubmit' ? touch.submitted : touch.touch);
 			});
 
 		if (
-			!deepCompareValidationErrors(newErrors, validationErrorsRef.current)
+			!deepCompareValidationErrors(newErrors, stateRef.errors)
 		) {
-			validationErrorsRef.current = newErrors;
-			errorRef.current = formatErrors(newErrors);
+			stateRef.errors = newErrors;
+			stateRef.formErrors = formatErrors(newErrors);
 			return true;
 		}
 
 		return false;
-	};
-
-	// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-	const handleSuccess = (errors: void | ValidationErrors): ValidationErrors => {
-		if ( errors && errors.length ) {
-			// eslint-disable-next-line @typescript-eslint/no-throw-literal, @typescript-eslint/only-throw-error
-			throw errors;
-		}
-
-		return [];
 	};
 
 	/**
@@ -69,34 +61,23 @@ export function createErrors<T extends Record<string, any>>(
 	 * @param changedKeys Keys that have changed
 	 * @returns New validated state
 	 */
-	const formValidate = (form: T, changedKeys: Array<FormKey<T>>): ValidationErrors | Promise<ValidationErrors> => {
-		try {
-			const result = formOptions.validate?.(form, changedKeys);
-
-			return result instanceof Promise
-				? result.then(handleSuccess)
-				: handleSuccess(result);
-		}
-		catch ( err ) {
-			if ( err && Array.isArray(err) ) {
-				return err;
-			}
-			throw err as Error;
-		}
-	};
+	const formValidate = (form: T, changedKeys: Array<FormKey<T>>): ValidationErrors | Promise<ValidationErrors> => 
+		validate?.(form, changedKeys) ?? [];
 
 	const validateSubmission = async (
 		form: T, 
 		changedKeys: Array<FormKey<T>>,
 		validateErrors?: ValidateSubmissionErrors
 	) => {
-		// This serves so onlyOnTouch validations still work on handleSubmit
-		changedKeysRef.current.add('*' as FormKey<T>);
-
 		let newErrors = await formValidate(
 			form,
 			changedKeys
 		);
+
+		if ( shouldIncludeError ) {
+			newErrors = newErrors
+			.filter((val) => shouldIncludeError(val.path as FormKey<T>));
+		}
 
 		if ( validateErrors ) {
 			const result = await validateErrors(newErrors);
@@ -114,40 +95,32 @@ export function createErrors<T extends Record<string, any>>(
 			}
 		}
 
-		switch ( validationType ) {
-			case 'onSubmit':
-				setSubmitDeepKeys(
-					form, 
-					touchesRef.current,
-					resolveKey,
-					shouldIncludeError
-				);
-				break;
-			case 'onTouch':
-				touchesRef.current
-				.forEach((_, key) => {
-					if (!shouldIncludeError || shouldIncludeError(key as FormKey<T>)) {
-						setTouch(key as FormKey<T>, true, true);
-					}
-				});
-				break;
+		if ( validationType === 'always' ) {
+			return newErrors;
+		}
+
+		if ( validationType === 'onSubmit' ) {
+			setSubmitDeepKeys(
+				form, 
+				touchesRef.current,
+				resolveKey,
+				shouldIncludeError
+			);
 		}
 
 		newErrors
 		.forEach((val) => {
-			if ( !touchesRef.current.has(val.path) ) {
-				setTouch(val.path as FormKey<T>, true, true);
-			}
 			if ( 
 				!changedKeysRef.current.has(val.path as FormKey<T>) 
 				&& !(
-					validationErrorsRef.current
+					stateRef.errors
 					.some((prevVal) => (
 						prevVal.path === val.path
 						&& val.error === prevVal.error
 					))
 				)
 			) {
+				setTouch(val.path as FormKey<T>, true, true);
 				changedKeysRef.current.add(val.path as FormKey<T>);
 			}
 		});
@@ -160,7 +133,8 @@ export function createErrors<T extends Record<string, any>>(
 		{ includeChildsIntoArray = false, unique = true }: GetErrorsOptions = {}
 	): string[] {
 		const _key = resolveKey(key);
-		const errors = errorRef.current[_key];
+
+		const errors = stateRef.formErrors[_key];
 
 		keysOnRender.current.add(_key);
 		

@@ -18,6 +18,6 @@ export const useBaseFormContext = <T extends object>(): FormContextType<T> => {
 	return context;
 };
 
-export const useFormContext = <T extends object>(): UseFormReturn<T> => useBaseContext<T, 'formSplitter'>(
+export const useFormContext = <T extends object>(): UseFormReturn<T> => useBaseContext<T>(
 	useBaseFormContext<T>()
 ) as unknown as UseFormReturn<T>;

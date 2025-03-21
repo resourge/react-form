@@ -1,8 +1,6 @@
-import { type MutableRefObject } from 'react';
-
 import { type TouchesResult } from '../hooks/useTouches';
 
-import { type FormErrors, type FormOptions } from './formTypes';
+import { type FormStateRef, type FormOptions } from './formTypes';
 
 export type FormTrigger = {
 	formTrigger: (key?: string) => void
@@ -10,10 +8,10 @@ export type FormTrigger = {
 };
 
 export type FormCoreOptions<T extends Record<string, any>> = {
-	errorRef: MutableRefObject<FormErrors<T>>
 	formOptions: FormOptions<T>
 	touchHook: TouchesResult<T>
-	baseKey?: string
+	contextKey?: string
+	stateRef?: FormStateRef<T>
 	triggers?: FormTrigger
 };
 

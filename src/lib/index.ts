@@ -39,9 +39,9 @@ export type {
 	ResetOptions,
 	SubmitHandler,
 	UseFormReturn,
-	ValidateSubmission,
+	ValidateSubmissionErrors,
 	UseFormSplitterResult,
-	UseFormSplitterResultFormKey
+	FormContextType
 } from './types';
 export {
 	PreserveClass,

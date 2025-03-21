@@ -2,12 +2,33 @@ import dayjs from 'dayjs';
 // import onChange from 'on-change';
 import {
 	describe,
-	it,
 	expect,
+	it,
 	vi
 } from 'vitest';
 
-import { observeObject } from '../observeObject';
+import { getProxy } from '../getProxy';
+import { type ProxyConfig } from '../getProxyTypes';
+
+function observeObject<T extends object>(
+	target: T, 
+	config: Omit<ProxyConfig, 'proxyCache' | 'cache' | 'getTouches' | 'touchesRef'>
+): T {
+	return getProxy(
+		target, 
+		{
+			...config,
+			touchesRef: {
+				current: new Map()
+			},
+			cache: {
+				touch: new WeakMap(),
+				function: new Map()
+			},
+			proxyCache: new WeakMap()
+		}
+	);
+}
 
 describe('observeObject', () => {
 	it('should call onKeyTouch when setting a property on a proxied object', () => {
@@ -18,17 +39,18 @@ describe('observeObject', () => {
 			}
 		};
 		const onKeyTouch = vi.fn();
-		const getTouches = vi.fn();
 		const isRenderingRef = {
 			current: false
 		};
 		const onKeyGet = vi.fn();
-		const proxy = observeObject(target, {
-			onKeyTouch,
-			isRenderingRef,
-			onKeyGet,
-			getTouches
-		});
+		const proxy = observeObject(
+			target, 
+			{
+				onKeyTouch,
+				isRenderingRef,
+				onKeyGet
+			}
+		);
 
 		proxy.a = undefined;
 
@@ -46,7 +68,6 @@ describe('observeObject', () => {
 			a: 1 
 		};
 		const onKeyTouch = vi.fn();
-		const getTouches = vi.fn();
 		const isRenderingRef = {
 			current: false
 		};
@@ -54,8 +75,7 @@ describe('observeObject', () => {
 		const proxy = observeObject(target, {
 			onKeyTouch,
 			isRenderingRef,
-			onKeyGet,
-			getTouches
+			onKeyGet
 		});
 
 		proxy.a = 2;
@@ -75,7 +95,6 @@ describe('observeObject', () => {
 			date
 		};
 		const onKeyTouch = vi.fn();
-		const getTouches = vi.fn();
 		const isRenderingRef = {
 			current: false
 		};
@@ -83,8 +102,7 @@ describe('observeObject', () => {
 		const proxy = observeObject(target, {
 			onKeyTouch,
 			isRenderingRef,
-			onKeyGet,
-			getTouches
+			onKeyGet
 		});
 
 		expect(proxy.date.toISOString()).toBe(date.toISOString());
@@ -108,7 +126,6 @@ describe('observeObject', () => {
 			languages: undefined
 		};
 		const onKeyTouch = vi.fn();
-		const getTouches = vi.fn();
 		const isRenderingRef = {
 			current: false
 		};
@@ -116,8 +133,7 @@ describe('observeObject', () => {
 		const proxy = observeObject<any>(target, {
 			onKeyTouch,
 			isRenderingRef,
-			onKeyGet,
-			getTouches
+			onKeyGet
 		});
 
 		proxy.languages = proxy.languagesOptions[0];
@@ -137,7 +153,6 @@ describe('observeObject', () => {
 			languages: []
 		};
 		const onKeyTouch = vi.fn();
-		const getTouches = vi.fn();
 		const isRenderingRef = {
 			current: false
 		};
@@ -145,8 +160,7 @@ describe('observeObject', () => {
 		const proxy = observeObject<any>(target, {
 			onKeyTouch,
 			isRenderingRef,
-			onKeyGet,
-			getTouches
+			onKeyGet
 		});
 
 		const item = proxy.languagesOptions[0];
@@ -212,7 +226,6 @@ describe('observeObject', () => {
 			}
 		};
 		const onKeyTouch = vi.fn();
-		const getTouches = vi.fn();
 		const isRenderingRef = {
 			current: false
 		};
@@ -220,8 +233,7 @@ describe('observeObject', () => {
 		const proxy = observeObject(target, {
 			onKeyTouch,
 			isRenderingRef,
-			onKeyGet,
-			getTouches
+			onKeyGet
 		});
 
 		expect(proxy.a).toBe(1);
@@ -235,7 +247,6 @@ describe('observeObject', () => {
 			a: 1 
 		};
 		const onKeyTouch = vi.fn();
-		const getTouches = vi.fn();
 		const isRenderingRef = {
 			current: false
 		};
@@ -243,8 +254,7 @@ describe('observeObject', () => {
 		const proxy = observeObject(target, {
 			onKeyTouch,
 			isRenderingRef,
-			onKeyGet,
-			getTouches
+			onKeyGet
 		});
 
 		proxy.a = 1;
@@ -258,7 +268,6 @@ describe('observeObject', () => {
 			a: 1 
 		};
 		const onKeyTouch = vi.fn();
-		const getTouches = vi.fn();
 		const isRenderingRef = {
 			current: false
 		};
@@ -266,8 +275,7 @@ describe('observeObject', () => {
 		const proxy = observeObject(target, {
 			onKeyTouch,
 			isRenderingRef,
-			onKeyGet,
-			getTouches
+			onKeyGet
 		});
 
 		// @ts-expect-error Expected
@@ -290,7 +298,6 @@ describe('observeObject', () => {
 			arr: [1, 2, 3] 
 		};
 		const onKeyTouch = vi.fn();
-		const getTouches = vi.fn();
 		const isRenderingRef = {
 			current: false
 		};
@@ -298,8 +305,7 @@ describe('observeObject', () => {
 		const proxy = observeObject(target, {
 			onKeyTouch,
 			isRenderingRef,
-			onKeyGet,
-			getTouches
+			onKeyGet
 		});
 
 		proxy.a.b = 2;
@@ -330,7 +336,6 @@ describe('observeObject', () => {
 			arr: [[1, 2], [3, 4]] 
 		};
 		const onKeyTouch = vi.fn();
-		const getTouches = vi.fn();
 		const isRenderingRef = {
 			current: false
 		};
@@ -338,8 +343,7 @@ describe('observeObject', () => {
 		const proxy = observeObject(target, {
 			onKeyTouch,
 			isRenderingRef,
-			onKeyGet,
-			getTouches
+			onKeyGet
 		});
 
 		proxy.a.b.c.d = 2;
@@ -366,7 +370,6 @@ describe('observeObject', () => {
 			set: new Set([1, 2, 3])
 		};
 		const onKeyTouch = vi.fn();
-		const getTouches = vi.fn();
 		const isRenderingRef = {
 			current: false
 		};
@@ -374,8 +377,7 @@ describe('observeObject', () => {
 		const proxy = observeObject(target, {
 			onKeyTouch,
 			isRenderingRef,
-			onKeyGet,
-			getTouches
+			onKeyGet
 		});
 
 		// Date manipulation
@@ -405,7 +407,6 @@ describe('observeObject', () => {
 			sets: [new Set([1, 2, 3]), new Set([4, 5, 6])]
 		};
 		const onKeyTouch = vi.fn();
-		const getTouches = vi.fn();
 		const isRenderingRef = {
 			current: false
 		};
@@ -413,8 +414,7 @@ describe('observeObject', () => {
 		const proxy = observeObject(target, {
 			onKeyTouch,
 			isRenderingRef,
-			onKeyGet,
-			getTouches
+			onKeyGet
 		});
 
 		proxy.maps[0].set('key3', 'value3');
@@ -431,7 +431,6 @@ describe('observeObject', () => {
 			a: 1 
 		};
 		const onKeyTouch = vi.fn();
-		const getTouches = vi.fn();
 		const isRenderingRef = {
 			current: false
 		};
@@ -439,8 +438,7 @@ describe('observeObject', () => {
 		const proxy = observeObject(target, {
 			onKeyTouch,
 			isRenderingRef,
-			onKeyGet,
-			getTouches
+			onKeyGet
 		});
 
 		proxy.a = 2;
@@ -459,7 +457,6 @@ describe('observeObject', () => {
 	it('should correctly handle adding new properties to objects', () => {
 		const target: any = {};
 		const onKeyTouch = vi.fn();
-		const getTouches = vi.fn();
 		const isRenderingRef = {
 			current: false
 		};
@@ -467,8 +464,7 @@ describe('observeObject', () => {
 		const proxy = observeObject(target, {
 			onKeyTouch,
 			isRenderingRef,
-			onKeyGet,
-			getTouches
+			onKeyGet
 		});
 
 		proxy.newProp = {
@@ -489,7 +485,6 @@ describe('observeObject', () => {
 			date 
 		};
 		const onKeyTouch = vi.fn();
-		const getTouches = vi.fn();
 		const isRenderingRef = {
 			current: false
 		};
@@ -497,8 +492,7 @@ describe('observeObject', () => {
 		const proxy = observeObject(target, {
 			onKeyTouch,
 			isRenderingRef,
-			onKeyGet,
-			getTouches
+			onKeyGet
 		});
 
 		const newDate = new Date();
@@ -516,7 +510,6 @@ describe('observeObject', () => {
 	it('should correctly handle Map objects', () => {
 		const map = new Map();
 		const onKeyTouch = vi.fn();
-		const getTouches = vi.fn();
 		const isRenderingRef = {
 			current: false
 		};
@@ -524,8 +517,7 @@ describe('observeObject', () => {
 		const proxy = observeObject(map, {
 			onKeyTouch,
 			isRenderingRef,
-			onKeyGet,
-			getTouches
+			onKeyGet
 		});
 
 		proxy.set('key', 'value');
@@ -539,7 +531,6 @@ describe('observeObject', () => {
 		const target: any = {};
 		target.self = target;
 		const onKeyTouch = vi.fn();
-		const getTouches = vi.fn();
 		const isRenderingRef = {
 			current: false
 		};
@@ -547,8 +538,7 @@ describe('observeObject', () => {
 		const proxy = observeObject(target, {
 			onKeyTouch,
 			isRenderingRef,
-			onKeyGet,
-			getTouches
+			onKeyGet
 		});
 		proxy.self.a = 1;
 
@@ -570,7 +560,6 @@ describe('observeObject', () => {
 			}]
 		};
 		const onKeyTouch = vi.fn();
-		const getTouches = vi.fn();
 		const isRenderingRef = {
 			current: false
 		};
@@ -578,8 +567,7 @@ describe('observeObject', () => {
 		const proxy = observeObject(target, {
 			onKeyTouch,
 			isRenderingRef,
-			onKeyGet,
-			getTouches
+			onKeyGet
 		});
 
 		proxy.c.sort((a, b) => a.id - b.id); 
@@ -633,7 +621,6 @@ describe('observeObject', () => {
 		};
 		
 		const onKeyTouch = vi.fn();
-		const getTouches = vi.fn();
 		const isRenderingRef = {
 			current: false
 		};
@@ -641,8 +628,7 @@ describe('observeObject', () => {
 		const proxy = observeObject(target, {
 			onKeyTouch,
 			isRenderingRef,
-			onKeyGet,
-			getTouches
+			onKeyGet
 		});
 
 		expect(
@@ -679,7 +665,6 @@ describe('Caching and Performance', () => {
 			} 
 		};
 		const onKeyTouch = vi.fn();
-		const getTouches = vi.fn();
 		const isRenderingRef = {
 			current: false
 		};
@@ -687,9 +672,9 @@ describe('Caching and Performance', () => {
 		const proxy = observeObject(target, {
 			onKeyTouch,
 			isRenderingRef,
-			onKeyGet,
-			getTouches
-		});
+			onKeyGet
+		}
+		);
 
 		const nestedProxy1 = proxy.b;
 		const nestedProxy2 = proxy.b;

@@ -25,7 +25,7 @@ export type FormProviderProps<T extends Record<string, any>> = React.PropsWithCh
  */
 export const FormProvider = <T extends Record<string, any>>({ children, context }: FormProviderProps<T>): JSX.Element => {
 	if ( IS_DEV ) {
-		if ( context.type !== 'form' ) {
+		if ( (context.type as any) === 'formSplitter' ) {
 			throw new Error(`Can only accepts 'context' from the 'useFrom'. For 'useFormSplitter' context use '<FormSplitterContext>'.`);
 		}
 	}

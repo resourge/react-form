@@ -2,6 +2,8 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { type FormEvent } from 'react';
 
+import { type CacheConfig } from '../utils/getProxy/getProxyTypes';
+
 import { type FormKey } from './FormKey';
 import { type ValidationErrors } from './errorsTypes';
 import { type FormCoreOptions } from './types';
@@ -35,6 +37,12 @@ export type FormError<T extends Record<string, any>> = {
 		errors: string[]
 	}
 	formErrors: FormErrors<T>
+};
+
+export type FormStateRef<T extends Record<string, any>> = {
+	errors: ValidationErrors
+	formErrors: FormErrors<T>
+	preventStateUpdate: boolean
 };
 
 export type FormErrors<T extends Record<string, any>> = {
@@ -90,7 +98,7 @@ export type FormOptions<T extends Record<string, any>> = {
 	 * )
 	 * ```
 	 */
-	validate?: (form: T, changedKeys: Array<FormKey<T>>) => void | Promise<void> | ValidationErrors | Promise<ValidationErrors>
+	validate?: (form: T, changedKeys: string[]) => ValidationErrors | Promise<ValidationErrors>
 	/**
 	 * Validation type, specifies the type of validation.
 	 * @default 'onSubmit'
@@ -204,9 +212,10 @@ export type SubmitHandler<T extends Record<string, any>, K = void> = (form: T) =
 
 export type ValidateSubmissionErrors = (newErrors: ValidationErrors) => ValidationErrors | boolean | Promise<ValidationErrors | boolean>;
 
-export type FormTypes = 'form' | 'formSplitter';
+export type FormTypes = 'form' | 'formSplitter' | 'formContext';
 
 export type FormContextType<T extends Record<string, any>, FT extends FormTypes = 'form'> = {
+	cacheConfig: CacheConfig
 	changedKeys: Array<FormKey<T>>
 	formState: UseFormReturn<T, FT>
 	toJSON: () => object

@@ -1,5 +1,7 @@
 import { type ValidationErrors } from '../types/errorsTypes';
 
+import { REF } from './getProxy/getProxyUtils';
+
 export const deepCompareValidationErrors = (
 	arr1: ValidationErrors,
 	arr2: ValidationErrors
@@ -51,5 +53,7 @@ export function deepCompare(
 	// Check if both objects have the same number of keys
 	if (keys1.length !== keys2.length) return false;
 
-	return keys1.every((key) => keys2.includes(key) && deepCompare(obj1[key], obj2[key]));
+	return keys1
+	.filter((key) => key !== (REF as unknown as string) )
+	.every((key) => keys2.includes(key) && deepCompare(obj1[key], obj2[key]));
 }

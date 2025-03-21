@@ -79,19 +79,19 @@ function App() {
 				const errors = [
 					{
 						path: 'jose',
-						errors: ['error']
+						error: 'error'
 					},
 					...form.alfredo
 					.map((value, index) => ({
 						path: `alfredo[${index}]`,
-						errors: value !== '10' || value !== 10 ? ['zordon error'] : []
+						error: value !== '10' || value !== 10 ? 'zordon error' : []
 					}))
 				];
 
 				if ( form.rafael !== 10 ) {
 					errors.push({
 						path: 'rafael',
-						errors: ['error']
+						error: 'error'
 					});
 				}
 

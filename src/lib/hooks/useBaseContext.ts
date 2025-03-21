@@ -1,15 +1,11 @@
 import { type UseFormReturn, type UseFormSplitterResult } from '../types';
-import { type FormTypes, type FormContextType } from '../types/formTypes';
-import { TARGET_VALUE } from '../utils/observeObject/observeObject';
+import { type FormContextType } from '../types/formTypes';
 
 import { useFormCore } from './useFormCore';
 
 export const useBaseContext = <
-	T extends Record<string, any>, 
-	FT extends FormTypes = 'form'
->(context: FormContextType<T>): UseFormReturn<T, FT> | UseFormSplitterResult<T> => useFormCore<T, 'formSplitter'>({
+	T extends Record<string, any>
+>(context: FormContextType<T>): UseFormReturn<T, 'formContext'> | UseFormSplitterResult<T> => useFormCore<T, 'formContext'>({
 	context,
-
-	defaultValue: () => (context.formState.form as any)[TARGET_VALUE] as T,
-	type: 'formSplitter'
-}) as unknown as UseFormReturn<T, FT> | UseFormSplitterResult<T>;
+	type: 'formContext'
+}) as unknown as UseFormReturn<T, 'formContext'> | UseFormSplitterResult<T>;

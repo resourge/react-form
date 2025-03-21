@@ -1,6 +1,5 @@
-import { useRef } from 'react';
-
-import { type FormErrors, type FormOptions, type UseFormReturn } from '../types/formTypes';
+import { type FormOptions, type UseFormReturn } from '../types/formTypes';
+import { type FormCoreConfig } from '../utils/createFormCore';
 
 import { useFormCore } from './useFormCore';
 import { useTouches } from './useTouches';
@@ -63,10 +62,8 @@ export function useForm<T extends Record<string, any>>(
 	return useFormCore<T>({
 		context: {
 			touchHook: useTouches<T>(formOptions.validationType),
-			formOptions,
-			errorRef: useRef<FormErrors<T>>({} as FormErrors<T>)
-		},
-
+			formOptions
+		} as unknown as FormCoreConfig<T, 'form'>['context'],
 		defaultValue,
 		type: 'form'
 	});
