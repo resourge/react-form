@@ -17,7 +17,7 @@ export {
 	useFormSplitterContext
 } from './contexts';
 export {
-	useForm, useFormSplitter, useFormStorage
+	useForm, useFormSplitter, useFormStorage, type UseFormSplitterResultByKey
 } from './hooks';
 export {
 	setupJsonForm, type SetupJsonFormConfig, type SetupJsonFormProps 

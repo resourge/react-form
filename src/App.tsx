@@ -1,9 +1,43 @@
-import { Controller, useForm } from 'src/lib';
+import React from 'react';
+
+import {
+	Controller,
+	FormContext,
+	FormProvider,
+	useForm,
+	useFormSplitter
+} from 'src/lib';
 
 const a = Array.from({
 	length: 5
 })
 .map(() => Math.random());
+
+type Props = {
+};
+
+const B: React.FC<Props> = ({ }) => {
+	const { form, field } = useFormSplitter('b');
+	console.log('form', form);
+	return (
+		<>
+			{
+				form.map((v, index) => (
+					<div
+						key={`${index}`}
+						style={{
+							display: 'flex'
+						}}
+					>
+						<input 
+							{...field(`[${index}].value`)}
+						/>
+					</div>
+				))
+			}
+		</>
+	);
+};
 
 function App() {
 	const {
@@ -121,12 +155,10 @@ Controller
 						
 	*/
 
-	console.log('a1', form.getAllTest());
-	console.log('a2', form.getTest());
-	console.log('a3', form.getBTest());
+	console.log('a3', form.b);
 
 	return (
-		<div>
+		<FormProvider context={context}>
 			<input
 				{...field('rafael')}
 				type="text"
@@ -225,6 +257,46 @@ Controller
 					}}
 				>
 					shift X
+				</button>
+				<button
+					onClick={() => {
+						form.b = [
+							{
+								id: 9,
+								value: 'I' 
+							},
+							{
+								id: 10,
+								value: 'J' 
+							},
+							{
+								id: 11,
+								value: 'K' 
+							},
+							{
+								id: 6,
+								value: 'F'
+							},
+							{
+								id: 6,
+								value: 'F'
+							},
+							{
+								id: 6,
+								value: 'F'
+							},
+							{
+								id: 7,
+								value: 'G' 
+							},
+							{
+								id: 8,
+								value: 'H' 
+							}
+						];
+					}}
+				>
+					Redo B
 				</button>
 				<button
 					onClick={() => {
@@ -388,7 +460,8 @@ Controller
 				Foreach
 			</button>
 			App
-		</div>
+			<B />
+		</FormProvider>
 	);
 }
 

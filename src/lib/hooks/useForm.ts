@@ -24,7 +24,6 @@ import { useTouches } from './useTouches';
  *     },
  *   });
  * 
- *   // Methods used in render will have the return cached (cache expires when camps used or parameters change).
  *   const productIds = form.getProducts();
  * 
  *   const onSubmit = handleSubmit((data) => console.log("Form Submitted:", data));

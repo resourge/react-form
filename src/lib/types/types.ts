@@ -1,9 +1,10 @@
 import { type TouchesResult } from '../hooks/useTouches';
+import { type OnKeyTouchMetadataType } from '../utils/getProxy/getProxyTypes';
 
 import { type FormStateRef, type FormOptions } from './formTypes';
 
 export type FormTrigger = {
-	formTrigger: (key?: string) => void
+	formTrigger: (key?: string, metadata?: OnKeyTouchMetadataType) => void
 	splitters: Map<string, Array<(key?: string) => void>>
 };
 

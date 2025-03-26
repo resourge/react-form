@@ -1,4 +1,3 @@
-import { deepCompare } from '../comparationUtils';
 import { IS_DEV } from '../constants';
 import { isObjectOrArray } from '../utils';
 
@@ -74,19 +73,16 @@ function getContext<T>({
 	};
 }
 
-let observed: Set<string>;
-
 /**
  * Proxy handler for tracking property accesses and mutations.
  */
 function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | WeakMap<any, any>>(
 	target2: T, 
 	config: ProxyConfig,
-	baseKey: string
+	baseKey: string = ''
 ): ProxyHandler<T> {
 	const {
-		cache, isRenderingRef, 
-		touchesRef, onKeyGet, onKeyTouch 
+		cache, touchesRef, onKeyGet, onKeyTouch 
 	} = config;
 
 	if ( isMutableBuiltin(target2) ) {
@@ -154,6 +150,16 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 							return result;
 						};
 					}
+					if (prop === 'get') {
+						return function (...args: any[]) {
+							const originalValue = origMethod.apply(target, args);
+							
+							return isObjectOrArray(originalValue)
+								&& !isImmutableBuiltin(originalValue)
+								? getProxy(originalValue, config, baseKey)
+								: originalValue;
+						};
+					}
 				}
 				return origMethod;
 			}
@@ -181,6 +187,7 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 			});
 
 			const value = Reflect.get(deepTarget, deepProp, deepReceiver);
+
 			const isNumber = !isNaN(prop.toString() as unknown as number);
 			const originalValue = getTargetValue(value);
 			const originalTouch = cache.touch.get(deepTarget);
@@ -212,49 +219,7 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 				originalTouch.keys.add(key);
 			}
 
-			// Cache functions results
-			if ( !isArray && typeof value === 'function' && isRenderingRef.current ) {
-				if ( !cache.function.has(value) ) {
-					cache.function.set(value, {
-						result: undefined,
-						touched: new Set(),
-						args: []
-					});
-				}
-
-				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-				const functionCache = cache.function.get(value)!;
-			
-				return function (...args: any[]) {
-					if ( 
-						functionCache.touched.size
-						&& deepCompare(args, functionCache.args)
-					) {
-						return functionCache.result;
-					}
-
-					const prevObserved = observed;
-					observed = new Set();
-
-					// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-					const result = value.apply(receiver, args);
-
-					const touched = observed;
-					if ( prevObserved ) {
-						touched.forEach(prevObserved.add, prevObserved);
-					}
-					observed = prevObserved;
-
-					functionCache.args = args;
-					functionCache.result = result;
-					functionCache.touched = touched;
-
-					return result;
-				};
-			}
-
 			onKeyGet(key);
-			observed?.add(key);
 
 			return (
 				isObjectOrArray(originalValue) 
@@ -287,12 +252,6 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 			const success = Reflect.set(deepTarget, deepProp, value, deepReceiver);
 
 			const touch = getCurrentTouch(deepTarget, cache, value);
-
-			cache.function.forEach((cache) => {
-				if ( cache.touched.has(key) ) {
-					cache.touched.clear();
-				}
-			});
 			
 			if ( 
 				success 
@@ -330,12 +289,6 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 			const success = Reflect.deleteProperty(deepTarget, deepProp);
 
 			if ( success ) {
-				cache.function.forEach((cache) => {
-					if ( cache.touched.has(key) ) {
-						cache.touched.clear();
-					}
-				});
-
 				onKeyTouch(
 					key,
 					{
@@ -349,10 +302,17 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 	};
 }
 
+function createProxy<T extends object>(target: T, config: ProxyConfig, baseKey: string = ''): T {
+	return new Proxy<T>(
+		target, 
+		getProxyHandler(target, config, baseKey)
+	);
+}
+
 export function getProxy<T extends object>(
 	target: T, 
 	config: ProxyConfig,
-	baseKey: string = '',
+	baseKey: string,
 	currentIndex?: string
 ): T {
 	let reference = Reflect.get(target, REF) as undefined | { 
@@ -375,12 +335,44 @@ export function getProxy<T extends object>(
 		// Store the proxy in the WeakMap to handle circular references
 		config.proxyCache.set(
 			reference as object, 
-			new Proxy<T>(
-				target, 
-				getProxyHandler(target, config, baseKey)
-			)
+			createProxy(target, config, baseKey)
 		);
 	}
 
 	return config.proxyCache.get(reference as object);
+}
+
+// This method serves to bypass the cases where the "new form" is still undefined
+// Example when "form" is from an array
+export function setFormProxy<T extends object>(
+	getInitialValue: () => T, 
+	config: ProxyConfig,
+	baseKey: string
+): {
+		proxy: T
+	} {
+	const target = getInitialValue();
+	if ( !target ) {
+		const result: { proxy: T } = {
+			get proxy() {
+				const target2 = getInitialValue();
+
+				if ( target2 ) {
+					// This replaces the original value so getter is not needed after
+					Object.defineProperty(result, 'proxy', {
+						value: createProxy(target2, config, baseKey) 
+					});
+
+					return result.proxy;
+				}
+				return undefined as unknown as T;
+			}
+		};
+		
+		return result;
+	}
+
+	return {
+		proxy: createProxy(target, config, baseKey)
+	};
 }

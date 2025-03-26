@@ -22,11 +22,11 @@ function observeObject<T extends object>(
 				current: new Map()
 			},
 			cache: {
-				touch: new WeakMap(),
-				function: new Map()
+				touch: new WeakMap()
 			},
 			proxyCache: new WeakMap()
-		}
+		},
+		''
 	);
 }
 
@@ -39,15 +39,11 @@ describe('observeObject', () => {
 			}
 		};
 		const onKeyTouch = vi.fn();
-		const isRenderingRef = {
-			current: false
-		};
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(
 			target, 
 			{
 				onKeyTouch,
-				isRenderingRef,
 				onKeyGet
 			}
 		);
@@ -68,13 +64,9 @@ describe('observeObject', () => {
 			a: 1 
 		};
 		const onKeyTouch = vi.fn();
-		const isRenderingRef = {
-			current: false
-		};
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(target, {
 			onKeyTouch,
-			isRenderingRef,
 			onKeyGet
 		});
 
@@ -95,13 +87,9 @@ describe('observeObject', () => {
 			date
 		};
 		const onKeyTouch = vi.fn();
-		const isRenderingRef = {
-			current: false
-		};
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(target, {
 			onKeyTouch,
-			isRenderingRef,
 			onKeyGet
 		});
 
@@ -126,13 +114,9 @@ describe('observeObject', () => {
 			languages: undefined
 		};
 		const onKeyTouch = vi.fn();
-		const isRenderingRef = {
-			current: false
-		};
 		const onKeyGet = vi.fn();
 		const proxy = observeObject<any>(target, {
 			onKeyTouch,
-			isRenderingRef,
 			onKeyGet
 		});
 
@@ -153,13 +137,9 @@ describe('observeObject', () => {
 			languages: []
 		};
 		const onKeyTouch = vi.fn();
-		const isRenderingRef = {
-			current: false
-		};
 		const onKeyGet = vi.fn();
 		const proxy = observeObject<any>(target, {
 			onKeyTouch,
-			isRenderingRef,
 			onKeyGet
 		});
 
@@ -226,13 +206,9 @@ describe('observeObject', () => {
 			}
 		};
 		const onKeyTouch = vi.fn();
-		const isRenderingRef = {
-			current: false
-		};
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(target, {
 			onKeyTouch,
-			isRenderingRef,
 			onKeyGet
 		});
 
@@ -247,13 +223,9 @@ describe('observeObject', () => {
 			a: 1 
 		};
 		const onKeyTouch = vi.fn();
-		const isRenderingRef = {
-			current: false
-		};
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(target, {
 			onKeyTouch,
-			isRenderingRef,
 			onKeyGet
 		});
 
@@ -268,13 +240,9 @@ describe('observeObject', () => {
 			a: 1 
 		};
 		const onKeyTouch = vi.fn();
-		const isRenderingRef = {
-			current: false
-		};
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(target, {
 			onKeyTouch,
-			isRenderingRef,
 			onKeyGet
 		});
 
@@ -298,13 +266,9 @@ describe('observeObject', () => {
 			arr: [1, 2, 3] 
 		};
 		const onKeyTouch = vi.fn();
-		const isRenderingRef = {
-			current: false
-		};
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(target, {
 			onKeyTouch,
-			isRenderingRef,
 			onKeyGet
 		});
 
@@ -336,13 +300,9 @@ describe('observeObject', () => {
 			arr: [[1, 2], [3, 4]] 
 		};
 		const onKeyTouch = vi.fn();
-		const isRenderingRef = {
-			current: false
-		};
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(target, {
 			onKeyTouch,
-			isRenderingRef,
 			onKeyGet
 		});
 
@@ -370,13 +330,9 @@ describe('observeObject', () => {
 			set: new Set([1, 2, 3])
 		};
 		const onKeyTouch = vi.fn();
-		const isRenderingRef = {
-			current: false
-		};
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(target, {
 			onKeyTouch,
-			isRenderingRef,
 			onKeyGet
 		});
 
@@ -407,13 +363,9 @@ describe('observeObject', () => {
 			sets: [new Set([1, 2, 3]), new Set([4, 5, 6])]
 		};
 		const onKeyTouch = vi.fn();
-		const isRenderingRef = {
-			current: false
-		};
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(target, {
 			onKeyTouch,
-			isRenderingRef,
 			onKeyGet
 		});
 
@@ -431,13 +383,9 @@ describe('observeObject', () => {
 			a: 1 
 		};
 		const onKeyTouch = vi.fn();
-		const isRenderingRef = {
-			current: false
-		};
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(target, {
 			onKeyTouch,
-			isRenderingRef,
 			onKeyGet
 		});
 
@@ -457,13 +405,9 @@ describe('observeObject', () => {
 	it('should correctly handle adding new properties to objects', () => {
 		const target: any = {};
 		const onKeyTouch = vi.fn();
-		const isRenderingRef = {
-			current: false
-		};
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(target, {
 			onKeyTouch,
-			isRenderingRef,
 			onKeyGet
 		});
 
@@ -485,13 +429,9 @@ describe('observeObject', () => {
 			date 
 		};
 		const onKeyTouch = vi.fn();
-		const isRenderingRef = {
-			current: false
-		};
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(target, {
 			onKeyTouch,
-			isRenderingRef,
 			onKeyGet
 		});
 
@@ -510,13 +450,9 @@ describe('observeObject', () => {
 	it('should correctly handle Map objects', () => {
 		const map = new Map();
 		const onKeyTouch = vi.fn();
-		const isRenderingRef = {
-			current: false
-		};
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(map, {
 			onKeyTouch,
-			isRenderingRef,
 			onKeyGet
 		});
 
@@ -531,13 +467,9 @@ describe('observeObject', () => {
 		const target: any = {};
 		target.self = target;
 		const onKeyTouch = vi.fn();
-		const isRenderingRef = {
-			current: false
-		};
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(target, {
 			onKeyTouch,
-			isRenderingRef,
 			onKeyGet
 		});
 		proxy.self.a = 1;
@@ -560,13 +492,9 @@ describe('observeObject', () => {
 			}]
 		};
 		const onKeyTouch = vi.fn();
-		const isRenderingRef = {
-			current: false
-		};
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(target, {
 			onKeyTouch,
-			isRenderingRef,
 			onKeyGet
 		});
 
@@ -621,13 +549,9 @@ describe('observeObject', () => {
 		};
 		
 		const onKeyTouch = vi.fn();
-		const isRenderingRef = {
-			current: false
-		};
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(target, {
 			onKeyTouch,
-			isRenderingRef,
 			onKeyGet
 		});
 
@@ -665,13 +589,9 @@ describe('Caching and Performance', () => {
 			} 
 		};
 		const onKeyTouch = vi.fn();
-		const isRenderingRef = {
-			current: false
-		};
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(target, {
 			onKeyTouch,
-			isRenderingRef,
 			onKeyGet
 		}
 		);

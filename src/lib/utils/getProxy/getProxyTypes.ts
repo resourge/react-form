@@ -5,11 +5,6 @@ import { type Touches, type ToucheType } from '../../types/formTypes';
 export type TouchType = Array<[string, ToucheType]>;
 
 export type CacheConfig = {
-	function: Map<Function, {
-		args: any[]
-		result: any
-		touched: Set<string>
-	}>
 	touch: WeakMap<
 		any, 
 		{
@@ -42,7 +37,6 @@ export type OnGetTouches = (key: string) => TouchType;
 
 export type ProxyConfig = {
 	cache: CacheConfig
-	isRenderingRef: MutableRefObject<boolean>
 	onKeyGet: (key: string) => void
 	onKeyTouch: OnKeyTouch
 	proxyCache: WeakMap<any, any>

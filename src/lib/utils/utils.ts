@@ -2,6 +2,8 @@ import { type FormKey } from '../types';
 import { type Touches } from '../types/formTypes';
 import { type FormTrigger } from '../types/types';
 
+import { type OnKeyTouchMetadataType } from './getProxy/getProxyTypes';
+
 export function isObjectOrArray(value: any): value is object {
 	return value !== null && typeof value === 'object';
 }
@@ -71,32 +73,34 @@ export function createTriggers(
 	triggers: FormTrigger
 ): {
 		removeForm: () => void
-		triggerRender: (key?: string) => void
+		triggerRender: (key?: string, metadata?: OnKeyTouchMetadataType) => void
 		triggers: FormTrigger
 	} {
-	const triggerRender = (key?: string) => {
+	const triggerRender = (key?: string, metadata?: OnKeyTouchMetadataType) => {
+		if ( key && metadata?.isArray && !metadata.touch) {
+			keysOnRender.current.add(key);
+		}
 		if ( !key || keysOnRender.current.has(key) ) {
 			state[1]((x) => x + 1);
 		}
 	};
 
 	if ( isForm ) {
-		const splitters = new Map<string, Array<(key?: string) => void>>();
+		const splitters = new Map<string, Array<(key?: string, metadata?: OnKeyTouchMetadataType) => void>>();
 
-		const formTrigger = (key?: string) => {
+		const formTrigger = (key?: string, metadata?: OnKeyTouchMetadataType) => {
 			if ( key ) {
 				splitters
 				.forEach((events, triggerKey) => {
 					if ( 
-						key !== triggerKey 
-						&& key.startsWith(triggerKey) 
+						key.startsWith(triggerKey) 
 					) {
-						events.forEach((cb) => cb(key));
+						events.forEach((cb) => cb(key, metadata));
 					}
 				});
 			}
 
-			triggerRender(key);
+			triggerRender(key, metadata);
 		};
 
 		return {

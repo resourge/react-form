@@ -10,7 +10,7 @@ import { IS_DEV } from '../utils/constants';
 
 import { useFormCore } from './useFormCore';
 
-type UseFormSplitterResultByKey<
+export type UseFormSplitterResultByKey<
 	T extends Record<string, any>,
 	K extends FormKey<T>
 > = UseFormSplitterResult<PathValue<T, K>>;
