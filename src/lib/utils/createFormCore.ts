@@ -19,10 +19,11 @@ import {
 import { type DebounceOptions, type FormCoreOptions } from '../types/types';
 
 import { createErrors } from './createErrors';
+import { createTriggers } from './createTriggers';
 import { setFormProxy } from './getProxy/getProxy';
 import { type CacheConfig, type OnKeyTouch } from './getProxy/getProxyTypes';
 import { TARGET_VALUE } from './getProxy/getProxyUtils';
-import { createTriggers, isClass, mergeKeys } from './utils';
+import { isClass, mergeKeys } from './utils';
 
 export type FormCoreConfig<T extends Record<string, any>, FT extends FormTypes> = {
 	context: {
@@ -80,14 +81,15 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 
 	const {
 		triggerRender, triggers, removeForm 
-	} = createTriggers(
+	} = createTriggers({
 		isForm,
 		formKey,
 		keysOnRender,
 		state,
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-		context.triggers!
-	);
+		triggers: context.triggers!,
+		resetFormCore: () => form.startProxy()
+	});
 
 	const cacheConfig = context.cacheConfig ?? {
 		hasTouch: new WeakMap(),

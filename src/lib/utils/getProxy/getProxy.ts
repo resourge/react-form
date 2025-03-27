@@ -302,13 +302,6 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 	};
 }
 
-function createProxy<T extends object>(target: T, config: ProxyConfig, baseKey: string = ''): T {
-	return new Proxy<T>(
-		target, 
-		getProxyHandler(target, config, baseKey)
-	);
-}
-
 export function getProxy<T extends object>(
 	target: T, 
 	config: ProxyConfig,
@@ -335,11 +328,25 @@ export function getProxy<T extends object>(
 		// Store the proxy in the WeakMap to handle circular references
 		config.proxyCache.set(
 			reference as object, 
-			createProxy(target, config, baseKey)
+			new Proxy<T>(
+				target, 
+				getProxyHandler(target, config, baseKey)
+			)
 		);
 	}
 
 	return config.proxyCache.get(reference as object);
+}
+
+function startProxy<T extends object>(target: T, config: ProxyConfig, baseKey: string = ''): T {
+	if ( !target ) {
+		return undefined as unknown as T;
+	}
+
+	return new Proxy<T>(
+		target, 
+		getProxyHandler(target, config, baseKey)
+	);
 }
 
 // This method serves to bypass the cases where the "new form" is still undefined
@@ -348,31 +355,15 @@ export function setFormProxy<T extends object>(
 	getInitialValue: () => T, 
 	config: ProxyConfig,
 	baseKey: string
-): {
+): { 
 		proxy: T
+		startProxy: () => void
 	} {
-	const target = getInitialValue();
-	if ( !target ) {
-		const result: { proxy: T } = {
-			get proxy() {
-				const target2 = getInitialValue();
-
-				if ( target2 ) {
-					// This replaces the original value so getter is not needed after
-					Object.defineProperty(result, 'proxy', {
-						value: createProxy(target2, config, baseKey) 
-					});
-
-					return result.proxy;
-				}
-				return undefined as unknown as T;
-			}
-		};
-		
-		return result;
-	}
-
 	return {
-		proxy: createProxy(target, config, baseKey)
+		proxy: startProxy(getInitialValue(), config, baseKey),
+		startProxy() {
+			const target = getInitialValue();
+			this.proxy = startProxy(target, config, baseKey);
+		}
 	};
 }
