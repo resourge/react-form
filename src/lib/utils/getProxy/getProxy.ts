@@ -87,7 +87,7 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 
 	if ( isMutableBuiltin(target2) ) {
 		return {
-			get(target: T, prop, receiver) {
+			get(target, prop, receiver) {
 				// Handle changes to Date methods
 				let origMethod = Reflect.get(target, prop, receiver) as (...args: any[]) => any;
 				
@@ -250,7 +250,6 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 			value = getTargetValue(value);
 			const previous = deepTarget[deepProp as keyof typeof deepTarget];
 			const success = Reflect.set(deepTarget, deepProp, value, deepReceiver);
-
 			const touch = getCurrentTouch(deepTarget, cache, value);
 			
 			if ( 
@@ -355,15 +354,11 @@ export function setFormProxy<T extends object>(
 	getInitialValue: () => T, 
 	config: ProxyConfig,
 	baseKey: string
-): { 
-		proxy: T
-		startProxy: () => void
-	} {
+) {
 	return {
 		proxy: startProxy(getInitialValue(), config, baseKey),
-		startProxy() {
-			const target = getInitialValue();
-			this.proxy = startProxy(target, config, baseKey);
+		reStartProxy() {
+			this.proxy = startProxy(getInitialValue(), config, baseKey);
 		}
 	};
 }

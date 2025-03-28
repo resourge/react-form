@@ -62,7 +62,11 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		}, 
 		formOptions, 
 		touchHook,
-		contextKey
+		contextKey,
+		cacheConfig = {
+			hasTouch: new WeakMap(),
+			touch: new WeakMap()
+		}
 	} = context;
 
 	const {
@@ -88,13 +92,8 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		state,
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		triggers: context.triggers!,
-		resetFormCore: () => form.startProxy()
+		resetFormCore: () => form.reStartProxy()
 	});
-
-	const cacheConfig = context.cacheConfig ?? {
-		hasTouch: new WeakMap(),
-		touch: new WeakMap()
-	};
 
 	const form = setFormProxy<T>(
 		() => (

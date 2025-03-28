@@ -41,7 +41,7 @@ export function createTriggers(
 		const resetFormCores = new Map<string, Array<() => void>>();
 
 		const formTrigger = (key?: string, metadata?: OnKeyTouchMetadataType) => {
-			if ( key ) {
+			if ( key !== undefined ) {
 				if ( resetFormCores.has(key) ) {
 					resetFormCores
 					.forEach((events, triggerKey) => {
