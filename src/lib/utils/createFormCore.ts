@@ -243,15 +243,15 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 
 		touchesRef.current.clear();
 	};
-	
+
 	const reset: ResetMethod<T> = (
-		newFrom, 
+		newFrom = {}, 
 		{ clearTouched = true } = {}
 	) => {
 		stateRef.preventStateUpdate = true;
 
 		// Needs to be like this, otherwise it looses Class instance
-		(Object.keys(newFrom) as Array<keyof T>)
+		(Object.keys(newFrom.length ? newFrom : form.proxy) as Array<keyof T>)
 		.forEach((key) => form.proxy[key] = newFrom[key] as T[keyof T]);
 
 		if ( clearTouched ) {

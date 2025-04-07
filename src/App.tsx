@@ -53,7 +53,9 @@ const Root = () => {
 };
 
 const App: React.FC<Props> = ({ }) => {
-	const { form, context } = useForm({
+	const {
+		form, context, reset 
+	} = useForm({
 		root: {
 			value: 'root',
 			child: {
@@ -80,6 +82,13 @@ const App: React.FC<Props> = ({ }) => {
 				}}
 			>
 				Set Child
+			</button>
+			<button
+				onClick={() => {
+					reset({});
+				}}
+			>
+				reset
 			</button>
 		</FormProvider>
 	);
