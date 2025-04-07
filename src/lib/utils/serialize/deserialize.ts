@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { IS_DEV } from '../constants';
 
 import { SerializePrototypes } from './SerializePrototypes';
@@ -27,6 +26,7 @@ const DeserializeFunctions: Record<string, (value: SerializeMetaType, context: D
 	[SerializePrototypes.Object]: (value: SerializeMetaType, context: DeserializeContext) => deserializeValues(value, context, {}),
 	[SerializePrototypes.Array]: (value: SerializeMetaType, context: DeserializeContext) => deserializeArray((value.value as any[]), context),
 	[SerializePrototypes.Repeat]: (value: SerializeMetaType, context: DeserializeContext) => {
+		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		const key = value.repeatKey!;
 
 		if ( context.done[key] ) {
@@ -56,9 +56,11 @@ function deserializeArray(serializedMeta: any[], context: DeserializeContext) {
 }
 
 const createCycle = (meta: SerializeMetaType, originalMeta: Record<number, SerializeMetaType>): SerializeMetaType => {
+	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 	if ( meta.prototype === SerializePrototypes.Repeat && originalMeta[meta.repeatKey!] ) {
 		return {
 			...meta,
+			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 			value: originalMeta[meta.repeatKey!].value,
 			prototype: SerializePrototypes.Repeat,
 			repeatKey: meta.repeatKey

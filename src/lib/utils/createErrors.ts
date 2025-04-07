@@ -1,3 +1,5 @@
+import { type MutableRefObject } from 'react';
+
 import { type FormKey } from '../types/FormKey';
 import { type ValidationErrors } from '../types/errorsTypes';
 import { type FormValidationType, type GetErrorsOptions, type ValidateSubmissionErrors } from '../types/formTypes';
@@ -8,7 +10,7 @@ import { formatErrors } from './formatErrors';
 import { setSubmitDeepKeys } from './utils';
 
 export type UseErrorsConfig<T extends Record<string, any>> = {
-	keysOnRender: React.MutableRefObject<Set<string>>
+	keysOnRender: MutableRefObject<Set<string>>
 	resolveKey: (key: string) => FormKey<T>
 	stateRef: NonNullable<FormCoreOptions<T>['stateRef']>
 	touchHook: FormCoreOptions<T>['touchHook']
@@ -151,7 +153,7 @@ export function createErrors<T extends Record<string, any>>(
 			: e.errors;
 	}
 
-	const hasError = (key: FormKey<T>, options: GetErrorsOptions = {}): boolean => !!getErrors(resolveKey(key), options).length;
+	const hasError = (key: FormKey<T>, options: GetErrorsOptions = {}): boolean => !!getErrors(key, options).length;
 
 	return {
 		hasError,

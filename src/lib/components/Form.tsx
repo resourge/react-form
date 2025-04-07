@@ -1,11 +1,11 @@
-import { type JSX } from 'react';
+import { type FormHTMLAttributes, type JSX } from 'react';
 
 import { type SubmitHandler } from '../types';
 
 import { FormProvider, type FormProviderProps } from './FormProvider';
 
 export type FormProps<T extends Record<string, any>> = FormProviderProps<T> 
-	& Omit<React.FormHTMLAttributes<HTMLFormElement>, 'onSubmit'>
+	& Omit<FormHTMLAttributes<HTMLFormElement>, 'onSubmit'>
 	& {
 		onSubmit?: SubmitHandler<T, any>
 	};

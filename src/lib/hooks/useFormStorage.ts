@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/prefer-function-type */
 import { useEffect, useRef } from 'react';
 
 import { type FormOptions, type UseFormReturn } from '../types';
@@ -61,6 +60,7 @@ type UseFormStorageReturn<T extends Record<string, any>> = UseFormReturn<T> & {
  * * By default it will clear the form from storage when submitted with success.
  */
 export function useFormStorage<T extends Record<string, any>>(
+	// eslint-disable-next-line @typescript-eslint/prefer-function-type
 	defaultValue: ({ new(): T }), 
 	options: FormStorageOptions<T>
 ): UseFormStorageReturn<T>;
@@ -73,6 +73,7 @@ export function useFormStorage<T extends Record<string, any>>(
 	options: FormStorageOptions<T>
 ): UseFormStorageReturn<T>;
 export function useFormStorage<T extends Record<string, any>>(
+	// eslint-disable-next-line @typescript-eslint/prefer-function-type
 	defaultValue: T | (() => T) | ({ new(): T }), 
 	options: FormStorageOptions<T>
 ): UseFormStorageReturn<T> {

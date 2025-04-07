@@ -1,4 +1,9 @@
-import { forwardRef, useMemo, type JSX } from 'react';
+import {
+	type ForwardedRef,
+	forwardRef,
+	useMemo,
+	type JSX
+} from 'react';
 
 import { FormProvider } from '../components';
 import { useForm } from '../hooks';
@@ -19,7 +24,7 @@ export type SetupJsonFormConfig<
 	render: (
 		props: Props,
 		formContext: UseFormReturn<Record<string, any>>,
-		ref: React.ForwardedRef<Ref>
+		ref: ForwardedRef<Ref>
 	) => JSX.Element
 	validate: (schema: unknown) => FormOptions<Record<string, any>>['validate']
 	getInitialData?: <T = unknown>(schema: T) => unknown

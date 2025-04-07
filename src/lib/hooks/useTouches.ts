@@ -1,16 +1,16 @@
-import { useEffect, useRef } from 'react';
+import { type MutableRefObject, useEffect, useRef } from 'react';
 
 import { type FormKey } from '../types';
 import { type FormValidationType, type Touches } from '../types/formTypes';
 import { forEachPossibleKey } from '../utils/utils';
 
 export type TouchesResult<T extends Record<string, any>> = {
-	changedKeysRef: React.MutableRefObject<Set<FormKey<T>>>
+	changedKeysRef: MutableRefObject<Set<FormKey<T>>>
 	changeTouch: (key: FormKey<T> | string, touch?: boolean) => void
 	hasTouch: <Model extends Record<string, any> = T>(key: FormKey<Model>) => boolean
 	setTouch: <Model extends Record<string, any> = T>(key: FormKey<Model>, touch: boolean, submitted?: boolean) => void
-	shouldUpdateErrorsRef: React.MutableRefObject<boolean>
-	touchesRef: React.MutableRefObject<Touches>
+	shouldUpdateErrorsRef: MutableRefObject<boolean>
+	touchesRef: MutableRefObject<Touches>
 };
 
 export const useTouches = <T extends Record<string, any>>(validationType: FormValidationType = 'onSubmit'): TouchesResult<T> => {
@@ -62,7 +62,6 @@ export const useTouches = <T extends Record<string, any>>(validationType: FormVa
 	
 	useEffect(() => {
 		changedKeysRef.current.clear();
-		shouldUpdateErrorsRef.current = false;
 	});
 
 	return {

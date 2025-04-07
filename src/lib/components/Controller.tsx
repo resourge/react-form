@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { type JSX, memo } from 'react';
+import { type JSX, memo, type ReactNode } from 'react';
 
 import { ControllerContext } from '../contexts/ControllerContext';
 import { type FormKey } from '../types/FormKey';
 import { type FormContextType } from '../types/formTypes';
 
 export type ControllerProps<T extends Record<string, any>> = {
-	children: React.ReactNode
+	children: ReactNode
 	context: FormContextType<T, any>
 	name: FormKey<T>
 	deps?: any[]
@@ -61,6 +61,8 @@ export const Controller = memo(function Controller({ name, children }: Controlle
 	// Determine if any of the changed keys are related to the name prop
 	const shouldUpdate = nextProps.context.changedKeys
 	.some((changedKey) => changedKey.includes(nextProps.name) || nextProps.name.includes(changedKey));
+
+	nextProps.context.keysOnRender.current.add(nextProps.name);
 
 	return (
 		prevProps.name === nextProps.name && !shouldUpdate && isSameDeps

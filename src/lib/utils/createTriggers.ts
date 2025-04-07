@@ -1,100 +1,105 @@
+import { type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
+
 import { type OnKeyTouchMetadataType } from './getProxy/getProxyTypes';
 
-export type FormTrigger = {
-	formTrigger: (key?: string, metadata?: OnKeyTouchMetadataType) => void
-	resetFormCores: Map<string, Array<() => void>>
-	splitters: Map<string, Array<(key?: string) => void>>
-};
-
-export type CreateTriggersResult = {
-	removeForm: () => void
-	triggerRender: (key?: string, metadata?: OnKeyTouchMetadataType) => void
-	triggers: FormTrigger
-};
+export type FormTrigger = Map<string, {
+	resetFormCores: Array<() => void>
+	splitter: Array<(key: string) => void>
+}>;
 
 export type CreateTriggersConfig = {
 	formKey: string
 	isForm: boolean
-	keysOnRender: React.MutableRefObject<Set<string>>
+	keysOnRender: MutableRefObject<Set<string>>
 	resetFormCore: () => void
-	state: [number, React.Dispatch<React.SetStateAction<number>>]
+	state: [number, Dispatch<SetStateAction<number>>]
 	triggers: FormTrigger
+};
+
+export type CreateTriggersResult = {
+	removeForm: () => void
+	triggerRender: (key: string) => void
+	triggers?: FormTrigger
 };
 
 export function createTriggers(
 	{
 		formKey, isForm, keysOnRender,
-		resetFormCore, state, triggers
+		resetFormCore, state, 
+		triggers = new Map<string, {
+			resetFormCores: Array<() => void>
+			splitter: Array<(key?: string, metadata?: OnKeyTouchMetadataType) => void>
+		}>()
 	}: CreateTriggersConfig
 ): CreateTriggersResult {
-	const triggerRender = (key?: string, metadata?: OnKeyTouchMetadataType) => {
-		if ( key && metadata?.isArray && !metadata.touch) {
-			keysOnRender.current.add(key);
+	function check(key: string) {
+		for (const keyRender of keysOnRender.current) {
+			if ( keyRender === key || key.startsWith(keyRender) ) {
+				return true;
+			}
 		}
-		if ( !key || keysOnRender.current.has(key) ) {
+		return false;
+	}
+
+	const triggerRender = (key: string) => {
+		if ( !key || key === formKey || check(key) ) {
 			state[1]((x) => x + 1);
 		}
 	};
 
-	if ( isForm ) {
-		const splitters = new Map<string, Array<(key?: string, metadata?: OnKeyTouchMetadataType) => void>>();
-		const resetFormCores = new Map<string, Array<() => void>>();
-
-		const formTrigger = (key?: string, metadata?: OnKeyTouchMetadataType) => {
-			if ( key !== undefined ) {
-				if ( resetFormCores.has(key) ) {
-					resetFormCores
-					.forEach((events, triggerKey) => {
-						if ( 
-							triggerKey.startsWith(key) 
-						) {
-							events.forEach((cb) => cb());
-						}
-					});
-				}
-
-				splitters
-				.forEach((events, triggerKey) => {
-					if ( 
-						key.startsWith(triggerKey) 
-					) {
-						events.forEach((cb) => cb(key, metadata));
-					}
-				});
-			}
-
-			triggerRender(key, metadata);
-		};
-
-		return {
-			triggers: {
-				formTrigger,
-				splitters,
-				resetFormCores
-			},
-			triggerRender: formTrigger,
-			removeForm: () => {}
-		};
+	if ( !triggers.has(formKey) ) {
+		triggers.set(formKey, {
+			splitter: [],
+			resetFormCores: [] 
+		});
 	}
 
-	const events = triggers.splitters.get(formKey) ?? [];
-	events.push(triggerRender);
-	triggers.splitters.set(formKey, events);
+	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+	const events = triggers.get(formKey)!;
+	events.splitter.push(triggerRender);
+	if ( !isForm ) {
+		events.resetFormCores.push(resetFormCore);
+	}
 
-	const resetFormCoreEvents = triggers.resetFormCores.get(formKey) ?? [];
-	resetFormCoreEvents.push(resetFormCore);
-	triggers.resetFormCores.set(formKey, resetFormCoreEvents);
+	const removeForm = isForm
+		? () => {}
+		: () => {
+			const events = triggers.get(formKey);
+			if ( events ) {
+				const index = events.splitter.indexOf(triggerRender);
+				if (index !== -1) {
+					events.splitter.splice(index, 1);
+				};
+				
+				const resetIndex = events.resetFormCores.indexOf(resetFormCore);
+				if (resetIndex !== -1) {
+					events.resetFormCores.splice(resetIndex, 1);
+				};
 
-	const removeForm = () => {
-		const index = events.indexOf(triggerRender);
-		if (index !== -1) {
-			events.splice(index, 1);
+				if ( events.splitter.length === 0 && events.resetFormCores.length === 0 ) {
+					triggers.delete(formKey);
+				}
+			}
 		};
-	};
 	
 	return {
 		triggers,
-		triggerRender,
+		triggerRender: (key: string) => {
+			triggers
+			.forEach(({ splitter, resetFormCores }, triggerKey) => {
+				if ( 
+					triggerKey.startsWith(key) 
+				) {
+					resetFormCores.forEach((cb) => cb());
+				}
+				
+				if ( 
+					key.startsWith(triggerKey) 
+				) {
+					splitter.forEach((cb) => cb(key));
+				}
+			});
+		},
 		removeForm
 	};
 }

@@ -1,6 +1,9 @@
-/* eslint-disable @typescript-eslint/no-invalid-void-type */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { type FormEvent } from 'react';
+import {
+	type MutableRefObject,
+	type FormEvent,
+	type MouseEvent,
+	type BaseSyntheticEvent
+} from 'react';
 
 import { type CacheConfig } from '../utils/getProxy/getProxyTypes';
 
@@ -218,6 +221,7 @@ export type FormContextType<T extends Record<string, any>, FT extends FormTypes 
 	cacheConfig: CacheConfig
 	changedKeys: Array<FormKey<T>>
 	formState: UseFormReturn<T, FT>
+	keysOnRender: MutableRefObject<Set<string>>
 	toJSON: () => object
 	type: FT
 } & FormCoreOptions<T>;
@@ -360,7 +364,7 @@ export type UseFormReturn<T extends Record<string, any>, FT extends FormTypes = 
 	handleSubmit: <K = void>(
 		onValid: SubmitHandler<T, K>, 
 		validateErrors?: ValidateSubmissionErrors
-	) => (e?: FormEvent<HTMLFormElement> | React.MouseEvent<any, React.MouseEvent> | React.BaseSyntheticEvent) => Promise<K | undefined>
+	) => (e?: FormEvent<HTMLFormElement> | MouseEvent<any, MouseEvent> | BaseSyntheticEvent) => Promise<K | undefined>
 	/**
 	 * Method to verify if `key` has errors
 	 * 
