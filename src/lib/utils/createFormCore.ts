@@ -67,7 +67,14 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		stateRef = {
 			formErrors: {} as FormErrors<T>,
 			errors: [],
-			preventStateUpdate: false
+			preventStateUpdate: false,
+			verifyErrors: () => {
+				if ( shouldUpdateErrorsRef.current ) {
+					shouldUpdateErrorsRef.current = false;
+					const res = formValidate(form, getChangedKeys());
+					res instanceof Promise ? res.then(renderNewErrors) : setErrors(res);
+				}
+			}
 		}, 
 		formOptions, 
 		touchHook,
@@ -222,14 +229,6 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 	};
 
 	const getChangedKeys = () => Array.from(changedKeysRef.current);
-
-	const verifyErrors = () => {
-		if ( shouldUpdateErrorsRef.current ) {
-			shouldUpdateErrorsRef.current = false;
-			const res = formValidate(form, getChangedKeys());
-			res instanceof Promise ? res.then(renderNewErrors) : setErrors(res);
-		}
-	};
 
 	const resetTouch = () => {
 		if ( formKey ) {
@@ -432,7 +431,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 
 	return [
 		formState, 
-		verifyErrors,
+		stateRef.verifyErrors,
 		removeForm
 	] as const;
 }

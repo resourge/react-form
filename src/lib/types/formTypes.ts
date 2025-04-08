@@ -46,6 +46,7 @@ export type FormStateRef<T extends Record<string, any>> = {
 	errors: ValidationErrors
 	formErrors: FormErrors<T>
 	preventStateUpdate: boolean
+	verifyErrors: () => void
 };
 
 export type FormErrors<T extends Record<string, any>> = {

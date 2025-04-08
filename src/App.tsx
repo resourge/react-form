@@ -13,7 +13,7 @@ type Props = {
 
 const Child = () => {
 	const {
-		form, context, field 
+		form, context, field, getErrors
 	} = useFormSplitter('child');
 
 	console.log(form.value, form);
@@ -23,6 +23,10 @@ const Child = () => {
 			<input
 				{...field('value')}
 			/>
+			<br />
+			Errors: 
+			{ ' ' }
+			{ getErrors('') }
 			<br />
 			{
 				form.child
@@ -54,18 +58,37 @@ const Root = () => {
 
 const App: React.FC<Props> = ({ }) => {
 	const {
-		form, context, reset 
-	} = useForm({
-		root: {
-			value: 'root',
-			child: {
-				value: 'child1',
+		form, context, reset, handleSubmit
+	} = useForm(
+		{
+			root: {
+				value: 'root',
 				child: {
-					value: 'child2'
+					value: 'child1',
+					child: {
+						value: 'child2'
+					}
 				}
 			}
+		},
+		{
+			validate: (form) => {
+				console.log('form', form);
+				return [
+					form.root.child.child.value === 'child2' 
+						? {
+							path: 'root.child',
+							error: `Error`
+						} : undefined,
+					form.root.child.child.value === 'child2' 
+						? {
+							path: 'root.child.child',
+							error: `Error`
+						} : undefined
+				].filter(Boolean) as any;
+			}
 		}
-	});
+	);
 	console.log('form', form);
 	return (
 		<FormProvider context={context}>
@@ -84,11 +107,11 @@ const App: React.FC<Props> = ({ }) => {
 				Set Child
 			</button>
 			<button
-				onClick={() => {
-					reset({});
-				}}
+				onClick={handleSubmit(() => {
+
+				})}
 			>
-				reset
+				handleSubmit
 			</button>
 		</FormProvider>
 	);
