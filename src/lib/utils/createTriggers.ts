@@ -1,4 +1,4 @@
-import { type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
+import { type Dispatch, type SetStateAction } from 'react';
 
 import { type OnKeyTouchMetadataType } from './getProxy/getProxyTypes';
 
@@ -7,7 +7,7 @@ export type FormTrigger = Map<string, Array<(key: string) => void>>;
 export type CreateTriggersConfig = {
 	formKey: string
 	isForm: boolean
-	keysOnRender: MutableRefObject<Set<string>>
+	keysOnRender: Set<string>
 	state: [number, Dispatch<SetStateAction<number>>]
 	triggers: FormTrigger
 };
@@ -25,7 +25,7 @@ export function createTriggers(
 	}: CreateTriggersConfig
 ): CreateTriggersResult {
 	function check(key: string) {
-		for (const keyRender of keysOnRender.current) {
+		for (const keyRender of keysOnRender) {
 			if ( keyRender === key || key.startsWith(keyRender) ) {
 				return true;
 			}

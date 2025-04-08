@@ -62,7 +62,7 @@ export const Controller = memo(function Controller({ name, children }: Controlle
 	const shouldUpdate = nextProps.context.changedKeys
 	.some((changedKey) => changedKey.includes(nextProps.name) || nextProps.name.includes(changedKey));
 
-	nextProps.context.keysOnRender.current.add(nextProps.name);
+	nextProps.context.keysOnRender.add(nextProps.name);
 
 	return (
 		prevProps.name === nextProps.name && !shouldUpdate && isSameDeps

@@ -1,9 +1,4 @@
-import {
-	type MutableRefObject,
-	type FormEvent,
-	type MouseEvent,
-	type BaseSyntheticEvent
-} from 'react';
+import { type BaseSyntheticEvent, type FormEvent, type MouseEvent } from 'react';
 
 import { type CacheConfig } from '../utils/getProxy/getProxyTypes';
 
@@ -47,7 +42,7 @@ export type FormStateRef<T extends Record<string, any>> = {
 	formErrors: FormErrors<T>
 	preventStateUpdate: boolean
 	verifyErrors: () => void
-};
+} & CacheConfig;
 
 export type FormErrors<T extends Record<string, any>> = {
 	[K in FormKey<T>]?: FormError<T[K]>
@@ -219,10 +214,9 @@ export type ValidateSubmissionErrors = (newErrors: ValidationErrors) => Validati
 export type FormTypes = 'form' | 'formSplitter' | 'formContext';
 
 export type FormContextType<T extends Record<string, any>, FT extends FormTypes = 'form'> = {
-	cacheConfig: CacheConfig
 	changedKeys: Array<FormKey<T>>
 	formState: UseFormReturn<T, FT>
-	keysOnRender: MutableRefObject<Set<string>>
+	keysOnRender: Set<string>
 	toJSON: () => object
 	type: FT
 } & FormCoreOptions<T>;

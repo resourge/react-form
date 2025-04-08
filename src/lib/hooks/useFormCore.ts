@@ -12,9 +12,6 @@ export const useFormCore = <
 	const state = useState(0);
 
 	const isRenderingRef = useIsRendering();
-	const keysOnRender = useRef(new Set<string>());
-	// For if cases were keys stop being "used"
-	keysOnRender.current.clear();
 
 	const formRef = useRef<{ 
 		config: FormCoreConfig<T, FT>
@@ -33,8 +30,7 @@ export const useFormCore = <
 			formState: createFormCore<T, FT>({
 				config, 
 				isRenderingRef,
-				state,
-				keysOnRender
+				state
 			}),
 			config
 		};
@@ -43,8 +39,12 @@ export const useFormCore = <
 	const [
 		proxy, 
 		verifyErrors,
-		removeForm
+		removeForm,
+		keysOnRender
 	] = formRef.current.formState;
+
+	// For if cases were keys stop being "used"
+	keysOnRender.clear();
 
 	useEffect(() => () => removeForm(), []);
 

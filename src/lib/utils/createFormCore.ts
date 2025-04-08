@@ -1,11 +1,11 @@
 import {
-	type Dispatch,
-	type MutableRefObject,
-	type SetStateAction,
+	type BaseSyntheticEvent,
 	type ChangeEvent,
+	type Dispatch,
 	type FormEvent,
 	type MouseEvent,
-	type BaseSyntheticEvent
+	type MutableRefObject,
+	type SetStateAction
 } from 'react';
 
 import {
@@ -29,13 +29,12 @@ import { type DebounceOptions, type FormCoreOptions } from '../types/types';
 import { createErrors } from './createErrors';
 import { createTriggers } from './createTriggers';
 import { setFormProxy } from './getProxy/getProxy';
-import { type CacheConfig, type OnKeyTouch } from './getProxy/getProxyTypes';
+import { type OnKeyTouch } from './getProxy/getProxyTypes';
 import { TARGET_VALUE } from './getProxy/getProxyUtils';
 import { isClass, mergeKeys } from './utils';
 
 export type FormCoreConfig<T extends Record<string, any>, FT extends FormTypes> = {
 	context: {
-		cacheConfig: CacheConfig
 		formState: UseFormReturn<T, any>
 	} & FormCoreOptions<T>
 	type: FT
@@ -49,7 +48,6 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 	{
 		state, 
 		isRenderingRef, 
-		keysOnRender,
 		config: { 
 			defaultValue, 
 			context, 
@@ -59,10 +57,11 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 	}: {
 		config: FormCoreConfig<T, FT>
 		isRenderingRef: MutableRefObject<boolean>
-		keysOnRender: MutableRefObject<Set<string>>
 		state: [number, Dispatch<SetStateAction<number>>]
 	}
 ) {
+	const keysOnRender = new Set<string>();
+
 	const {
 		stateRef = {
 			formErrors: {} as FormErrors<T>,
@@ -74,15 +73,13 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 					const res = formValidate(form, getChangedKeys());
 					res instanceof Promise ? res.then(renderNewErrors) : setErrors(res);
 				}
-			}
+			},
+			hasTouch: new WeakMap(),
+			touch: new WeakMap()
 		}, 
 		formOptions, 
 		touchHook,
-		contextKey,
-		cacheConfig = {
-			hasTouch: new WeakMap(),
-			touch: new WeakMap()
-		}
+		contextKey
 	} = context;
 
 	const {
@@ -134,7 +131,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 			onKeyTouch: async (key, metadata) => {
 				if ( metadata?.isArray ) {
 					if (!metadata.touch) {
-						keysOnRender.current.add(key);
+						keysOnRender.add(key);
 						// no touch means it was deleted
 						touchesRef.current
 						.forEach((_, touchKey) => {
@@ -172,11 +169,11 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 					triggerRender(key);
 				}
 			},
-			onKeyGet: (key) => isRenderingRef.current && keysOnRender.current.add(key),
+			onKeyGet: (key) => isRenderingRef.current && keysOnRender.add(key),
 			
 			touchesRef,
 			proxyCache: new WeakMap(),
-			cache: cacheConfig
+			cache: stateRef
 		},
 		formKey
 	);
@@ -425,8 +422,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 				...this,
 				formState: `[Prevent circular dependency]`
 			};
-		},
-		cacheConfig
+		}
 	};
 
 	return [
