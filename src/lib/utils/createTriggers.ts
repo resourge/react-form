@@ -2,16 +2,12 @@ import { type Dispatch, type MutableRefObject, type SetStateAction } from 'react
 
 import { type OnKeyTouchMetadataType } from './getProxy/getProxyTypes';
 
-export type FormTrigger = Map<string, {
-	resetFormCores: Array<() => void>
-	splitter: Array<(key: string) => void>
-}>;
+export type FormTrigger = Map<string, Array<(key: string) => void>>;
 
 export type CreateTriggersConfig = {
 	formKey: string
 	isForm: boolean
 	keysOnRender: MutableRefObject<Set<string>>
-	resetFormCore: () => void
 	state: [number, Dispatch<SetStateAction<number>>]
 	triggers: FormTrigger
 };
@@ -24,12 +20,8 @@ export type CreateTriggersResult = {
 
 export function createTriggers(
 	{
-		formKey, isForm, keysOnRender,
-		resetFormCore, state, 
-		triggers = new Map<string, {
-			resetFormCores: Array<() => void>
-			splitter: Array<(key?: string, metadata?: OnKeyTouchMetadataType) => void>
-		}>()
+		formKey, isForm, keysOnRender, state, 
+		triggers = new Map<string, Array<(key?: string, metadata?: OnKeyTouchMetadataType) => void>>()
 	}: CreateTriggersConfig
 ): CreateTriggersResult {
 	function check(key: string) {
@@ -48,35 +40,24 @@ export function createTriggers(
 	};
 
 	if ( !triggers.has(formKey) ) {
-		triggers.set(formKey, {
-			splitter: [],
-			resetFormCores: [] 
-		});
+		triggers.set(formKey, []);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 	const events = triggers.get(formKey)!;
-	events.splitter.push(triggerRender);
-	if ( !isForm ) {
-		events.resetFormCores.push(resetFormCore);
-	}
+	events.push(triggerRender);
 
 	const removeForm = isForm
 		? () => {}
 		: () => {
 			const events = triggers.get(formKey);
 			if ( events ) {
-				const index = events.splitter.indexOf(triggerRender);
+				const index = events.indexOf(triggerRender);
 				if (index !== -1) {
-					events.splitter.splice(index, 1);
-				};
-				
-				const resetIndex = events.resetFormCores.indexOf(resetFormCore);
-				if (resetIndex !== -1) {
-					events.resetFormCores.splice(resetIndex, 1);
+					events.splice(index, 1);
 				};
 
-				if ( events.splitter.length === 0 && events.resetFormCores.length === 0 ) {
+				if ( events.length === 0 ) {
 					triggers.delete(formKey);
 				}
 			}
@@ -86,17 +67,11 @@ export function createTriggers(
 		triggers,
 		triggerRender: (key: string) => {
 			triggers
-			.forEach(({ splitter, resetFormCores }, triggerKey) => {
-				if ( 
-					triggerKey.startsWith(key) 
-				) {
-					resetFormCores.forEach((cb) => cb());
-				}
-				
+			.forEach((trigger, triggerKey) => {
 				if ( 
 					key.startsWith(triggerKey) 
 				) {
-					splitter.forEach((cb) => cb(key));
+					trigger.forEach((cb) => cb(key));
 				}
 			});
 		},

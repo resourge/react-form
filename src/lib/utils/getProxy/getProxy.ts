@@ -337,7 +337,7 @@ export function getProxy<T extends object>(
 	return config.proxyCache.get(reference as object);
 }
 
-function startProxy<T extends object>(target: T, config: ProxyConfig, baseKey: string = ''): T {
+export function setFormProxy<T extends object>(target: T, config: ProxyConfig, baseKey: string = ''): T {
 	if ( !target ) {
 		return undefined as unknown as T;
 	}
@@ -346,19 +346,4 @@ function startProxy<T extends object>(target: T, config: ProxyConfig, baseKey: s
 		target, 
 		getProxyHandler(target, config, baseKey)
 	);
-}
-
-// This method serves to bypass the cases where the "new form" is still undefined
-// Example when "form" is from an array
-export function setFormProxy<T extends object>(
-	getInitialValue: () => T, 
-	config: ProxyConfig,
-	baseKey: string
-) {
-	return {
-		proxy: startProxy(getInitialValue(), config, baseKey),
-		reStartProxy() {
-			this.proxy = startProxy(getInitialValue(), config, baseKey);
-		}
-	};
 }

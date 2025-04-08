@@ -42,6 +42,7 @@ export type FormCoreConfig<T extends Record<string, any>, FT extends FormTypes> 
 	defaultValue?: T | (() => T) | ((new() => T))
 	formFieldKey?: FormKey<T>
 	onKeyTouch?: OnKeyTouch
+	value?: any
 };
 
 export function createFormCore<T extends Record<string, any>, FT extends FormTypes = 'form'>(
@@ -99,12 +100,11 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		keysOnRender,
 		state,
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-		triggers: context.triggers!,
-		resetFormCore: () => form.reStartProxy()
+		triggers: context.triggers!
 	});
 
 	const form = setFormProxy<T>(
-		() => (
+		(
 			formFieldKey
 				// In formSplitter case
 				? context.formState.getValue(formFieldKey)?.[TARGET_VALUE]
@@ -152,14 +152,14 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 				);
 		
 				if ( watch ) {
-					const res = watch?.[key as keyof typeof watch]?.(form.proxy);
+					const res = watch?.[key as keyof typeof watch]?.(form);
 					if ( res instanceof Promise ) {
 						// eslint-disable-next-line no-await-in-loop
 						await res;
 					}
 				}
 		
-				onChange?.(form.proxy);
+				onChange?.(form);
 		
 				if ( !stateRef.preventStateUpdate ) {
 					triggerRender(key);
@@ -203,7 +203,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		newErrors.forEach(({ path }) => {
 			setTouch(
 				path, 
-				form.proxy[path], 
+				form[path], 
 				true 
 			);
 	
@@ -226,7 +226,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 	const verifyErrors = () => {
 		if ( shouldUpdateErrorsRef.current ) {
 			shouldUpdateErrorsRef.current = false;
-			const res = formValidate(form.proxy, getChangedKeys());
+			const res = formValidate(form, getChangedKeys());
 			res instanceof Promise ? res.then(renderNewErrors) : setErrors(res);
 		}
 	};
@@ -251,8 +251,8 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		stateRef.preventStateUpdate = true;
 
 		// Needs to be like this, otherwise it looses Class instance
-		(Object.keys(newFrom.length ? newFrom : form.proxy) as Array<keyof T>)
-		.forEach((key) => form.proxy[key] = newFrom[key] as T[keyof T]);
+		(Object.keys(newFrom.length ? newFrom : form) as Array<keyof T>)
+		.forEach((key) => form[key] = newFrom[key] as T[keyof T]);
 
 		if ( clearTouched ) {
 			resetTouch();
@@ -282,7 +282,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		name: FormKey<T>, 
 		fieldOptions: FieldOptions = {}
 	): FieldFormReturn => {
-		let value = form.proxy[name];
+		let value = form[name];
 
 		if ( fieldOptions.readOnly ) {
 			return {
@@ -292,7 +292,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 			};
 		}
 
-		let onChangeFn = (value: T[FormKey<T>] | ChangeEvent) => form.proxy[name] = getParsedValue(value, fieldOptions.onChange);
+		let onChangeFn = (value: T[FormKey<T>] | ChangeEvent) => form[name] = getParsedValue(value, fieldOptions.onChange);
 
 		if ( fieldOptions.debounce ) {
 			if ( !debounces.has(name) ) {
@@ -316,7 +316,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 					
 				deb.timeout = setTimeout(() => {
 					debounces.delete(name);
-					form.proxy[name] = deb.value;
+					form[name] = deb.value;
 				}, fieldOptions.debounce);
 				
 				// To update current component only
@@ -358,7 +358,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		// This serves so onlyOnTouch validations still work on handleSubmit
 		changedKeysRef.current.add('*' as FormKey<T>);
 	
-		const newErrors = await validateSubmission(form.proxy, getChangedKeys(), validateErrors);
+		const newErrors = await validateSubmission(form, getChangedKeys(), validateErrors);
 		if ( newErrors.length ) {
 			renderNewErrors(newErrors);
 			// eslint-disable-next-line @typescript-eslint/only-throw-error
@@ -367,16 +367,14 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		
 		triggerRender(formKey);
 
-		onSubmit?.(form.proxy);
+		onSubmit?.(form);
 	
-		return await onValid(form.proxy);
+		return await onValid(form);
 	};
 
 	// Necessary for references
 	const formState: UseFormReturn<T, FT> = {
-		get form() {
-			return form.proxy;
-		},
+		form,
 		get context() {
 			return formContext;
 		},
@@ -391,8 +389,8 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		get isTouched() {
 			return hasTouch(formKey);
 		},
-		changeValue: (key: FormKey<T>, value: any) => form.proxy[key] = value,
-		getValue: (key: FormKey<T>) => form.proxy[key],
+		changeValue: (key: FormKey<T>, value: any) => form[key] = value,
+		getValue: (key: FormKey<T>) => form[key],
 		reset,
 		field,
 		getErrors,

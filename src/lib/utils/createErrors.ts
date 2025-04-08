@@ -63,8 +63,7 @@ export function createErrors<T extends Record<string, any>>(
 	 * @param changedKeys Keys that have changed
 	 * @returns New validated state
 	 */
-	const formValidate = (form: T, changedKeys: Array<FormKey<T>>): ValidationErrors | Promise<ValidationErrors> => 
-		validate?.(form, changedKeys) ?? [];
+	const formValidate = (form: T, changedKeys: Array<FormKey<T>>): ValidationErrors | Promise<ValidationErrors> => validate?.(form, changedKeys) ?? [];
 
 	const validateSubmission = async (
 		form: T, 

@@ -44,6 +44,7 @@ export function useFormSplitter<
 	return useFormCore<PathValue<T, K>, 'formSplitter'>({
 		context,
 		type: 'formSplitter',
-		formFieldKey
+		formFieldKey,
+		value: context.formState.getValue(formFieldKey)
 	}) as unknown as UseFormSplitterResultByKey<T, K>;
 }

@@ -16,20 +16,35 @@ export const useFormCore = <
 	// For if cases were keys stop being "used"
 	keysOnRender.current.clear();
 
+	const formRef = useRef<{ 
+		config: FormCoreConfig<T, FT>
+		formState: any
+	}>({
+		formState: undefined,
+		config
+	});
+
+	if ( 
+		!formRef.current.formState
+		|| formRef.current.config.formFieldKey !== config.formFieldKey
+		|| formRef.current.config.value !== config.value
+	) {
+		formRef.current = {
+			formState: createFormCore<T, FT>({
+				config, 
+				isRenderingRef,
+				state,
+				keysOnRender
+			}),
+			config
+		};
+	}
+
 	const [
-		[
-			proxy, 
-			verifyErrors,
-			removeForm
-		]
-	] = useState(() => 
-		createFormCore<T, FT>({
-			config, 
-			isRenderingRef,
-			state,
-			keysOnRender
-		})
-	);
+		proxy, 
+		verifyErrors,
+		removeForm
+	] = formRef.current.formState;
 
 	useEffect(() => () => removeForm(), []);
 
