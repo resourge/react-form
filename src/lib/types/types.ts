@@ -15,3 +15,8 @@ export type DebounceOptions = {
 	timeout: NodeJS.Timeout
 	value: any 
 };
+
+export type OnRenderType = {
+	isRendering: boolean
+	renderKeys: Set<string>
+};

@@ -4,7 +4,7 @@ import { type CacheConfig } from '../utils/getProxy/getProxyTypes';
 
 import { type FormKey } from './FormKey';
 import { type ValidationErrors } from './errorsTypes';
-import { type FormCoreOptions } from './types';
+import { type OnRenderType, type FormCoreOptions } from './types';
 
 export type ToucheType = {
 	submitted: boolean
@@ -38,8 +38,10 @@ export type FormError<T extends Record<string, any>> = {
 };
 
 export type FormStateRef<T extends Record<string, any>> = {
+	diff: ValidationErrors
 	errors: ValidationErrors
 	formErrors: FormErrors<T>
+	formRender: Map<string, OnRenderType[]>
 	preventStateUpdate: boolean
 	verifyErrors: () => void
 } & CacheConfig;
@@ -216,7 +218,7 @@ export type FormTypes = 'form' | 'formSplitter' | 'formContext';
 export type FormContextType<T extends Record<string, any>, FT extends FormTypes = 'form'> = {
 	changedKeys: Array<FormKey<T>>
 	formState: UseFormReturn<T, FT>
-	keysOnRender: Set<string>
+	onRender: OnRenderType
 	toJSON: () => object
 	type: FT
 } & FormCoreOptions<T>;

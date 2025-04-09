@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { type FormTypes } from '../types/formTypes';
 import { createFormCore, type FormCoreConfig } from '../utils/createFormCore';
@@ -15,19 +15,19 @@ export const useFormCore = <
 
 	const formRef = useRef<{ 
 		config: FormCoreConfig<T, FT>
-		formState: any
+		core: ReturnType<typeof createFormCore<T, FT>>
 	}>({
-		formState: undefined,
+		core: undefined as unknown as ReturnType<typeof createFormCore<T, FT>>,
 		config
 	});
 
 	if ( 
-		!formRef.current.formState
+		!formRef.current.core
 		|| formRef.current.config.formFieldKey !== config.formFieldKey
 		|| formRef.current.config.value !== config.value
 	) {
 		formRef.current = {
-			formState: createFormCore<T, FT>({
+			core: createFormCore<T, FT>({
 				config, 
 				isRenderingRef,
 				state
@@ -36,19 +36,5 @@ export const useFormCore = <
 		};
 	}
 
-	const [
-		proxy, 
-		verifyErrors,
-		removeForm,
-		keysOnRender
-	] = formRef.current.formState;
-
-	// For if cases were keys stop being "used"
-	keysOnRender.clear();
-
-	useEffect(() => () => removeForm(), []);
-
-	verifyErrors();
-
-	return proxy;
+	return formRef.current.core();
 };

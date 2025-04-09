@@ -1,19 +1,18 @@
 import { type FormKey } from '../types/FormKey';
-import { type ValidationErrors } from '../types/errorsTypes';
+import { type ValidationError, type ValidationErrors } from '../types/errorsTypes';
 import { type FormValidationType, type GetErrorsOptions, type ValidateSubmissionErrors } from '../types/formTypes';
-import { type FormCoreOptions } from '../types/types';
+import { type FormCoreOptions, type OnRenderType } from '../types/types';
 
 import { deepCompareValidationErrors } from './comparationUtils';
 import { formatErrors } from './formatErrors';
 import { setSubmitDeepKeys } from './utils';
 
 export type UseErrorsConfig<T extends Record<string, any>> = {
-	keysOnRender: Set<string>
+	onRender: OnRenderType
 	resolveKey: (key: string) => FormKey<T>
 	stateRef: NonNullable<FormCoreOptions<T>['stateRef']>
 	touchHook: FormCoreOptions<T>['touchHook']
 	validate: FormCoreOptions<T>['formOptions']['validate']
-
 	shouldIncludeError?: (key: string) => boolean
 	validationType?: FormValidationType
 };
@@ -29,9 +28,28 @@ export function createErrors<T extends Record<string, any>>(
 		validationType = 'onSubmit',
 		resolveKey,
 		shouldIncludeError,
-		keysOnRender
+		onRender
 	}: UseErrorsConfig<T>
 ) {
+	function check(key: string) {
+		for (const [keyRender, onRender] of stateRef.formRender) {
+			if ( keyRender === key || key.startsWith(keyRender) ) {
+				for (const { isRendering } of onRender) {
+					if ( !isRendering ) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	const isEqual = (item1: ValidationError, item2: ValidationError) => (
+		item1.path === item2.path
+		&& item1.error === item2.error
+		&& check(item1.path) 
+	);
+	
 	const setErrors = (errors: ValidationErrors) => {
 		// To only allow errors in areas 
 		// where the camps have being touched our previously had error
@@ -47,8 +65,13 @@ export function createErrors<T extends Record<string, any>>(
 		if (
 			!deepCompareValidationErrors(newErrors, stateRef.errors)
 		) {
+			stateRef.diff = [
+				...newErrors.filter((item1) => !stateRef.errors.some((item2) => isEqual(item1, item2))), 
+				...stateRef.errors.filter((item2) => !newErrors.some((item1) => isEqual(item1, item2)))
+			];
 			stateRef.errors = newErrors;
 			stateRef.formErrors = formatErrors(newErrors);
+
 			return true;
 		}
 
@@ -108,19 +131,19 @@ export function createErrors<T extends Record<string, any>>(
 		}
 
 		newErrors
-		.forEach((val) => {
+		.forEach(({ path, error }) => {
 			if ( 
-				!changedKeysRef.current.has(val.path as FormKey<T>) 
+				!changedKeysRef.current.has(path as FormKey<T>) 
 				&& !(
 					stateRef.errors
 					.some((prevVal) => (
-						prevVal.path === val.path
-						&& val.error === prevVal.error
+						prevVal.path === path
+						&& error === prevVal.error
 					))
 				)
 			) {
-				setTouch(val.path as FormKey<T>, true, true);
-				changedKeysRef.current.add(val.path as FormKey<T>);
+				setTouch(path as FormKey<T>, true, true);
+				changedKeysRef.current.add(path as FormKey<T>);
 			}
 		});
 
@@ -131,23 +154,21 @@ export function createErrors<T extends Record<string, any>>(
 		key: FormKey<Model>, 
 		{ includeChildsIntoArray = false, unique = true }: GetErrorsOptions = {}
 	): string[] {
-		const _key = resolveKey(key);
+		const resolvedKey = resolveKey(key);
+		onRender.renderKeys.add(resolvedKey);
 
-		const errors = stateRef.formErrors[_key];
-
-		keysOnRender.add(_key);
-		
+		const errors = stateRef.formErrors[resolvedKey];
 		if ( !errors ) {
 			return [];
 		}
 
-		const e = unique 
+		const list = unique 
 			? errors.form
 			: errors.every;
 
 		return includeChildsIntoArray 
-			? e.child
-			: e.errors;
+			? list.child
+			: list.errors;
 	}
 
 	const hasError = (key: FormKey<T>, options: GetErrorsOptions = {}): boolean => !!getErrors(key, options).length;

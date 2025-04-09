@@ -1,3 +1,3 @@
 export {
-	default as setupJsonForm, type SetupJsonFormConfig, type SetupJsonFormProps 
+	setupJsonForm, type SetupJsonFormConfig, type SetupJsonFormProps 
 } from './setupJsonForm';

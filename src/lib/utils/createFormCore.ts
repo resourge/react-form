@@ -1,4 +1,5 @@
 import {
+	useEffect,
 	type BaseSyntheticEvent,
 	type ChangeEvent,
 	type Dispatch,
@@ -8,34 +9,35 @@ import {
 	type SetStateAction
 } from 'react';
 
-import {
-	type FieldForm,
-	type FieldFormReturn,
-	type FieldOptions,
-	type FormErrors,
-	type FormKey,
-	type ResetMethod,
-	type SubmitHandler
+import type {
+	FieldForm,
+	FieldFormReturn,
+	FieldOptions,
+	FormErrors,
+	FormKey,
+	ResetMethod,
+	SubmitHandler
 } from '../types';
-import { type ValidationErrors } from '../types/errorsTypes';
-import {
-	type FormContextType,
-	type FormTypes,
-	type UseFormReturn,
-	type ValidateSubmissionErrors
+import type { ValidationErrors } from '../types/errorsTypes';
+import type {
+	FormContextType,
+	FormTypes,
+	UseFormReturn,
+	ValidateSubmissionErrors
 } from '../types/formTypes';
-import { type DebounceOptions, type FormCoreOptions } from '../types/types';
+import type { DebounceOptions, FormCoreOptions, OnRenderType } from '../types/types';
 
 import { createErrors } from './createErrors';
 import { createTriggers } from './createTriggers';
 import { setFormProxy } from './getProxy/getProxy';
-import { type OnKeyTouch } from './getProxy/getProxyTypes';
-import { TARGET_VALUE } from './getProxy/getProxyUtils';
+import type { OnKeyTouch } from './getProxy/getProxyTypes';
+import { CONTEXT_VALUE } from './getProxy/getProxyUtils';
 import { isClass, mergeKeys } from './utils';
 
 export type FormCoreConfig<T extends Record<string, any>, FT extends FormTypes> = {
 	context: {
 		formState: UseFormReturn<T, any>
+		onRender: OnRenderType
 	} & FormCoreOptions<T>
 	type: FT
 	defaultValue?: T | (() => T) | ((new() => T))
@@ -60,12 +62,16 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		state: [number, Dispatch<SetStateAction<number>>]
 	}
 ) {
-	const keysOnRender = new Set<string>();
+	const onRender: OnRenderType = {
+		renderKeys: new Set<string>(),
+		isRendering: false
+	};
 
 	const {
 		stateRef = {
 			formErrors: {} as FormErrors<T>,
 			errors: [],
+			diff: [],
 			preventStateUpdate: false,
 			verifyErrors: () => {
 				if ( shouldUpdateErrorsRef.current ) {
@@ -75,7 +81,8 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 				}
 			},
 			hasTouch: new WeakMap(),
-			touch: new WeakMap()
+			touch: new WeakMap(),
+			formRender: new Map()
 		}, 
 		formOptions, 
 		touchHook,
@@ -92,6 +99,14 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 
 	const formKey = mergeKeys(contextKey, formFieldKey) as FormKey<T>;
 
+	if ( !stateRef.formRender.has(formKey) ) {
+		stateRef.formRender.set(formKey, []);
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+	const formRender = stateRef.formRender.get(formKey)!;
+	formRender.push(onRender);
+
 	const resolveKey = (key: string): FormKey<T> => mergeKeys(formKey, key) as FormKey<T>;
 
 	const isForm = type === 'form'; 
@@ -101,7 +116,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 	} = createTriggers({
 		isForm,
 		formKey,
-		keysOnRender,
+		onRender,
 		state,
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		triggers: context.triggers!
@@ -111,7 +126,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		(
 			formFieldKey
 				// In formSplitter case
-				? context.formState.getValue(formFieldKey)?.[TARGET_VALUE]
+				? context.formState.getValue(formFieldKey)?.[CONTEXT_VALUE]
 				: (
 					// In form case
 					defaultValue
@@ -124,14 +139,14 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 								) : defaultValue
 						)
 						// In context case
-						: (context.formState.form as any)[TARGET_VALUE]
+						: (context.formState.form as any)[CONTEXT_VALUE]
 				)
 		) as T,
 		{
 			onKeyTouch: async (key, metadata) => {
 				if ( metadata?.isArray ) {
 					if (!metadata.touch) {
-						keysOnRender.add(key);
+						onRender.renderKeys.add(key);
 						// no touch means it was deleted
 						touchesRef.current
 						.forEach((_, touchKey) => {
@@ -154,13 +169,10 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 					key as FormKey<T>, 
 					(metadata && metadata.isArray ? hasTouch(key as FormKey<T>) : undefined)
 				);
-		
-				if ( watch ) {
-					const res = watch?.[key as keyof typeof watch]?.(form);
-					if ( res instanceof Promise ) {
-						// eslint-disable-next-line no-await-in-loop
-						await res;
-					}
+				
+				if (watch?.[key as keyof typeof watch]) {
+					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+					await watch[key as keyof typeof watch]!(form);
 				}
 		
 				onChange?.(form);
@@ -169,7 +181,8 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 					triggerRender(key);
 				}
 			},
-			onKeyGet: (key) => isRenderingRef.current && keysOnRender.add(key),
+			onKeyGet: (key) => isRenderingRef.current && onRender.renderKeys.add(key),
+			onRemoveGetKey: (key) => onRender.renderKeys.delete(key),
 			
 			touchesRef,
 			proxyCache: new WeakMap(),
@@ -186,7 +199,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		stateRef,
 		validationType,
 		resolveKey,
-		keysOnRender,
+		onRender,
 		shouldIncludeError: formKey 
 			? (key: string) => key.includes(formKey) || formKey.includes(key)
 			: undefined
@@ -228,16 +241,9 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 	const getChangedKeys = () => Array.from(changedKeysRef.current);
 
 	const resetTouch = () => {
-		if ( formKey ) {
-			return touchesRef.current
-			.forEach((_, key) => {
-				if ( key.startsWith(formKey) ) {
-					touchesRef.current.delete(key);
-				}
-			});
-		}
-
-		touchesRef.current.clear();
+		formKey
+			? touchesRef.current.forEach((_, key) => key.startsWith(formKey) && touchesRef.current.delete(key))
+			: touchesRef.current.clear();
 	};
 
 	const reset: ResetMethod<T> = (
@@ -354,11 +360,11 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		// This serves so onlyOnTouch validations still work on handleSubmit
 		changedKeysRef.current.add('*' as FormKey<T>);
 	
-		const newErrors = await validateSubmission(form, getChangedKeys(), validateErrors);
-		if ( newErrors.length ) {
-			renderNewErrors(newErrors);
+		const errors = await validateSubmission(form, getChangedKeys(), validateErrors);
+		if ( errors.length ) {
+			renderNewErrors(errors);
 			// eslint-disable-next-line @typescript-eslint/only-throw-error
-			throw newErrors;
+			throw errors;
 		}
 		
 		triggerRender(formKey);
@@ -397,7 +403,6 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		
 		resetTouch: () => {
 			resetTouch();
-
 			triggerRender(formKey);
 		},
 		updateController: changeTouch
@@ -416,7 +421,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		stateRef,
 		contextKey: formKey,
 		triggers,
-		keysOnRender,
+		onRender,
 		toJSON() {
 			return {
 				...this,
@@ -425,9 +430,38 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		}
 	};
 
-	return [
-		formState, 
-		stateRef.verifyErrors,
-		removeForm
-	] as const;
+	return () => {
+		useEffect(() => () => {
+			const index = formRender.indexOf(onRender);
+
+			if (index !== -1) {
+				formRender.splice(index, 1);
+			};
+
+			if ( formRender.length === 0 ) {
+				stateRef.formRender.delete(formKey);
+			}
+			removeForm();
+		}, []);
+		
+		// This serves to update components that don't have changes 
+		// but have new errors
+		useEffect(() => {
+			const diff = stateRef.diff;
+			stateRef.diff = [];
+		
+			diff.forEach(({ path }) => {
+				triggerRender(path);
+			});
+			onRender.isRendering = false;
+		});
+			
+		// Check to see if there is new errors
+		stateRef.verifyErrors();
+		
+		// Clear keys for a new render
+		onRender.renderKeys.clear();
+
+		return formState;
+	};
 }

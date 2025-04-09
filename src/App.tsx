@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 
 import {
 	FormProvider,
@@ -16,7 +16,7 @@ const Child = () => {
 		form, context, field, getErrors
 	} = useFormSplitter('child');
 
-	console.log(form.value, form);
+	console.log(form.value);
 	
 	return (
 		<FormSplitterProvider context={context}>
@@ -26,7 +26,7 @@ const Child = () => {
 			<br />
 			Errors: 
 			{ ' ' }
-			{ getErrors('') }
+			{ getErrors('value') }
 			<br />
 			{
 				form.child
@@ -43,7 +43,7 @@ const Root = () => {
 		form, context, field 
 	} = useFormSplitter('root');
 
-	console.log('Root', form);
+	console.log('Root');
 	
 	return (
 		<FormSplitterProvider context={context}>
@@ -55,6 +55,27 @@ const Root = () => {
 		</FormSplitterProvider>
 	);
 };
+
+const Side = memo(() => {
+	const {
+		form, getErrors, field 
+	} = useFormSplitter('side');
+
+	console.log('side');
+	
+	return (
+		<>
+			<input
+				{...field('value')}
+			/>
+			<br />
+			Errors: 
+			{ ' ' }
+			{ getErrors('') }
+			<br />
+		</>
+	);
+});
 
 const App: React.FC<Props> = ({ }) => {
 	const {
@@ -69,31 +90,38 @@ const App: React.FC<Props> = ({ }) => {
 						value: 'child2'
 					}
 				}
+			},
+			side: {
+				value: 10
 			}
 		},
 		{
 			validate: (form) => {
-				console.log('form', form);
 				return [
-					form.root.child.child.value === 'child2' 
+					form.root.child.value === 'child1' 
 						? {
-							path: 'root.child',
+							path: 'root.child.value',
 							error: `Error`
 						} : undefined,
 					form.root.child.child.value === 'child2' 
 						? {
-							path: 'root.child.child',
+							path: 'root.child.child.value',
+							error: `Error`
+						} : undefined,
+					form.root.child.child.value === 'child2' 
+						? {
+							path: 'side',
 							error: `Error`
 						} : undefined
 				].filter(Boolean) as any;
 			}
 		}
 	);
-	console.log('form', form);
+	console.log('form');
 	return (
 		<FormProvider context={context}>
 			<Root />
-
+			<Side />
 			<button
 				onClick={() => {
 					form.root.child = {

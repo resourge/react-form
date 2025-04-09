@@ -1,13 +1,15 @@
-import { type Dispatch, type SetStateAction } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
 
-import { type OnKeyTouchMetadataType } from './getProxy/getProxyTypes';
+import type { OnRenderType } from '../types/types';
+
+import type { OnKeyTouchMetadataType } from './getProxy/getProxyTypes';
 
 export type FormTrigger = Map<string, Array<(key: string) => void>>;
 
 export type CreateTriggersConfig = {
 	formKey: string
 	isForm: boolean
-	keysOnRender: Set<string>
+	onRender: OnRenderType
 	state: [number, Dispatch<SetStateAction<number>>]
 	triggers: FormTrigger
 };
@@ -20,13 +22,13 @@ export type CreateTriggersResult = {
 
 export function createTriggers(
 	{
-		formKey, isForm, keysOnRender, state, 
+		formKey, isForm, onRender, state, 
 		triggers = new Map<string, Array<(key?: string, metadata?: OnKeyTouchMetadataType) => void>>()
 	}: CreateTriggersConfig
 ): CreateTriggersResult {
 	function check(key: string) {
-		for (const keyRender of keysOnRender) {
-			if ( keyRender === key || key.startsWith(keyRender) ) {
+		for (const keyRender of onRender.renderKeys) {
+			if ( keyRender.startsWith(key) ) {
 				return true;
 			}
 		}
@@ -34,7 +36,8 @@ export function createTriggers(
 	}
 
 	const triggerRender = (key: string) => {
-		if ( !key || key === formKey || check(key) ) {
+		if ( !onRender.isRendering && ( !key || check(key) ) ) {
+			onRender.isRendering = true;
 			state[1]((x) => x + 1);
 		}
 	};
@@ -50,16 +53,13 @@ export function createTriggers(
 	const removeForm = isForm
 		? () => {}
 		: () => {
-			const events = triggers.get(formKey);
-			if ( events ) {
-				const index = events.indexOf(triggerRender);
-				if (index !== -1) {
-					events.splice(index, 1);
-				};
+			const index = events.indexOf(triggerRender);
+			if (index !== -1) {
+				events.splice(index, 1);
+			};
 
-				if ( events.length === 0 ) {
-					triggers.delete(formKey);
-				}
+			if ( events.length === 0 ) {
+				triggers.delete(formKey);
 			}
 		};
 	
@@ -67,12 +67,8 @@ export function createTriggers(
 		triggers,
 		triggerRender: (key: string) => {
 			triggers
-			.forEach((trigger, triggerKey) => {
-				if ( 
-					key.startsWith(triggerKey) 
-				) {
-					trigger.forEach((cb) => cb(key));
-				}
+			.forEach((trigger) => {
+				trigger.forEach((cb) => cb(key));
 			});
 		},
 		removeForm

@@ -5,6 +5,7 @@ import { type FormKey } from '../types/FormKey';
 import { type PathValue } from '../types/PathValue';
 import { type UseFormSplitterResult } from '../types/formTypes';
 import { IS_DEV } from '../utils/constants';
+import { CONTEXT_VALUE } from '../utils/getProxy/getProxyUtils';
 
 import { useFormCore } from './useFormCore';
 
@@ -45,6 +46,6 @@ export function useFormSplitter<
 		context,
 		type: 'formSplitter',
 		formFieldKey,
-		value: context.formState.getValue(formFieldKey)
+		value: context.formState.getValue(formFieldKey)?.[CONTEXT_VALUE]
 	}) as unknown as UseFormSplitterResultByKey<T, K>;
 }

@@ -14,6 +14,7 @@ export const isImmutableBuiltin = (value: any) => value === null
 	|| value instanceof Blob;
 
 export const TARGET_VALUE = Symbol('TargetValue');
+export const CONTEXT_VALUE = Symbol('ContextValue');
 export const REF = Symbol('reference');
 
 /** Retrieves the actual value, unwrapping proxies if necessary. */

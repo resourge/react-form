@@ -4,6 +4,7 @@ import { isObjectOrArray } from '../utils';
 import { type ProxyConfig } from './getProxyTypes';
 import {
 	constructKey,
+	CONTEXT_VALUE,
 	getCurrentTouch,
 	getTargetValue,
 	isImmutableBuiltin,
@@ -169,6 +170,11 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 	return {
 		get(target, prop, receiver) {
 			if (prop === TARGET_VALUE ) {
+				return target;
+			}
+
+			if (prop === CONTEXT_VALUE ) {
+				config.onRemoveGetKey(baseKey);
 				return target;
 			}
 

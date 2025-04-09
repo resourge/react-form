@@ -30,7 +30,7 @@ export type SetupJsonFormConfig<
 	getInitialData?: <T = unknown>(schema: T) => unknown
 };
 
-export default function setupJsonForm<
+export function setupJsonForm<
 	Ref,
 	Props extends SetupJsonFormProps<Record<string, any>, Record<string, any>>
 >({
