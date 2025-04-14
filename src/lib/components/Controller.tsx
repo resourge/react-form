@@ -50,21 +50,27 @@ export const Controller = memo(function Controller({ name, children }: Controlle
 			{ children }
 		</ControllerContext.Provider>
 	);
-}, (prevProps, nextProps) => {
-	const isSameDeps = !nextProps.deps 
+}, (
+	prevProps, 
+	{
+		context, name, deps 
+	}
+) => {
+	const isSameDeps = !deps 
 		|| (
 			prevProps.deps 
-			&& nextProps.deps.length === prevProps.deps.length
-			&& nextProps.deps.every((dep, index) => dep === prevProps.deps![index])
+			&& deps.length === prevProps.deps.length
+			&& deps.every((dep, index) => dep === prevProps.deps![index])
 		)!;
 
 	// Determine if any of the changed keys are related to the name prop
-	const shouldUpdate = nextProps.context.changedKeys
-	.some((changedKey) => changedKey.includes(nextProps.name) || nextProps.name.includes(changedKey));
+	const shouldUpdate = context.changedKeys
+	.some((changedKey) => changedKey.includes(name) || name.includes(changedKey));
 
-	nextProps.context.onRender.renderKeys.add(nextProps.name);
+	const renderKeys = context.onRender.renderKeys;
+	renderKeys.set(name, renderKeys.get(name) ?? false);
 
 	return (
-		prevProps.name === nextProps.name && !shouldUpdate && isSameDeps
+		prevProps.name === name && !shouldUpdate && isSameDeps
 	);
 }) as <T extends Record<string, any>>(props: ControllerProps<T>) => JSX.Element;

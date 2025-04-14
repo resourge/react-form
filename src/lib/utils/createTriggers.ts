@@ -27,8 +27,10 @@ export function createTriggers(
 	}: CreateTriggersConfig
 ): CreateTriggersResult {
 	function check(key: string) {
-		for (const keyRender of onRender.renderKeys) {
-			if ( keyRender.startsWith(key) ) {
+		for (const [keyRender, includeChildren] of onRender.renderKeys) {
+			// Check to see if key is observed
+			// For keys observed that includeChildren (error with includeChildsIntoArray) too
+			if ( includeChildren ? key.startsWith(keyRender) : keyRender.startsWith(key) ) {
 				return true;
 			}
 		}
@@ -36,7 +38,7 @@ export function createTriggers(
 	}
 
 	const triggerRender = (key: string) => {
-		if ( !onRender.isRendering && ( !key || check(key) ) ) {
+		if ( !onRender.isRendering && (!key || check(key)) ) {
 			onRender.isRendering = true;
 			state[1]((x) => x + 1);
 		}

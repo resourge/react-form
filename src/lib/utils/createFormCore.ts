@@ -31,7 +31,6 @@ import { createErrors } from './createErrors';
 import { createTriggers } from './createTriggers';
 import { setFormProxy } from './getProxy/getProxy';
 import type { OnKeyTouch } from './getProxy/getProxyTypes';
-import { CONTEXT_VALUE } from './getProxy/getProxyUtils';
 import { isClass, mergeKeys } from './utils';
 
 export type FormCoreConfig<T extends Record<string, any>, FT extends FormTypes> = {
@@ -54,7 +53,8 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 			defaultValue, 
 			context, 
 			type, 
-			formFieldKey = '' as FormKey<T>
+			formFieldKey = '' as FormKey<T>,
+			value
 		}
 	}: {
 		config: FormCoreConfig<T, FT>
@@ -63,7 +63,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 	}
 ) {
 	const onRender: OnRenderType = {
-		renderKeys: new Set<string>(),
+		renderKeys: new Map<string, boolean>(),
 		isRendering: false
 	};
 
@@ -124,29 +124,22 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 
 	const form = setFormProxy<T>(
 		(
-			formFieldKey
-				// In formSplitter case
-				? context.formState.getValue(formFieldKey)?.[CONTEXT_VALUE]
-				: (
-					// In form case
-					defaultValue
+			isForm 
+				? (
+					typeof defaultValue === 'function' 
 						? (
-							typeof defaultValue === 'function' 
-								? (
-									isClass(defaultValue) 
-										? new (defaultValue as new () => T)() 
-										: (defaultValue as () => T)()
-								) : defaultValue
-						)
-						// In context case
-						: (context.formState.form as any)[CONTEXT_VALUE]
-				)
+							isClass(defaultValue) 
+								? new (defaultValue as new () => T)() 
+								: (defaultValue as () => T)()
+						) : defaultValue
+				) 
+				: value
 		) as T,
 		{
 			onKeyTouch: async (key, metadata) => {
 				if ( metadata?.isArray ) {
 					if (!metadata.touch) {
-						onRender.renderKeys.add(key);
+						onRender.renderKeys.set(key, onRender.renderKeys.get(key) ?? false);
 						// no touch means it was deleted
 						touchesRef.current
 						.forEach((_, touchKey) => {
@@ -181,7 +174,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 					triggerRender(key);
 				}
 			},
-			onKeyGet: (key) => isRenderingRef.current && onRender.renderKeys.add(key),
+			onKeyGet: (key) => isRenderingRef.current && onRender.renderKeys.set(key, onRender.renderKeys.get(key) ?? false),
 			onRemoveGetKey: (key) => onRender.renderKeys.delete(key),
 			
 			touchesRef,

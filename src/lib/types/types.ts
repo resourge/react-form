@@ -18,5 +18,5 @@ export type DebounceOptions = {
 
 export type OnRenderType = {
 	isRendering: boolean
-	renderKeys: Set<string>
+	renderKeys: Map<string, boolean>
 };

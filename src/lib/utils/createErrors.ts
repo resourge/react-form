@@ -155,7 +155,7 @@ export function createErrors<T extends Record<string, any>>(
 		{ includeChildsIntoArray = false, unique = true }: GetErrorsOptions = {}
 	): string[] {
 		const resolvedKey = resolveKey(key);
-		onRender.renderKeys.add(resolvedKey);
+		onRender.renderKeys.set(resolvedKey, includeChildsIntoArray);
 
 		const errors = stateRef.formErrors[resolvedKey];
 		if ( !errors ) {
