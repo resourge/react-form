@@ -1,19 +1,10 @@
-import { type MutableRefObject, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { type FormKey } from '../types';
 import { type FormValidationType, type Touches } from '../types/formTypes';
 import { forEachPossibleKey } from '../utils/utils';
 
-export type TouchesResult<T extends Record<string, any>> = {
-	changedKeysRef: MutableRefObject<Set<FormKey<T>>>
-	changeTouch: (key: FormKey<T> | string, touch?: boolean) => void
-	hasTouch: <Model extends Record<string, any> = T>(key: FormKey<Model>) => boolean
-	setTouch: <Model extends Record<string, any> = T>(key: FormKey<Model>, touch: boolean, submitted?: boolean) => void
-	shouldUpdateErrorsRef: MutableRefObject<boolean>
-	touchesRef: MutableRefObject<Touches>
-};
-
-export const useTouches = <T extends Record<string, any>>(validationType: FormValidationType = 'onSubmit'): TouchesResult<T> => {
+export const useTouches = <T extends Record<string, any>>(validationType: FormValidationType = 'onSubmit') => {
 	const touchesRef = useRef<Touches>(new Map());
 	const changedKeysRef = useRef<Set<FormKey<T>>>(new Set());
 	const shouldUpdateErrorsRef = useRef<boolean>(validationType === 'always');
@@ -33,19 +24,18 @@ export const useTouches = <T extends Record<string, any>>(validationType: FormVa
 
 		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		const newTouch = touchesRef.current.get(key)!;
+		
+		newTouch.touch = isPossibilityKey ? (newTouch.touch || touch) : touch;
+		newTouch.submitted = newTouch.submitted || submitted;
 
 		// Necessary for array functions
 		forEachPossibleKey(key, (possibilityKey) => {
 			if ( key === possibilityKey) {
-				newTouch.touch = isPossibilityKey ? (newTouch.touch || touch) : touch;
-				newTouch.submitted = newTouch.submitted || submitted;
 				return;
 			}
 			setTouch(possibilityKey as FormKey<Model>, touch, newTouch.submitted, true);
 		});
 	}
-
-	const hasTouch = <Model extends Record<string, any> = T>(key: FormKey<Model>): boolean => touchesRef.current.get(key)?.touch ?? false;
 
 	const changeTouch = (
 		key: FormKey<T> | string,
@@ -69,7 +59,8 @@ export const useTouches = <T extends Record<string, any>>(validationType: FormVa
 		shouldUpdateErrorsRef,
 		changedKeysRef,
 		changeTouch,
-		hasTouch,
 		setTouch
 	};
 };
+
+export type TouchesResult<T extends Record<string, any>> = ReturnType<(typeof useTouches<T>)>;

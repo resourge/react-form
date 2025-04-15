@@ -91,7 +91,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 
 	const {
 		touchesRef, changedKeysRef, shouldUpdateErrorsRef, 
-		hasTouch, setTouch, changeTouch
+		setTouch, changeTouch
 	} = touchHook;
 	const {
 		onChange, onSubmit, validationType, watch, validate
@@ -110,6 +110,11 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 	const resolveKey = (key: string): FormKey<T> => mergeKeys(formKey, key) as FormKey<T>;
 
 	const isForm = type === 'form'; 
+
+	const hasTouch = <Model extends Record<string, any> = T>(key: FormKey<Model>): boolean => {
+		onRender.renderKeys.set(key, true);
+		return touchesRef.current.get(key)?.touch ?? false;
+	};
 
 	const {
 		triggerRender, triggers, removeForm
