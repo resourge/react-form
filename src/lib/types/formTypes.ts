@@ -218,6 +218,8 @@ export type FormTypes = 'form' | 'formSplitter' | 'formContext';
 export type FormContextType<T extends Record<string, any>, FT extends FormTypes = 'form'> = {
 	changedKeys: Array<FormKey<T>>
 	formState: UseFormReturn<T, FT>
+	formValue: T
+	getFormSplitterValue: (key: string) => object
 	onRender: OnRenderType
 	toJSON: () => object
 	type: FT

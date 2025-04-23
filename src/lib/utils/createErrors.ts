@@ -59,7 +59,11 @@ export function createErrors<T extends Record<string, any>>(
 			.filter(({ path }) => {
 				const touch = touchesRef.current.get(path);
 
-				return touch && (validationType === 'onSubmit' ? touch.submitted : touch.touch);
+				return touch && (
+					validationType === 'onSubmit' 
+						? touch.submitted 
+						: touch.touch
+				);
 			});
 
 		if (
@@ -121,7 +125,9 @@ export function createErrors<T extends Record<string, any>>(
 			return newErrors;
 		}
 
-		if ( validationType === 'onSubmit' ) {
+		const isSubmitValidation = validationType === 'onSubmit';
+
+		if ( isSubmitValidation ) {
 			setSubmitDeepKeys(
 				form, 
 				touchesRef.current,

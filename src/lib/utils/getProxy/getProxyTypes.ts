@@ -39,7 +39,6 @@ export type ProxyConfig = {
 	cache: CacheConfig
 	onKeyGet: (key: string) => void
 	onKeyTouch: OnKeyTouch
-	onRemoveGetKey: (key: string) => void
 	proxyCache: WeakMap<any, any>
 	touchesRef: MutableRefObject<Touches>
 };

@@ -31,11 +31,13 @@ import { createErrors } from './createErrors';
 import { createTriggers } from './createTriggers';
 import { setFormProxy } from './getProxy/getProxy';
 import type { OnKeyTouch } from './getProxy/getProxyTypes';
+import { TARGET_VALUE } from './getProxy/getProxyUtils';
 import { isClass, mergeKeys } from './utils';
 
 export type FormCoreConfig<T extends Record<string, any>, FT extends FormTypes> = {
 	context: {
 		formState: UseFormReturn<T, any>
+		formValue: T
 		onRender: OnRenderType
 	} & FormCoreOptions<T>
 	type: FT
@@ -67,6 +69,8 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		isRendering: false
 	};
 
+	const isForm = type === 'form'; 
+
 	const {
 		stateRef = {
 			formErrors: {} as FormErrors<T>,
@@ -76,7 +80,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 			verifyErrors: () => {
 				if ( shouldUpdateErrorsRef.current ) {
 					shouldUpdateErrorsRef.current = false;
-					const res = formValidate(form, getChangedKeys());
+					const res = formValidate(formValue, getChangedKeys());
 					res instanceof Promise ? res.then(renderNewErrors) : setErrors(res);
 				}
 			},
@@ -88,6 +92,19 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		touchHook,
 		contextKey
 	} = context;
+	
+	const formValue = (
+		isForm 
+			? (
+				typeof defaultValue === 'function' 
+					? (
+						isClass(defaultValue) 
+							? new (defaultValue as new () => T)() 
+							: (defaultValue as () => T)()
+					) : defaultValue
+			) 
+			: value
+	) as T;
 
 	const {
 		touchesRef, changedKeysRef, shouldUpdateErrorsRef, 
@@ -109,8 +126,6 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 
 	const resolveKey = (key: string): FormKey<T> => mergeKeys(formKey, key) as FormKey<T>;
 
-	const isForm = type === 'form'; 
-
 	const hasTouch = <Model extends Record<string, any> = T>(key: FormKey<Model>): boolean => {
 		onRender.renderKeys.set(key, true);
 		return touchesRef.current.get(key)?.touch ?? false;
@@ -128,18 +143,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 	});
 
 	const form = setFormProxy<T>(
-		(
-			isForm 
-				? (
-					typeof defaultValue === 'function' 
-						? (
-							isClass(defaultValue) 
-								? new (defaultValue as new () => T)() 
-								: (defaultValue as () => T)()
-						) : defaultValue
-				) 
-				: value
-		) as T,
+		formValue,
 		{
 			onKeyTouch: async (key, metadata) => {
 				if ( metadata?.isArray ) {
@@ -165,7 +169,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		
 				changeTouch(
 					key as FormKey<T>, 
-					(metadata && metadata.isArray ? hasTouch(key as FormKey<T>) : undefined)
+					(metadata && metadata.isArray ? touchesRef.current.get(key)?.touch : undefined)
 				);
 				
 				if (watch?.[key as keyof typeof watch]) {
@@ -180,7 +184,6 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 				}
 			},
 			onKeyGet: (key) => isRenderingRef.current && onRender.renderKeys.set(key, onRender.renderKeys.get(key) ?? false),
-			onRemoveGetKey: (key) => onRender.renderKeys.delete(key),
 			
 			touchesRef,
 			proxyCache: new WeakMap(),
@@ -420,6 +423,18 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		contextKey: formKey,
 		triggers,
 		onRender,
+		formValue,
+		getFormSplitterValue: (key) => {
+			const hasRenderKeys = onRender.renderKeys.has(key);
+
+			const value = form[key]?.[TARGET_VALUE];
+
+			if ( !hasRenderKeys ) {
+				onRender.renderKeys.delete(resolveKey(key));
+			}
+
+			return value;
+		},
 		toJSON() {
 			return {
 				...this,

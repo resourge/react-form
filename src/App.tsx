@@ -1,148 +1,380 @@
-import React, { memo } from 'react';
+import { Controller, useForm } from 'src/lib';
 
-import {
-	FormProvider,
-	FormSplitterContext,
-	FormSplitterProvider,
-	useForm,
-	useFormSplitter
-} from './lib';
+const a = Array.from({
+	length: 5
+})
+.map(() => Math.random());
 
-type Props = {
-};
-
-const Child = () => {
+function App() {
 	const {
-		form, context, field, getErrors
-	} = useFormSplitter('child');
+		form,
+		errors,
+		isTouched,
+		isValid,
+		context,
+		getErrors,
+		hasError,
 
-	console.log(form.value);
-	
-	return (
-		<FormSplitterProvider context={context}>
-			<input
-				{...field('value')}
-			/>
-			<br />
-			Errors: 
-			{ ' ' }
-			{ getErrors('value') }
-			<br />
-			{
-				form.child
-					? (
-						<Child />
-					) : (<></>)
-			}
-		</FormSplitterProvider>
-	);
-};
-
-const Root = () => {
-	const {
-		form, context, field 
-	} = useFormSplitter('root');
-
-	console.log('Root');
-	
-	return (
-		<FormSplitterProvider context={context}>
-			<input
-				{...field('value')}
-			/>
-			<br />
-			<Child />
-		</FormSplitterProvider>
-	);
-};
-
-const Side = memo(() => {
-	const {
-		form, getErrors, field 
-	} = useFormSplitter('side');
-
-	console.log('side');
-	
-	return (
-		<>
-			<input
-				{...field('value')}
-			/>
-			<br />
-			Errors: 
-			{ ' ' }
-			{ getErrors('') }
-			<br />
-		</>
-	);
-});
-
-const App: React.FC<Props> = ({ }) => {
-	const {
-		form, context, reset, handleSubmit
+		changeValue,
+		field,
+		watch,
+		reset,
+		handleSubmit,
+		getValue,
+		onChange,
+		resetTouch,
+		setError,
+		updateController,
+		hasTouch
 	} = useForm(
 		{
-			root: {
-				value: 'root',
-				child: {
-					value: 'child1',
-					child: {
-						value: 'child2'
-					}
-				}
+			rafael: '10',
+			jose: [1, 2, 3, 4, 5, 6, 7] as number[],
+			alfredo: Array.from({
+				length: 10
+			})
+			.map((_, index) => !index ? 1 : index )
+			.reverse(),
+			test: {
+				subTest: new Date()
 			},
-			side: {
-				value: 10
-			}
+			arr: [[1, 2], [3, 4]],
+			b: [
+				{
+					id: 9,
+					value: 'I' 
+				},
+				{
+					id: 10,
+					value: 'J' 
+				},
+				{
+					id: 11,
+					value: 'K' 
+				},
+				{
+					id: 6,
+					value: 'F'
+				},
+				{
+					id: 6,
+					value: 'F'
+				},
+				{
+					id: 6,
+					value: 'F'
+				},
+				{
+					id: 7,
+					value: 'G' 
+				},
+				{
+					id: 8,
+					value: 'H' 
+				}
+			]
 		},
 		{
 			validate: (form) => {
-				return [
-					form.root.child.value === 'child1' 
-						? {
-							path: 'root.child.value',
-							error: `Error`
-						} : undefined,
-					form.root.child.child.value === 'child2' 
-						? {
-							path: 'root.child.child.value',
-							error: `Error`
-						} : undefined,
-					form.root.child.child.value === 'child2' 
-						? {
-							path: 'side',
-							error: `Error`
-						} : undefined
-				].filter(Boolean) as any;
-			}
+				const errors = [
+					{
+						path: 'jose',
+						error: 'error'
+					},
+					...form.alfredo
+					.map((value, index) => ({
+						path: `alfredo[${index}]`,
+						error: value !== '10' || value !== 10 ? 'zordon error' : []
+					}))
+				];
+
+				if ( form.rafael !== 10 ) {
+					errors.push({
+						path: 'rafael',
+						error: 'error'
+					});
+				}
+
+				return errors;
+			},
+			validationType: 'onSubmit'
 		}
 	);
-	console.log('form');
+
+	/*
+
+Controller
+							key={String(index)}
+							context={context}
+							name={`alfredo[${index}]`}
+						
+	*/
+
 	return (
-		<FormProvider context={context}>
-			<Root />
-			<Side />
-			<button
-				onClick={() => {
-					form.root.child = {
-						value: 'child1.1',
-						child: {
-							value: 'child2.1'
-						}
-					};
+		<div>
+			<input
+				{...field('rafael')}
+				type="text"
+			/>
+			<div
+				style={{
+					display: 'flex',
+					flexDirection: 'column'
 				}}
 			>
-				Set Child
+				{
+					form.alfredo.map((_, index) => (
+						<Controller
+							key={`${index}`}
+							context={context}
+							name={`alfredo[${index}]`}
+						>
+							<div
+								style={{
+									display: 'flex'
+								}}
+							>
+								<input
+									{...field(`alfredo[${index}]`)}
+									placeholder={`alfredo[${index}]`}
+									type="number"
+								/>
+								{ getValue(`alfredo[${index}]`)?.toString() }
+								<button
+									onClick={() => {
+										form.alfredo.splice(index, 1);
+									}}
+								>
+									X
+								</button>
+							</div>
+							{ getErrors(`alfredo[${index}]`) }
+							{ getErrors(`alfredo[${index}]`) }
+						</Controller>
+					))
+				}
+			</div>
+			<button
+				onClick={() => {
+					form.test.subTest.setFullYear(2000);
+				}}
+			>
+				Change date
+			</button>
+			<div>
+				<button
+					onClick={() => {
+						form.alfredo.push(0);
+					}}
+				>
+					Add Alfredo
+				</button>
+				<button
+					onClick={() => {
+						form.alfredo[3] = 1;
+					}}
+				>
+					QWE Alfredo X
+				</button>
+				<button
+					onClick={() => {
+						form.alfredo.splice(1, 0, 0, 0);
+					}}
+				>
+					Splice Alfredo x
+				</button>
+				<button
+					onClick={() => {
+						form.alfredo.pop();
+					}}
+				>
+					Pop Alfredo X
+				</button>
+				<button
+					onClick={() => {
+						form.alfredo.reverse();
+					}}
+				>
+					Reverse X
+				</button>
+				<button
+					onClick={() => {
+						form.alfredo.fill(0, 0, 10);
+					}}
+				>
+					fill X
+				</button>
+				<button
+					onClick={() => {
+						form.alfredo.shift();
+					}}
+				>
+					shift X
+				</button>
+				<button
+					onClick={() => {
+						console.log(' 	form.b', form.b);
+						
+						form.b.fill({
+							id: 6,
+							value: 'F' 
+						}, 3, 4);
+
+						form.b[0].id = 10;
+
+						console.log(' 	form.b', form.b);
+
+						updateController('b[3]');
+						updateController('b[4]');
+						updateController('b[5]');
+
+						console.log(' result.current.form.array', 
+							form.b.map((_, index) => 
+								hasTouch(`b[${index}]`)
+							)
+						);
+
+						form.b.sort((a, b) => a.id - b.id);
+
+						console.log(' result.current.form.array', 
+							form.b.map((_, index) => 
+								hasTouch(`b[${index}]`)
+							)
+						);
+					}}
+				>
+					fill to sort
+				</button>
+				<button
+					onClick={() => {
+						form.alfredo.sort((a, b) => a - b);
+					}}
+				>
+					sort
+				</button>
+				<button
+					onClick={() => {
+						form.alfredo.splice(1, 1);
+						console.log('<--------------------------------------------->');
+						// await (new Promise((resolve) => setTimeout(resolve, 100)));
+						
+						form.alfredo.reverse();
+
+						// console.log('form.alfredo', form.alfredo);
+					}}
+				>
+					splice reverse
+				</button>
+				<button
+					onClick={() => {
+						form.alfredo = form.alfredo
+						.sort((a, b) => a - b)
+						.map((a) => a);
+
+						// console.log('form.alfredo', form.alfredo);
+					}}
+				>
+					sort map
+				</button>
+				<button
+					onClick={() => {
+						form.alfredo.sort((a, b) => a - b);
+						console.log('<--------------------------------------------->');
+						// await (new Promise((resolve) => setTimeout(resolve, 100)));
+						
+						form.alfredo.reverse();
+
+						// console.log('form.alfredo', form.alfredo);
+					}}
+				>
+					sort reverse
+				</button>
+				<button
+					onClick={() => {
+						form.alfredo = Array.from({
+							length: 10
+						})
+						.map(() => Math.random());
+					}}
+				>
+					Map
+				</button>
+			</div>
+			<button
+				onClick={() => {
+					form.rafael;
+				}}
+			>
+				Get
 			</button>
 			<button
-				onClick={handleSubmit(() => {
-
-				})}
+				onClick={() => {
+					reset({
+						rafael: 11,
+						jose: [1],
+						alfredo: Array.from({
+							length: 10
+						})
+						.map(() => Math.random() ),
+						test: {
+							subTest: new Date()
+						}
+					});
+				}}
 			>
-				handleSubmit
+				Reset
 			</button>
-		</FormProvider>
+			<button
+				onClick={async () => {
+					await (handleSubmit((form) => {
+					})());
+					// TODO
+					form.alfredo.push(0);
+				}}
+			>
+				Submit and add
+			</button>
+
+			<button
+				onClick={() => {
+					form.arr[0][1] = 5;
+					console.log('proxy.arr[0][1]', form.arr[0][1]);
+				}}
+			>
+				Arr
+			</button>
+
+			<button
+				onClick={() => {
+					form.arr['[0][1]'] = 5;
+					console.log('proxy.arr[0][1]', form.arr[0][1]);
+				}}
+			>
+				Arr string
+			</button>
+			<button
+				onClick={() => {
+					form.arr
+					.forEach((value) => {
+					});
+				}}
+			>
+				forEach Arr
+			</button>
+			<button
+				onClick={() => {
+					form.alfredo
+					.forEach((value) => {
+						value = 10;
+						console.log('yrtyrtrtr', value);
+					});
+				}}
+			>
+				Foreach
+			</button>
+			App
+		</div>
 	);
-};
+}
 
 export default App;

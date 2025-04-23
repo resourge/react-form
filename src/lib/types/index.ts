@@ -18,5 +18,6 @@ export type {
 	FieldForm,
 	ResetMethod,
 	UseFormSplitterResult, 
-	FormContextType
+	FormContextType,
+	FormValidationType
 } from './formTypes';

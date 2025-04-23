@@ -41,7 +41,8 @@ export type {
 	UseFormReturn,
 	ValidateSubmissionErrors,
 	UseFormSplitterResult,
-	FormContextType
+	FormContextType,
+	FormValidationType
 } from './types';
 export {
 	PreserveClass,

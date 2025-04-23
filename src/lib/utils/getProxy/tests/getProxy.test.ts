@@ -40,13 +40,11 @@ describe('observeObject', () => {
 		};
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
-		const onRemoveGetKey = vi.fn();
 		const proxy = observeObject(
 			target, 
 			{
 				onKeyTouch,
-				onKeyGet,
-				onRemoveGetKey
+				onKeyGet
 			}
 		);
 
@@ -67,11 +65,9 @@ describe('observeObject', () => {
 		};
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
-		const onRemoveGetKey = vi.fn();
 		const proxy = observeObject(target, {
 			onKeyTouch,
-			onKeyGet,
-			onRemoveGetKey
+			onKeyGet
 		});
 
 		proxy.a = 2;
@@ -92,11 +88,9 @@ describe('observeObject', () => {
 		};
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
-		const onRemoveGetKey = vi.fn();
 		const proxy = observeObject(target, {
 			onKeyTouch,
-			onKeyGet,
-			onRemoveGetKey
+			onKeyGet
 		});
 
 		expect(proxy.date.toISOString()).toBe(date.toISOString());
@@ -121,11 +115,9 @@ describe('observeObject', () => {
 		};
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
-		const onRemoveGetKey = vi.fn();
 		const proxy = observeObject<any>(target, {
 			onKeyTouch,
-			onKeyGet,
-			onRemoveGetKey
+			onKeyGet
 		});
 
 		proxy.languages = proxy.languagesOptions[0];
@@ -146,11 +138,9 @@ describe('observeObject', () => {
 		};
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
-		const onRemoveGetKey = vi.fn();
 		const proxy = observeObject<any>(target, {
 			onKeyTouch,
-			onKeyGet,
-			onRemoveGetKey
+			onKeyGet
 		});
 
 		const item = proxy.languagesOptions[0];
@@ -217,11 +207,9 @@ describe('observeObject', () => {
 		};
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
-		const onRemoveGetKey = vi.fn();
 		const proxy = observeObject(target, {
 			onKeyTouch,
-			onKeyGet,
-			onRemoveGetKey
+			onKeyGet
 		});
 
 		expect(proxy.a).toBe(1);
@@ -236,11 +224,9 @@ describe('observeObject', () => {
 		};
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
-		const onRemoveGetKey = vi.fn();
 		const proxy = observeObject(target, {
 			onKeyTouch,
-			onKeyGet,
-			onRemoveGetKey
+			onKeyGet
 		});
 
 		proxy.a = 1;
@@ -255,11 +241,9 @@ describe('observeObject', () => {
 		};
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
-		const onRemoveGetKey = vi.fn();
 		const proxy = observeObject(target, {
 			onKeyTouch,
-			onKeyGet,
-			onRemoveGetKey
+			onKeyGet
 		});
 
 		// @ts-expect-error Expected
@@ -283,11 +267,9 @@ describe('observeObject', () => {
 		};
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
-		const onRemoveGetKey = vi.fn();
 		const proxy = observeObject(target, {
 			onKeyTouch,
-			onKeyGet,
-			onRemoveGetKey
+			onKeyGet
 		});
 
 		proxy.a.b = 2;
@@ -319,11 +301,9 @@ describe('observeObject', () => {
 		};
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
-		const onRemoveGetKey = vi.fn();
 		const proxy = observeObject(target, {
 			onKeyTouch,
-			onKeyGet,
-			onRemoveGetKey
+			onKeyGet
 		});
 
 		proxy.a.b.c.d = 2;
@@ -351,11 +331,9 @@ describe('observeObject', () => {
 		};
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
-		const onRemoveGetKey = vi.fn();
 		const proxy = observeObject(target, {
 			onKeyTouch,
-			onKeyGet,
-			onRemoveGetKey
+			onKeyGet
 		});
 
 		// Date manipulation
@@ -386,11 +364,9 @@ describe('observeObject', () => {
 		};
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
-		const onRemoveGetKey = vi.fn();
 		const proxy = observeObject(target, {
 			onKeyTouch,
-			onKeyGet,
-			onRemoveGetKey
+			onKeyGet
 		});
 
 		proxy.maps[0].set('key3', 'value3');
@@ -408,11 +384,9 @@ describe('observeObject', () => {
 		};
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
-		const onRemoveGetKey = vi.fn();
 		const proxy = observeObject(target, {
 			onKeyTouch,
-			onKeyGet,
-			onRemoveGetKey
+			onKeyGet
 		});
 
 		proxy.a = 2;
@@ -432,11 +406,9 @@ describe('observeObject', () => {
 		const target: any = {};
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
-		const onRemoveGetKey = vi.fn();
 		const proxy = observeObject(target, {
 			onKeyTouch,
-			onKeyGet,
-			onRemoveGetKey
+			onKeyGet
 		});
 
 		proxy.newProp = {
@@ -458,11 +430,9 @@ describe('observeObject', () => {
 		};
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
-		const onRemoveGetKey = vi.fn();
 		const proxy = observeObject(target, {
 			onKeyTouch,
-			onKeyGet,
-			onRemoveGetKey
+			onKeyGet
 		});
 
 		const newDate = new Date();
@@ -481,11 +451,9 @@ describe('observeObject', () => {
 		const map = new Map();
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
-		const onRemoveGetKey = vi.fn();
 		const proxy = observeObject(map, {
 			onKeyTouch,
-			onKeyGet,
-			onRemoveGetKey
+			onKeyGet
 		});
 
 		proxy.set('key', 'value');
@@ -500,11 +468,9 @@ describe('observeObject', () => {
 		target.self = target;
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
-		const onRemoveGetKey = vi.fn();
 		const proxy = observeObject(target, {
 			onKeyTouch,
-			onKeyGet,
-			onRemoveGetKey
+			onKeyGet
 		});
 		proxy.self.a = 1;
 
@@ -527,11 +493,9 @@ describe('observeObject', () => {
 		};
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
-		const onRemoveGetKey = vi.fn();
 		const proxy = observeObject(target, {
 			onKeyTouch,
-			onKeyGet,
-			onRemoveGetKey
+			onKeyGet
 		});
 
 		proxy.c.sort((a, b) => a.id - b.id); 
@@ -586,11 +550,9 @@ describe('observeObject', () => {
 		
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
-		const onRemoveGetKey = vi.fn();
 		const proxy = observeObject(target, {
 			onKeyTouch,
-			onKeyGet,
-			onRemoveGetKey
+			onKeyGet
 		});
 
 		expect(
@@ -628,13 +590,11 @@ describe('Caching and Performance', () => {
 		};
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
-		const onRemoveGetKey = vi.fn();
 		const proxy = observeObject(
 			target, 
 			{
 				onKeyTouch,
-				onKeyGet,
-				onRemoveGetKey
+				onKeyGet
 			}
 		);
 

@@ -29,22 +29,28 @@ describe('useForm', () => {
 					useForm({
 						array: [] as number[]
 					}, {
-						validationType: 'onSubmit' 
+						validationType: 'onSubmit',
+						validate: (form) => {
+							return form.array.map((_, index) => ({
+								path: `array[${index}]`,
+								error: 'Error'	
+							}));
+						}
 					})
 				);
 	
 				act(() => result.current.form.array.push(1));
-				expect(result.current.hasTouch('array[0]')).toBeFalsy();
+				expect(result.current.hasError('array[0]')).toBeFalsy();
 
 				act(() => result.current.form.array[0] = 10);
-				expect(result.current.hasTouch('array[0]')).toBeFalsy();
+				expect(result.current.hasError('array[0]')).toBeFalsy();
 
-				await act(() => result.current.handleSubmit(() => {})());
-				expect(result.current.hasTouch('array[0]')).toBeTruthy();
+				await act(() => result.current.handleSubmit(() => {})().catch(() => []));
+				expect(result.current.hasError('array[0]')).toBeTruthy();
 
 				act(() => result.current.form.array.push(1));
 				expect(result.current.form.array.length).toBe(2);
-				expect(result.current.hasTouch('array[1]')).toBeFalsy();
+				expect(result.current.hasError('array[1]')).toBeFalsy();
 			});
 
 			it('should track touch state correctly for multiple elements', async () => {
@@ -52,65 +58,71 @@ describe('useForm', () => {
 					useForm({
 						array: [3, 2, 1, 5] as number[] 
 					}, {
-						validationType: 'onSubmit' 
+						validationType: 'onSubmit',
+						validate: (form) => {
+							return form.array.map((_, index) => ({
+								path: `array[${index}]`,
+								error: 'Error'	
+							}));
+						}
 					})
 				);
 	
-				[0, 1, 2, 3].forEach((i) => expect(result.current.hasTouch(`array[${i}]`)).toBeFalsy());
+				[0, 1, 2, 3].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeFalsy());
 	
-				await act(() => result.current.handleSubmit(() => {})());
-				[0, 1, 2, 3].forEach((i) => expect(result.current.hasTouch(`array[${i}]`)).toBeTruthy());
+				await act(() => result.current.handleSubmit(() => {})().catch(() => []));
+				[0, 1, 2, 3].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeTruthy());
 
 				act(() => result.current.form.array.push(0));
-				[0, 1, 2].forEach((i) => expect(result.current.hasTouch(`array[${i}]`)).toBeTruthy());
-				expect(result.current.hasTouch('array[4]')).toBeFalsy();
+				[0, 1, 2].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeTruthy());
+				expect(result.current.hasError('array[4]')).toBeFalsy();
 				
 				act(() => result.current.form.array.reverse());
-				expect(result.current.hasTouch('array[0]')).toBeFalsy();
-				[1, 2, 3, 4].forEach((i) => expect(result.current.hasTouch(`array[${i}]`)).toBeTruthy());
+				expect(result.current.hasError('array[0]')).toBeFalsy();
+				[1, 2, 3, 4].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeTruthy());
 				
 				act(() => result.current.form.array.fill(0, 0, 5));
-				[0, 1, 2, 3, 4].forEach((i) => expect(result.current.hasTouch(`array[${i}]`)).toBeFalsy());
+				[0, 1, 2, 3, 4].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeFalsy());
 				
-				await act(() => result.current.handleSubmit(() => {})());
-				[0, 1, 2, 3, 4].forEach((i) => expect(result.current.hasTouch(`array[${i}]`)).toBeTruthy());
+				await act(() => result.current.handleSubmit(() => {})().catch(() => []));
+				[0, 1, 2, 3, 4].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeTruthy());
 
 				act(() => result.current.form.array.pop());
 				act(() => result.current.form.array.push(1));
-				[0, 1, 2, 3].forEach((i) => expect(result.current.hasTouch(`array[${i}]`)).toBeTruthy());
-				expect(result.current.hasTouch('array[4]')).toBeFalsy();
+				[0, 1, 2, 3].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeTruthy());
+				expect(result.current.hasError('array[4]')).toBeFalsy();
 
 				act(() => result.current.form.array.shift());
 				act(() => result.current.form.array.push(2));
-				[0, 1, 2].forEach((i) => expect(result.current.hasTouch(`array[${i}]`)).toBeTruthy());
-				expect(result.current.hasTouch('array[3]')).toBeFalsy();
-				expect(result.current.hasTouch('array[4]')).toBeFalsy();
+				[0, 1, 2].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeTruthy());
+				expect(result.current.hasError('array[3]')).toBeFalsy();
+				expect(result.current.hasError('array[4]')).toBeFalsy();
 
 				act(() => result.current.form.array.unshift(3));
 
-				expect(result.current.hasTouch('array[0]')).toBeFalsy();
-				[1, 2, 3].forEach((i) => expect(result.current.hasTouch(`array[${i}]`)).toBeTruthy());
-				expect(result.current.hasTouch('array[4]')).toBeFalsy();
-				expect(result.current.hasTouch('array[5]')).toBeFalsy();
+				expect(result.current.hasError('array[0]')).toBeFalsy();
+				[1, 2, 3].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeTruthy());
+				expect(result.current.hasError('array[4]')).toBeFalsy();
+				expect(result.current.hasError('array[5]')).toBeFalsy();
 
 				act(() => result.current.form.array.splice(1, 0, 4, 5));
-				expect(result.current.hasTouch('array[0]')).toBeFalsy();
-				expect(result.current.hasTouch('array[1]')).toBeFalsy();
-				expect(result.current.hasTouch('array[2]')).toBeFalsy();
-				expect(result.current.hasTouch('array[3]')).toBeTruthy();
-				expect(result.current.hasTouch('array[4]')).toBeTruthy();
-				expect(result.current.hasTouch('array[5]')).toBeTruthy();
-				expect(result.current.hasTouch('array[6]')).toBeFalsy();
-				expect(result.current.hasTouch('array[7]')).toBeFalsy();
+				expect(result.current.hasError('array[0]')).toBeFalsy();
+				expect(result.current.hasError('array[1]')).toBeFalsy();
+				expect(result.current.hasError('array[2]')).toBeFalsy();
+				expect(result.current.hasError('array[3]')).toBeTruthy();
+				expect(result.current.hasError('array[4]')).toBeTruthy();
+				expect(result.current.hasError('array[5]')).toBeTruthy();
+				expect(result.current.hasError('array[6]')).toBeFalsy();
+				expect(result.current.hasError('array[7]')).toBeFalsy();
 
 				// Array   [3, 4, 5, 0, 0, 0, 1, 2]
 				// Touches [false, false, false, true, true, true, false, false]
 				act(() => result.current.form.array.sort((a, b) => a - b));
-				[0, 1, 2].forEach((i) => expect(result.current.hasTouch(`array[${i}]`)).toBeTruthy());
-				[3, 4, 5, 6, 7].forEach((i) => expect(result.current.hasTouch(`array[${i}]`)).toBeFalsy());
+				[0, 1, 2].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeTruthy());
+				[3, 4, 5, 6, 7].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeFalsy());
 
 				act(() => result.current.form.array = result.current.form.array.map((a) => a));
-				[0, 1, 2, 3, 4, 5, 6, 7].forEach((i) => expect(result.current.hasTouch(`array[${i}]`)).toBeFalsy());
+				[0, 1, 2, 3, 4, 5, 6, 7].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeFalsy());
 
 				act(() => {
 					result.current.form.array = result.current.form.array
@@ -118,7 +130,7 @@ describe('useForm', () => {
 					.map((a) => a);
 				});
 
-				[0, 1, 2, 3, 4, 5, 6, 7].forEach((i) => expect(result.current.hasTouch(`array[${i}]`)).toBeFalsy());
+				[0, 1, 2, 3, 4, 5, 6, 7].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeFalsy());
 			});
 
 			it('should track touch state correctly for multiple elements (object array)', async () => {
@@ -146,26 +158,32 @@ describe('useForm', () => {
 								value: string }>
 						},
 						{
-							validationType: 'onSubmit'
+							validationType: 'onSubmit',
+							validate: (form) => {
+								return form.array.map((_, index) => ({
+									path: `array[${index}]`,
+									error: 'Error'	
+								}));
+							}
 						}
 					)
 				);
 			
-				[0, 1, 2, 3].forEach((i) => expect(result.current.hasTouch(`array[${i}]`)).toBeFalsy());
+				[0, 1, 2, 3].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeFalsy());
 			
-				await act(() => result.current.handleSubmit(() => {})());
-				[0, 1, 2, 3].forEach((i) => expect(result.current.hasTouch(`array[${i}]`)).toBeTruthy());
+				await act(() => result.current.handleSubmit(() => {})().catch(() => []));
+				[0, 1, 2, 3].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeTruthy());
 			
 				act(() => result.current.form.array.push({
 					id: 5,
 					value: 'E' 
 				}));
-				[0, 1, 2, 3].forEach((i) => expect(result.current.hasTouch(`array[${i}]`)).toBeTruthy());
-				expect(result.current.hasTouch('array[4]')).toBeFalsy();
+				[0, 1, 2, 3].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeTruthy());
+				expect(result.current.hasError('array[4]')).toBeFalsy();
 			
 				act(() => result.current.form.array.reverse());
-				expect(result.current.hasTouch('array[0]')).toBeFalsy();
-				[1, 2, 3, 4].forEach((i) => expect(result.current.hasTouch(`array[${i}]`)).toBeTruthy());
+				expect(result.current.hasError('array[0]')).toBeFalsy();
+				[1, 2, 3, 4].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeTruthy());
 			
 				act(() => {
 					result.current.form.array.fill({
@@ -178,36 +196,36 @@ describe('useForm', () => {
 						value: 'F' 
 					})); */
 				});
-				[0, 1, 2, 3, 4].forEach((i) => expect(result.current.hasTouch(`array[${i}]`)).toBeFalsy());
+				[0, 1, 2, 3, 4].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeFalsy());
 			
-				await act(() => result.current.handleSubmit(() => {})());
-				[0, 1, 2, 3, 4].forEach((i) => expect(result.current.hasTouch(`array[${i}]`)).toBeTruthy());
+				await act(() => result.current.handleSubmit(() => {})().catch(() => []));
+				[0, 1, 2, 3, 4].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeTruthy());
 			
 				act(() => result.current.form.array.pop());
 				act(() => result.current.form.array.push({
 					id: 7,
 					value: 'G' 
 				}));
-				[0, 1, 2, 3].forEach((i) => expect(result.current.hasTouch(`array[${i}]`)).toBeTruthy());
-				expect(result.current.hasTouch('array[4]')).toBeFalsy();
+				[0, 1, 2, 3].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeTruthy());
+				expect(result.current.hasError('array[4]')).toBeFalsy();
 			
 				act(() => result.current.form.array.shift());
 				act(() => result.current.form.array.push({
 					id: 8,
 					value: 'H' 
 				}));
-				[0, 1, 2].forEach((i) => expect(result.current.hasTouch(`array[${i}]`)).toBeTruthy());
-				expect(result.current.hasTouch('array[3]')).toBeFalsy();
-				expect(result.current.hasTouch('array[4]')).toBeFalsy();
+				[0, 1, 2].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeTruthy());
+				expect(result.current.hasError('array[3]')).toBeFalsy();
+				expect(result.current.hasError('array[4]')).toBeFalsy();
 			
 				act(() => result.current.form.array.unshift({
 					id: 9,
 					value: 'I' 
 				}));
-				expect(result.current.hasTouch('array[0]')).toBeFalsy();
-				[1, 2, 3].forEach((i) => expect(result.current.hasTouch(`array[${i}]`)).toBeTruthy());
-				expect(result.current.hasTouch('array[4]')).toBeFalsy();
-				expect(result.current.hasTouch('array[5]')).toBeFalsy();
+				expect(result.current.hasError('array[0]')).toBeFalsy();
+				[1, 2, 3].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeTruthy());
+				expect(result.current.hasError('array[4]')).toBeFalsy();
+				expect(result.current.hasError('array[5]')).toBeFalsy();
 			
 				act(() => result.current.form.array.splice(1, 0, {
 					id: 10,
@@ -216,24 +234,24 @@ describe('useForm', () => {
 					id: 11,
 					value: 'K' 
 				}));
-				expect(result.current.hasTouch('array[0]')).toBeFalsy();
-				expect(result.current.hasTouch('array[1]')).toBeFalsy();
-				expect(result.current.hasTouch('array[2]')).toBeFalsy();
-				expect(result.current.hasTouch('array[3]')).toBeTruthy();
-				expect(result.current.hasTouch('array[4]')).toBeTruthy();
-				expect(result.current.hasTouch('array[5]')).toBeTruthy();
-				expect(result.current.hasTouch('array[6]')).toBeFalsy();
-				expect(result.current.hasTouch('array[7]')).toBeFalsy();
+				expect(result.current.hasError('array[0]')).toBeFalsy();
+				expect(result.current.hasError('array[1]')).toBeFalsy();
+				expect(result.current.hasError('array[2]')).toBeFalsy();
+				expect(result.current.hasError('array[3]')).toBeTruthy();
+				expect(result.current.hasError('array[4]')).toBeTruthy();
+				expect(result.current.hasError('array[5]')).toBeTruthy();
+				expect(result.current.hasError('array[6]')).toBeFalsy();
+				expect(result.current.hasError('array[7]')).toBeFalsy();
 			
 				act(() => result.current.form.array.sort((a, b) => a.id - b.id));
 		
-				[0, 1, 2].forEach((i) => expect(result.current.hasTouch(`array[${i}]`)).toBeTruthy());
-				[3, 4, 5, 6, 7].forEach((i) => expect(result.current.hasTouch(`array[${i}]`)).toBeFalsy());
+				[0, 1, 2].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeTruthy());
+				[3, 4, 5, 6, 7].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeFalsy());
 			
 				act(() => (result.current.form.array = result.current.form.array.map((a) => ({
 					...a 
 				}))));
-				[0, 1, 2, 3, 4, 5, 6, 7].forEach((i) => expect(result.current.hasTouch(`array[${i}]`)).toBeFalsy());
+				[0, 1, 2, 3, 4, 5, 6, 7].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeFalsy());
 			
 				act(() => {
 					result.current.form.array = result.current.form.array.sort((a, b) => a.id - b.id).map((a) => ({
@@ -241,7 +259,7 @@ describe('useForm', () => {
 					}));
 				});
 			
-				[0, 1, 2, 3, 4, 5, 6, 7].forEach((i) => expect(result.current.hasTouch(`array[${i}]`)).toBeFalsy());
+				[0, 1, 2, 3, 4, 5, 6, 7].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeFalsy());
 			});
 		});
 	});
