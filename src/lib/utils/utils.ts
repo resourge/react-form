@@ -38,12 +38,11 @@ export function setSubmitDeepKeys(
 			if ( !touch ) {
 				touches.set(fullKey, {
 					submitted: true,
-					touch: true 
+					touch: false 
 				});
 			}
 			else {
 				touch.submitted = true;
-				touch.touch = true;
 			}
 			setSubmitDeepKeys((obj as Record<string, unknown>)[key], touches, resolveKey, shouldIncludeError, seen, fullKey);
 		}

@@ -41,7 +41,7 @@ export const useTouches = <T extends Record<string, any>>(validationType: FormVa
 		key: FormKey<T> | string,
 		touch: boolean = true
 	) => {
-		setTouch(key as FormKey<T>, touch);
+		setTouch(key as FormKey<T>, touch, touch && validationType !== 'onSubmit');
 
 		changedKeysRef.current.add(key as FormKey<T>);
 

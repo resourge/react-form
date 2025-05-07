@@ -169,7 +169,11 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		
 				changeTouch(
 					key as FormKey<T>, 
-					(metadata && metadata.isArray ? touchesRef.current.get(key)?.touch : undefined)
+					(
+						metadata && metadata.isArray 
+							? touchesRef.current.get(key)?.touch 
+							: undefined
+					)
 				);
 				
 				if (watch?.[key as keyof typeof watch]) {
@@ -222,7 +226,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 			setTouch(
 				path, 
 				form[path], 
-				true 
+				true
 			);
 	
 			changedKeysRef.current.add(path);
@@ -367,6 +371,10 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 			// eslint-disable-next-line @typescript-eslint/only-throw-error
 			throw errors;
 		}
+
+		touchHook.touchesRef.current.forEach((touch) => {
+			touch.touch = false;
+		});
 		
 		triggerRender(formKey);
 

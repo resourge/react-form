@@ -59,11 +59,7 @@ export function createErrors<T extends Record<string, any>>(
 			.filter(({ path }) => {
 				const touch = touchesRef.current.get(path);
 
-				return touch && (
-					validationType === 'onSubmit' 
-						? touch.submitted 
-						: touch.touch
-				);
+				return touch && touch.submitted;
 			});
 
 		if (
@@ -148,7 +144,7 @@ export function createErrors<T extends Record<string, any>>(
 					))
 				)
 			) {
-				setTouch(path as FormKey<T>, true, true);
+				setTouch(path as FormKey<T>, false, true);
 				changedKeysRef.current.add(path as FormKey<T>);
 			}
 		});
