@@ -1,3 +1,30 @@
+# [1.32.0](https://github.com/resourge/react-form/compare/v1.31.0...v1.32.0) (2025-05-07)
+
+
+### Bug Fixes
+
+* **context:** fix context not working with the changes to form ([50728b4](https://github.com/resourge/react-form/commit/50728b4688a91314e67d6af4f81ba19ea0ad4b3c))
+* **createformcore:** fix adding array not triggering state ([384836c](https://github.com/resourge/react-form/commit/384836ce96d6488c0ef5e46729b63172f9607ff8))
+* **createformcore:** fix core not updating because the reference was deleted ([035b432](https://github.com/resourge/react-form/commit/035b43278d5f85e90106d26831176f4d8b878ad4))
+* **createformcore:** fix for forms not updating ([a401666](https://github.com/resourge/react-form/commit/a4016666a69275ef45d934cd92cf106c1b922f0a))
+* **createformcore:** fix not triggering components when isValid is used ([d0175f6](https://github.com/resourge/react-form/commit/d0175f6ed0aae145d05cffc3947f9a4425ff8c0c))
+* **createformcore:** fix not updating when using isTouched ([5568110](https://github.com/resourge/react-form/commit/55681104512ec0d29c5a56d80093a1d9b2f01806))
+* **createformcore:** fix validation not working as intended in formSplitter and contexts ([2a6f5c2](https://github.com/resourge/react-form/commit/2a6f5c26d5be9586e3153c244e51ca2980b80a95))
+* **createformcore:** make sure verifyErrors is always run at top level ([5e98ba3](https://github.com/resourge/react-form/commit/5e98ba34cd16ec46c8a737f77d211354fb03d7e8))
+* **formcore:** fix submittion not working as intended after submit ([6ce6be0](https://github.com/resourge/react-form/commit/6ce6be08e0d10e85612f8ab04e2bc274f8fe73d5))
+* **formkey:** improve type ([bf5f7e9](https://github.com/resourge/react-form/commit/bf5f7e919b3b8c30d91d7c9e67b8d92e49f96b64))
+* **useformcontext:** fix useFormContext triggering touches ([958955a](https://github.com/resourge/react-form/commit/958955ab8a546bbeefd46810b8b59c6d05c211a1))
+* **useformcore:** fix not updating splitter forms when key or state changes ([a5337c1](https://github.com/resourge/react-form/commit/a5337c1bc4182e2662a1dad7410f168bd37f0f6a))
+* **useformcore:** fix render not triggering for errors when using useFormSplitter ([6dbec8a](https://github.com/resourge/react-form/commit/6dbec8a518800259119940182f38e53af5fcb63a))
+* **useform:** fix reset not working with empty objects ([69678b3](https://github.com/resourge/react-form/commit/69678b3329b52ab5a334f9b72474348d2295f4c8))
+
+
+### Features
+
+* **useform:** add debounce to field ([5f615d3](https://github.com/resourge/react-form/commit/5f615d37017b11776b9a9dbf172b1f55ba54f550))
+* **useform:** change form code to functions to remove it from the render ([2f7d039](https://github.com/resourge/react-form/commit/2f7d0392fbee12d74e282052fecbdc45b88fa37a))
+* **usesplitterform:** improve rendering in useSplitterForm to only render the component using it ([72470f2](https://github.com/resourge/react-form/commit/72470f244f0c26ffe961fefd87ac08becda75f15))
+
 # [1.31.0](https://github.com/resourge/react-form/compare/v1.30.0...v1.31.0) (2025-03-10)
 
 
