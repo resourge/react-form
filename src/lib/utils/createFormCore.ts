@@ -167,14 +167,16 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 					}
 				}
 		
-				changeTouch(
-					key as FormKey<T>, 
-					(
-						metadata && metadata.isArray 
-							? touchesRef.current.get(key)?.touch 
-							: undefined
-					)
-				);
+				if ( !stateRef.preventStateUpdate ) {
+					changeTouch(
+						key as FormKey<T>, 
+						(
+							metadata && metadata.isArray 
+								? touchesRef.current.get(key)?.touch 
+								: undefined
+						)
+					);
+				}
 				
 				if (watch?.[key as keyof typeof watch]) {
 					// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -210,8 +212,8 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 			: undefined
 	});
 
-	const renderNewErrors = (errors: ValidationErrors) => {
-		if ( setErrors(errors) ) {
+	const renderNewErrors = (errors: ValidationErrors, isFromSubmission?: boolean) => {
+		if ( setErrors(errors, isFromSubmission) ) {
 			triggerRender(formKey);
 		}
 	};
@@ -360,27 +362,33 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		onValid: SubmitHandler<T, K>,
 		validateErrors?: ValidateSubmissionErrors
 	) => async (e?: FormEvent<HTMLFormElement> | MouseEvent<any, MouseEvent> | BaseSyntheticEvent) => {
-		e?.preventDefault?.();
+		stateRef.preventStateUpdate = true;
+		try {
+			e?.preventDefault?.();
 	
-		// This serves so onlyOnTouch validations still work on handleSubmit
-		changedKeysRef.current.add('*' as FormKey<T>);
+			// This serves so onlyOnTouch validations still work on handleSubmit
+			changedKeysRef.current.add('*' as FormKey<T>);
 	
-		const errors = await validateSubmission(form, getChangedKeys(), validateErrors);
-		if ( errors.length ) {
-			renderNewErrors(errors);
-			// eslint-disable-next-line @typescript-eslint/only-throw-error
-			throw errors;
-		}
+			const errors = await validateSubmission(form, getChangedKeys(), validateErrors);
+			if ( errors.length ) {
+				renderNewErrors(errors);
+				// eslint-disable-next-line @typescript-eslint/only-throw-error
+				throw errors;
+			}
 
-		touchHook.touchesRef.current.forEach((touch) => {
-			touch.touch = false;
-		});
+			touchHook.touchesRef.current.forEach((touch) => {
+				touch.touch = false;
+			});
 		
-		triggerRender(formKey);
+			triggerRender(formKey);
 
-		onSubmit?.(form);
+			onSubmit?.(form);
 	
-		return await onValid(form);
+			return await onValid(form);
+		}
+		finally {
+			stateRef.preventStateUpdate = false;
+		}
 	};
 
 	// Necessary for references

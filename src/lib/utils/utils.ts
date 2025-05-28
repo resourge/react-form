@@ -38,7 +38,8 @@ export function setSubmitDeepKeys(
 			if ( !touch ) {
 				touches.set(fullKey, {
 					submitted: true,
-					touch: false 
+					touch: false,
+					errorWasShown: false
 				});
 			}
 			else {

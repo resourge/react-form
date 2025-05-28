@@ -7,6 +7,7 @@ import { type ValidationErrors } from './errorsTypes';
 import { type OnRenderType, type FormCoreOptions } from './types';
 
 export type ToucheType = {
+	errorWasShown: boolean
 	submitted: boolean
 	touch: boolean
 };

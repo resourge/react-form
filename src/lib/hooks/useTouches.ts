@@ -18,7 +18,8 @@ export const useTouches = <T extends Record<string, any>>(validationType: FormVa
 		if ( !touchesRef.current.has(key) ) {
 			touchesRef.current.set(key, {
 				submitted: false,
-				touch: false
+				touch: false,
+				errorWasShown: false
 			});
 		}
 

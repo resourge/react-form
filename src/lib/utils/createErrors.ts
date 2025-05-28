@@ -50,7 +50,7 @@ export function createErrors<T extends Record<string, any>>(
 		&& check(item1.path) 
 	);
 	
-	const setErrors = (errors: ValidationErrors) => {
+	const setErrors = (errors: ValidationErrors, isFromSubmission = false) => {
 		// To only allow errors in areas 
 		// where the camps have being touched our previously had error
 		const newErrors = validationType === 'always'
@@ -58,8 +58,15 @@ export function createErrors<T extends Record<string, any>>(
 			: errors
 			.filter(({ path }) => {
 				const touch = touchesRef.current.get(path);
-
-				return touch && touch.submitted;
+				if ( touch ) {
+					touch.errorWasShown = touch.errorWasShown || ( 
+						touch && touch.submitted && (
+							!isFromSubmission ? touch.touch : true
+						)
+					);
+					return touch.errorWasShown;
+				}
+				return false;
 			});
 
 		if (
