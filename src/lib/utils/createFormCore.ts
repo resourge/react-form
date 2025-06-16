@@ -111,7 +111,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		setTouch, changeTouch
 	} = touchHook;
 	const {
-		onChange, onSubmit, validationType, watch, validate
+		onChange, onSubmit, validationType = 'onSubmit', watch, validate
 	} = formOptions;
 
 	const formKey = mergeKeys(contextKey, formFieldKey) as FormKey<T>;
@@ -230,6 +230,8 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 				form[path], 
 				true
 			);
+			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+			touchHook.touchesRef.current.get(path)!.errorWasShown = true;
 	
 			changedKeysRef.current.add(path);
 		});
@@ -370,8 +372,9 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 			changedKeysRef.current.add('*' as FormKey<T>);
 	
 			const errors = await validateSubmission(form, getChangedKeys(), validateErrors);
+
 			if ( errors.length ) {
-				renderNewErrors(errors);
+				renderNewErrors(errors, true);
 				// eslint-disable-next-line @typescript-eslint/only-throw-error
 				throw errors;
 			}

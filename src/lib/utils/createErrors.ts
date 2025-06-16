@@ -25,7 +25,7 @@ export function createErrors<T extends Record<string, any>>(
 			setTouch
 		},
 		stateRef,
-		validationType = 'onSubmit',
+		validationType,
 		resolveKey,
 		shouldIncludeError,
 		onRender
@@ -68,7 +68,7 @@ export function createErrors<T extends Record<string, any>>(
 				}
 				return false;
 			});
-
+			
 		if (
 			!deepCompareValidationErrors(newErrors, stateRef.errors)
 		) {
