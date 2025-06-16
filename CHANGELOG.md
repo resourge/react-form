@@ -1,3 +1,11 @@
+## [1.32.1](https://github.com/resourge/react-form/compare/v1.32.0...v1.32.1) (2025-06-16)
+
+
+### Bug Fixes
+
+* **createerrors:** fix submission not working the same as the rest ([d5601a1](https://github.com/resourge/react-form/commit/d5601a12ebf7bfd518edcb2e8e6908d39ffeebaa))
+* **submission:** fix submission for specific errors not working as intended ([f734d9d](https://github.com/resourge/react-form/commit/f734d9db57abe42fd39f36596fd72fa6c3251604))
+
 # [1.32.0](https://github.com/resourge/react-form/compare/v1.31.0...v1.32.0) (2025-05-07)
 
 
