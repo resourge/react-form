@@ -1,3 +1,10 @@
+## [1.32.2](https://github.com/resourge/react-form/compare/v1.32.1...v1.32.2) (2025-06-17)
+
+
+### Bug Fixes
+
+* **useformstorage:** fix performance hit when using useFormStorage on form changes ([3c6cade](https://github.com/resourge/react-form/commit/3c6cade73d185ab38548da241e733d168900607a))
+
 ## [1.32.1](https://github.com/resourge/react-form/compare/v1.32.0...v1.32.1) (2025-06-16)
 
 
