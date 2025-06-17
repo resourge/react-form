@@ -47,6 +47,21 @@ export type FormCoreConfig<T extends Record<string, any>, FT extends FormTypes> 
 	value?: any
 };
 
+function debounce(func: Function, timeout = 200) {
+	const state: { 
+		args: any[]
+		timer: NodeJS.Timeout
+	} = {
+		timer: null as unknown as NodeJS.Timeout,
+		args: []
+	};
+	return (...args: any[]) => {
+		state.args = args;
+		clearTimeout(state.timer);
+		state.timer = setTimeout(() => func.call(state.args), timeout);
+	};
+}
+
 export function createFormCore<T extends Record<string, any>, FT extends FormTypes = 'form'>(
 	{
 		state, 
@@ -142,6 +157,10 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		triggers: context.triggers!
 	});
 
+	const _onChange = onChange 
+		? debounce(onChange)
+		: undefined;
+
 	const form = setFormProxy<T>(
 		formValue,
 		{
@@ -183,7 +202,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 					await watch[key as keyof typeof watch]!(form);
 				}
 		
-				onChange?.(form);
+				_onChange?.(form);
 		
 				if ( !stateRef.preventStateUpdate ) {
 					triggerRender(key);
