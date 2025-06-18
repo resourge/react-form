@@ -47,18 +47,18 @@ export type FormCoreConfig<T extends Record<string, any>, FT extends FormTypes> 
 	value?: any
 };
 
-function debounce(func: Function, timeout = 200) {
+function debounce(func: (form: any) => any, timeout = 200) {
 	const state: { 
-		args: any[]
+		args: any
 		timer: NodeJS.Timeout
 	} = {
 		timer: null as unknown as NodeJS.Timeout,
-		args: []
+		args: undefined
 	};
-	return (...args: any[]) => {
-		state.args = args;
+	return (form: any) => {
+		state.args = form;
 		clearTimeout(state.timer);
-		state.timer = setTimeout(() => func.call(state.args), timeout);
+		state.timer = setTimeout(() => func(state.args), timeout);
 	};
 }
 
