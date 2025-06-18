@@ -1,3 +1,10 @@
+## [1.32.3](https://github.com/resourge/react-form/compare/v1.32.2...v1.32.3) (2025-06-18)
+
+
+### Bug Fixes
+
+* **createformcore:** fix debounce sending undefined args ([562c2e4](https://github.com/resourge/react-form/commit/562c2e45fd8e06f44ad6f263ebabe56e8f4df8d2))
+
 ## [1.32.2](https://github.com/resourge/react-form/compare/v1.32.1...v1.32.2) (2025-06-17)
 
 
