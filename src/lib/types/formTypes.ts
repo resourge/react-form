@@ -44,6 +44,10 @@ export type FormStateRef<T extends Record<string, any>> = {
 	formErrors: FormErrors<T>
 	formRender: Map<string, OnRenderType[]>
 	preventStateUpdate: boolean
+	validateSubmission: (
+		shouldIncludeError?: ((key: string) => boolean),
+		validateErrors?: ValidateSubmissionErrors
+	) => Promise<ValidationErrors>
 	verifyErrors: () => void
 } & CacheConfig;
 

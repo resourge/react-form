@@ -32,7 +32,7 @@ import { createTriggers } from './createTriggers';
 import { setFormProxy } from './getProxy/getProxy';
 import type { OnKeyTouch } from './getProxy/getProxyTypes';
 import { TARGET_VALUE } from './getProxy/getProxyUtils';
-import { isClass, mergeKeys } from './utils';
+import { isClass, mergeKeys, setSubmitDeepKeys } from './utils';
 
 export type FormCoreConfig<T extends Record<string, any>, FT extends FormTypes> = {
 	context: {
@@ -85,6 +85,14 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 	};
 
 	const isForm = type === 'form'; 
+	
+	/**
+	 * Validates the form
+	 * @param form Current State
+	 * @param changedKeys Keys that have changed
+	 * @returns New validated state
+	 */
+	const formValidate = (form: T, changedKeys: Array<FormKey<T>>): ValidationErrors | Promise<ValidationErrors> => validate?.(form, changedKeys) ?? [];
 
 	const {
 		stateRef = {
@@ -98,6 +106,67 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 					const res = formValidate(formValue, getChangedKeys());
 					res instanceof Promise ? res.then(renderNewErrors) : setErrors(res);
 				}
+			},
+			validateSubmission: async function (shouldIncludeError, validateErrors) {
+				let newErrors = await formValidate(
+					form,
+					getChangedKeys()
+				);
+
+				if ( shouldIncludeError ) {
+					newErrors = newErrors
+					.filter((val) => shouldIncludeError(val.path));
+				}
+				
+				if ( validateErrors ) {
+					const result = await validateErrors(newErrors);
+				
+					if ( typeof result === 'boolean' ) {
+						if ( !result ) {
+							// eslint-disable-next-line @typescript-eslint/only-throw-error
+							throw newErrors;
+						}
+								
+						newErrors = [];
+					}
+					else {
+						newErrors = result;
+					}
+				}
+				
+				if ( validationType === 'always' ) {
+					return newErrors;
+				}
+				
+				const isSubmitValidation = validationType === 'onSubmit';
+				
+				if ( isSubmitValidation ) {
+					setSubmitDeepKeys(
+						form, 
+						touchesRef.current,
+						resolveKey,
+						shouldIncludeError
+					);
+				}
+				
+				newErrors
+				.forEach(({ path, error }) => {
+					if ( 
+						!changedKeysRef.current.has(path as FormKey<T>) 
+						&& !(
+							this.errors
+							.some((prevVal) => (
+								prevVal.path === path
+								&& error === prevVal.error
+							))
+						)
+					) {
+						setTouch(path as FormKey<T>, false, true);
+						changedKeysRef.current.add(path as FormKey<T>);
+					}
+				});
+				
+				return newErrors;
 			},
 			hasTouch: new WeakMap(),
 			touch: new WeakMap(),
@@ -218,17 +287,13 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 	);
 
 	const {
-		getErrors, hasError, validateSubmission, setErrors, formValidate
+		getErrors, hasError, setErrors
 	} = createErrors({
-		validate,
 		touchHook,
 		stateRef,
 		validationType,
 		resolveKey,
-		onRender,
-		shouldIncludeError: formKey 
-			? (key: string) => key.includes(formKey) || formKey.includes(key)
-			: undefined
+		onRender
 	});
 
 	const renderNewErrors = (errors: ValidationErrors, isFromSubmission?: boolean) => {
@@ -390,7 +455,11 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 			// This serves so onlyOnTouch validations still work on handleSubmit
 			changedKeysRef.current.add('*' as FormKey<T>);
 	
-			const errors = await validateSubmission(form, getChangedKeys(), validateErrors);
+			const shouldIncludeError = formKey 
+				? (key: string) => key.includes(formKey) || formKey.includes(key)
+				: undefined;
+
+			const errors = await stateRef.validateSubmission(shouldIncludeError, validateErrors);
 
 			if ( errors.length ) {
 				renderNewErrors(errors, true);
