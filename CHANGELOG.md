@@ -1,3 +1,10 @@
+## [1.32.4](https://github.com/resourge/react-form/compare/v1.32.3...v1.32.4) (2025-07-09)
+
+
+### Bug Fixes
+
+* **createformcore:** fix handleSubmit not working in useFormSplitter ([eb78ff0](https://github.com/resourge/react-form/commit/eb78ff03e29291a5ac9e03cfa5facfdbbfdcebb6))
+
 ## [1.32.3](https://github.com/resourge/react-form/compare/v1.32.2...v1.32.3) (2025-06-18)
 
 
