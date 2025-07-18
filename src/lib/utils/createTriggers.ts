@@ -52,18 +52,16 @@ export function createTriggers(
 	const events = triggers.get(formKey)!;
 	events.push(triggerRender);
 
-	const removeForm = isForm
-		? () => {}
-		: () => {
-			const index = events.indexOf(triggerRender);
-			if (index !== -1) {
-				events.splice(index, 1);
-			};
-
-			if ( events.length === 0 ) {
-				triggers.delete(formKey);
-			}
+	const removeForm = () => {
+		const index = events.indexOf(triggerRender);
+		if (index !== -1) {
+			events.splice(index, 1);
 		};
+
+		if ( events.length === 0 ) {
+			triggers.delete(formKey);
+		}
+	};
 	
 	return {
 		triggers,

@@ -160,6 +160,49 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 								: originalValue;
 						};
 					}
+					if (['entries', 'values'].includes(prop)) {
+						return function(...args: any[]) {
+							const iterator = origMethod.apply(target, args);
+
+							// Proxy the iterator result values
+							return {
+								[Symbol.iterator]() {
+									return this;
+								},
+								next() {
+									const result = iterator.next();
+									if (result.done) return result;
+
+									// For `entries`, result.value is [key, value]
+									if (prop === 'entries') {
+										const [key, val] = result.value;
+										const proxiedVal = isObjectOrArray(val) && !isImmutableBuiltin(val)
+											? getProxy(val, config, baseKey)
+											: val;
+										return {
+											value: [key, proxiedVal],
+											done: false 
+										};
+									}
+
+									// For `values`, result.value is value only
+									if (prop === 'values') {
+										const val = result.value;
+										const proxiedVal = isObjectOrArray(val) && !isImmutableBuiltin(val)
+											? getProxy(val, config, baseKey)
+											: val;
+										return {
+											value: proxiedVal,
+											done: false 
+										};
+									}
+
+									// For `keys`, just return as-is (keys are not proxied)
+									return result;
+								}
+							};
+						};
+					}
 				}
 				return origMethod;
 			}
