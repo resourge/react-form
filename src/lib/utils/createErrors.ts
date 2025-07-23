@@ -45,21 +45,24 @@ export function createErrors<T extends Record<string, any>>(
 	const setErrors = (errors: ValidationErrors, isFromSubmission = false) => {
 		// To only allow errors in areas 
 		// where the camps have being touched our previously had error
-		const newErrors = validationType === 'always'
+		const newErrors = validationType === 'onSubmit'
 			? errors
-			: errors
 			.filter(({ path }) => {
 				const touch = touchesRef.current.get(path);
 				if ( touch ) {
 					touch.errorWasShown = touch.errorWasShown || ( 
 						touch && touch.submitted && (
+							// errorWasShown should only be changed 
+							// if the user has touched the field
+							// or when submitted the form
 							!isFromSubmission ? touch.touch : true
 						)
 					);
 					return touch.errorWasShown;
 				}
 				return false;
-			});
+			})
+			: errors;
 			
 		if (
 			!deepCompareValidationErrors(newErrors, stateRef.errors)
@@ -87,6 +90,14 @@ export function createErrors<T extends Record<string, any>>(
 		const errors = stateRef.formErrors[resolvedKey];
 		if ( !errors ) {
 			return [];
+		}
+
+		if ( validationType === 'onTouch' ) {
+			const touch = touchesRef.current.get(resolvedKey);
+
+			if ( !(touch && (touch.submitted || touch.touch)) ) {
+				return []; 
+			}
 		}
 
 		const list = unique 

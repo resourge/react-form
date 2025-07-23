@@ -1,12 +1,14 @@
 import { act } from 'react';
 
-import { renderHook } from '@testing-library/react';
+import { renderHook, waitFor } from '@testing-library/react';
 import {
 	describe,
 	expect,
 	it,
 	vi
 } from 'vitest';
+
+import { type ValidationErrors } from 'src/lib/types/errorsTypes';
 
 import { useForm } from '../useForm';
 
@@ -546,5 +548,52 @@ describe('useForm', () => {
 
 		// Verify the form state
 		expect(result.current.form.name).toBe('Jane');
+	});
+
+	describe('validationType onTouch', () => {
+		it('should handle field changes correctly', async () => {
+			const initialForm = {
+				name: '',
+				age: undefined 
+			};
+			const { result } = renderHook(() => useForm(initialForm, {
+				validate: (form) => {
+					return [
+						!form.name ? {
+							path: 'name',
+							error: 'Missing'
+						} : undefined,
+						!form.age ? {
+							path: 'age',
+							error: 'Missing'
+						} : undefined
+					].filter(Boolean) as ValidationErrors;
+				},
+				validationType: 'onTouch' 
+			}));
+
+			// Verify the form state
+			expect(result.current.isValid).toBeTruthy();
+
+			// Change field value
+			act(() => {
+				result.current.changeValue('name', 'Jane');
+			});
+
+			await waitFor(() => {
+				// Verify the form state
+				expect(result.current.isValid).toBeFalsy();
+			});
+
+			// Change field value
+			act(() => {
+				result.current.changeValue('name', '');
+			});
+
+			await waitFor(() => {
+				// Verify the form state
+				expect(result.current.isValid).toBeFalsy();
+			});
+		});
 	});
 });
