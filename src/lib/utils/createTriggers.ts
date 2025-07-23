@@ -8,7 +8,6 @@ export type FormTrigger = Map<string, Array<(key: string) => void>>;
 
 export type CreateTriggersConfig = {
 	formKey: string
-	isForm: boolean
 	onRender: OnRenderType
 	state: [number, Dispatch<SetStateAction<number>>]
 	triggers: FormTrigger

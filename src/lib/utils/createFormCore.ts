@@ -84,8 +84,6 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		isRendering: false
 	};
 
-	const isForm = type === 'form'; 
-	
 	/**
 	 * Validates the form
 	 * @param form Current State
@@ -178,7 +176,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 	} = context;
 	
 	const formValue = (
-		isForm 
+		type === 'form' 
 			? (
 				typeof defaultValue === 'function' 
 					? (
@@ -218,7 +216,6 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 	const {
 		triggerRender, triggers, removeForm
 	} = createTriggers({
-		isForm,
 		formKey,
 		onRender,
 		state,
