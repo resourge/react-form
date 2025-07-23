@@ -22,7 +22,7 @@ export type CreateTriggersResult = {
 
 export function createTriggers(
 	{
-		formKey, isForm, onRender, state, 
+		formKey, onRender, state, 
 		triggers = new Map<string, Array<(key?: string, metadata?: OnKeyTouchMetadataType) => void>>()
 	}: CreateTriggersConfig
 ): CreateTriggersResult {
