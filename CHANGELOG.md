@@ -1,3 +1,12 @@
+## [1.32.5](https://github.com/resourge/react-form/compare/v1.32.4...v1.32.5) (2025-10-15)
+
+
+### Bug Fixes
+
+* **createerrors:** validationType onlyOnTouch isValid not working as intended ([a39e990](https://github.com/resourge/react-form/commit/a39e9900510a87c0cefe72e951d71e3c533c1395))
+* **createtriggers:** remove unused var ([76f8964](https://github.com/resourge/react-form/commit/76f8964c7c55522543abfba1d33a1dfedc445cd9))
+* **getproxy:** form not updating or watch values from map entries/values ([38b24c9](https://github.com/resourge/react-form/commit/38b24c99ced9a56b8afc9c1271861cc43db57c96))
+
 ## [1.32.4](https://github.com/resourge/react-form/compare/v1.32.3...v1.32.4) (2025-07-09)
 
 
