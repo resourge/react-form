@@ -1,6 +1,6 @@
 /// <reference types="vitest" />
 
-import react from '@vitejs/plugin-react-swc';
+import react from '@vitejs/plugin-react';
 // import checker from 'vite-plugin-checker';
 
 import { defineLibConfig } from './config/defineLibConfig';

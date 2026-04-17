@@ -6,7 +6,7 @@
 			"ESNext"
 		],
 		"module": "esnext",
-		"moduleResolution": "node",
+		"moduleResolution": "bundler",
 		"strict": true,
 		"strictNullChecks": true,
 		"allowSyntheticDefaultImports": true,
