@@ -2,7 +2,6 @@ import deepmerge from '@fastify/deepmerge';
 import { defineConfig, type UserConfigExport } from 'vite';
 import banner from 'vite-plugin-banner';
 import dts from 'vite-plugin-dts';
-import viteTsconfigPaths from 'vite-tsconfig-paths';
 
 import PackageJson from '../package.json';
 
@@ -49,11 +48,11 @@ export const defineLibConfig = (
 			}
 		},
 		resolve: {
-			preserveSymlinks: true
+			preserveSymlinks: true,
+			tsconfigPaths: true
 		},
 		plugins: [
 			banner(createBanner()),
-			viteTsconfigPaths(),
 			dts({
 				insertTypesEntry: true,
 				rollupTypes: true,
