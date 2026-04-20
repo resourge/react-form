@@ -28,7 +28,9 @@ export const constructKey = (
 	const nextKey = String(prop);
 
 	return baseKey 
-		? `${baseKey}${isArray ? `[${nextKey}]` : `.${nextKey}`}` 
+		? `${baseKey}${isArray
+			? `[${nextKey}]`
+			: `.${nextKey}`}` 
 		: nextKey;
 };
 
@@ -38,10 +40,10 @@ export function getCurrentTouch(deepTarget: any, config: CacheConfig, value: any
 	if ( originalTouch ) {
 		const index = originalTouch.values.findIndex(([val]) => val === value);
 
-		if ( index >= 0 ) {
+		if ( index !== -1 ) {
 			return originalTouch.values.splice(index, 1)[0][1];
 		}
 	}
 
-	return undefined;
+	return;
 }

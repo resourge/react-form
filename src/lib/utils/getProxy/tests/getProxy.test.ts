@@ -12,19 +12,19 @@ import { type ProxyConfig } from '../getProxyTypes';
 
 function observeObject<T extends object>(
 	target: T, 
-	config: Omit<ProxyConfig, 'proxyCache' | 'cache' | 'getTouches' | 'touchesRef'>
+	config: Omit<ProxyConfig, 'cache' | 'getTouches' | 'proxyCache' | 'touchesRef'>
 ): T {
 	return getProxy(
 		target, 
 		{
 			...config,
-			touchesRef: {
-				current: new Map()
-			},
 			cache: {
 				touch: new WeakMap()
 			},
-			proxyCache: new WeakMap()
+			proxyCache: new WeakMap(),
+			touchesRef: {
+				current: new Map()
+			}
 		},
 		''
 	);
@@ -43,8 +43,8 @@ describe('observeObject', () => {
 		const proxy = observeObject(
 			target, 
 			{
-				onKeyTouch,
-				onKeyGet
+				onKeyGet,
+				onKeyTouch
 			}
 		);
 
@@ -66,8 +66,8 @@ describe('observeObject', () => {
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(target, {
-			onKeyTouch,
-			onKeyGet
+			onKeyGet,
+			onKeyTouch
 		});
 
 		proxy.a = 2;
@@ -89,8 +89,8 @@ describe('observeObject', () => {
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(target, {
-			onKeyTouch,
-			onKeyGet
+			onKeyGet,
+			onKeyTouch
 		});
 
 		expect(proxy.date.toISOString()).toBe(date.toISOString());
@@ -110,14 +110,14 @@ describe('observeObject', () => {
 		}));
 
 		const target = {
-			languagesOptions,
-			languages: undefined
+			languages: undefined,
+			languagesOptions
 		};
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
 		const proxy = observeObject<any>(target, {
-			onKeyTouch,
-			onKeyGet
+			onKeyGet,
+			onKeyTouch
 		});
 
 		proxy.languages = proxy.languagesOptions[0];
@@ -133,14 +133,14 @@ describe('observeObject', () => {
 		}));
 
 		const target = {
-			languagesOptions,
-			languages: []
+			languages: [],
+			languagesOptions
 		};
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
 		const proxy = observeObject<any>(target, {
-			onKeyTouch,
-			onKeyGet
+			onKeyGet,
+			onKeyTouch
 		});
 
 		const item = proxy.languagesOptions[0];
@@ -148,7 +148,7 @@ describe('observeObject', () => {
 		proxy.languages = [item];
 
 		const newValue = [...proxy.languages];
-		const index = newValue.findIndex((val) => val === item);
+		const index = newValue.indexOf(item);
 
 		expect(index).not.toBe(-1);
 	});
@@ -208,8 +208,8 @@ describe('observeObject', () => {
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(target, {
-			onKeyTouch,
-			onKeyGet
+			onKeyGet,
+			onKeyTouch
 		});
 
 		expect(proxy.a).toBe(1);
@@ -225,8 +225,8 @@ describe('observeObject', () => {
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(target, {
-			onKeyTouch,
-			onKeyGet
+			onKeyGet,
+			onKeyTouch
 		});
 
 		proxy.a = 1;
@@ -242,8 +242,8 @@ describe('observeObject', () => {
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(target, {
-			onKeyTouch,
-			onKeyGet
+			onKeyGet,
+			onKeyTouch
 		});
 
 		// @ts-expect-error Expected
@@ -268,8 +268,8 @@ describe('observeObject', () => {
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(target, {
-			onKeyTouch,
-			onKeyGet
+			onKeyGet,
+			onKeyTouch
 		});
 
 		proxy.a.b = 2;
@@ -302,8 +302,8 @@ describe('observeObject', () => {
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(target, {
-			onKeyTouch,
-			onKeyGet
+			onKeyGet,
+			onKeyTouch
 		});
 
 		proxy.a.b.c.d = 2;
@@ -332,8 +332,8 @@ describe('observeObject', () => {
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(target, {
-			onKeyTouch,
-			onKeyGet
+			onKeyGet,
+			onKeyTouch
 		});
 
 		// Date manipulation
@@ -365,8 +365,8 @@ describe('observeObject', () => {
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(target, {
-			onKeyTouch,
-			onKeyGet
+			onKeyGet,
+			onKeyTouch
 		});
 
 		proxy.maps[0].set('key3', 'value3');
@@ -385,8 +385,8 @@ describe('observeObject', () => {
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(target, {
-			onKeyTouch,
-			onKeyGet
+			onKeyGet,
+			onKeyTouch
 		});
 
 		proxy.a = 2;
@@ -407,8 +407,8 @@ describe('observeObject', () => {
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(target, {
-			onKeyTouch,
-			onKeyGet
+			onKeyGet,
+			onKeyTouch
 		});
 
 		proxy.newProp = {
@@ -431,8 +431,8 @@ describe('observeObject', () => {
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(target, {
-			onKeyTouch,
-			onKeyGet
+			onKeyGet,
+			onKeyTouch
 		});
 
 		const newDate = new Date();
@@ -452,8 +452,8 @@ describe('observeObject', () => {
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(map, {
-			onKeyTouch,
-			onKeyGet
+			onKeyGet,
+			onKeyTouch
 		});
 
 		proxy.set('key', 'value');
@@ -469,8 +469,8 @@ describe('observeObject', () => {
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(target, {
-			onKeyTouch,
-			onKeyGet
+			onKeyGet,
+			onKeyTouch
 		});
 		proxy.self.a = 1;
 
@@ -494,8 +494,8 @@ describe('observeObject', () => {
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(target, {
-			onKeyTouch,
-			onKeyGet
+			onKeyGet,
+			onKeyTouch
 		});
 
 		proxy.c.sort((a, b) => a.id - b.id); 
@@ -522,7 +522,6 @@ describe('observeObject', () => {
 
 	it('should filter work normally', () => {
 		const target = {
-			mostUsed: ['test', 'test1', 'test2'],
 			categories: [
 				{
 					type: 'test3'
@@ -545,14 +544,15 @@ describe('observeObject', () => {
 				{
 					type: 'test1'
 				}
-			]
+			],
+			mostUsed: ['test', 'test1', 'test2']
 		};
 		
 		const onKeyTouch = vi.fn();
 		const onKeyGet = vi.fn();
 		const proxy = observeObject(target, {
-			onKeyTouch,
-			onKeyGet
+			onKeyGet,
+			onKeyTouch
 		});
 
 		expect(
@@ -566,7 +566,7 @@ describe('observeObject', () => {
 			.filter((item) => {
 				const index = proxy.mostUsed.indexOf(item.type);
 
-				if ( index > -1 ) {
+				if ( index !== -1 ) {
 					proxy.mostUsed.splice(index, 1);
 					return true;
 				}
@@ -593,8 +593,8 @@ describe('Caching and Performance', () => {
 		const proxy = observeObject(
 			target, 
 			{
-				onKeyTouch,
-				onKeyGet
+				onKeyGet,
+				onKeyTouch
 			}
 		);
 

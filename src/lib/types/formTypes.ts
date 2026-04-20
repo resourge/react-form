@@ -1,18 +1,107 @@
 import { type BaseSyntheticEvent, type FormEvent, type MouseEvent } from 'react';
 
 import { type CacheConfig } from '../utils/getProxy/getProxyTypes';
-
-import { type FormKey } from './FormKey';
 import { type ValidationErrors } from './errorsTypes';
-import { type OnRenderType, type FormCoreOptions } from './types';
+import { type FormKey } from './FormKey';
+import { type FormCoreOptions, type OnRenderType } from './types';
 
-export type ToucheType = {
-	errorWasShown: boolean
-	submitted: boolean
-	touch: boolean
+export type ErrorsOptions = {
+	/**
+	 * Includes the children errors on the array (@default false)
+	 */
+	includeChildsIntoArray?: boolean
 };
 
-export type Touches = Map<any, ToucheType>;
+export type FieldForm<T extends Record<string, any>> = {
+	(key: FormKey<T>, options: FieldOptions & { blur: true }): FieldFormBlur
+	(key: FormKey<T>, options: FieldOptions & { readonly: true }): FieldFormReadonly
+	(key: FormKey<T>, options?: FieldOptions): FieldFormChange
+};
+
+export type FieldFormBlur<Value = any, Name = string> = {
+	/**
+	 * Form value
+	 */
+	defaultValue: Value
+	/**
+	 * Attribute `name`
+	 */
+	name: Name
+	/**
+	 * Method to update values
+	 */
+	onBlur: (value: Value) => void
+	/**
+	 * When true onChange will not be returned
+	 */
+	readOnly?: boolean
+};
+
+export type FieldFormChange<Value = any, Name = string> = {
+	/**
+	 * Attribute `name`
+	 */
+	name: Name
+	/**
+	 * Method to update values
+	 */
+	onChange: (value: Value) => void
+	/**
+	 * When true onChange will not be returned
+	 */
+	readOnly?: boolean
+	/**
+	 * Form value
+	 */
+	value: Value
+};
+
+export type FieldFormReadonly<Value = any, Name = string> = {
+	/**
+	 * Attribute `name`
+	 */
+	name: Name
+	/**
+	 * When true onChange will not be returned
+	 */
+	readOnly?: boolean
+	/**
+	 * Form value
+	 */
+	value: Value
+};
+
+export type FieldFormReturn<Value = any, Name = string> = FieldFormBlur<Value, Name> | FieldFormChange<Value, Name> | FieldFormReadonly<Value, Name>;
+
+export type FieldOptions = {
+	/**
+	 * Turns the field from a onChange to onBlur
+	 */
+	blur?: boolean
+	/**
+	 * Built-in debouncing number
+	 * @default 0 (no debounce)
+	 */
+	debounce?: number
+	/**
+	 * For cases where the onChange value needs to be different
+	 */
+	onChange?: (value: any) => any
+	/**
+	 * Disables `onChange` method
+	 */
+	readOnly?: boolean
+};
+
+export type FormContextType<T extends Record<string, any>, FT extends FormTypes = 'form'> = FormCoreOptions<T> & {
+	changedKeys: Array<FormKey<T>>
+	formState: UseFormReturn<T, FT>
+	formValue: T
+	getFormSplitterValue: (key: string) => object
+	onRender: OnRenderType
+	toJSON: () => object
+	type: FT
+};
 
 export type FormError<T extends Record<string, any>> = {
 	every: {
@@ -38,41 +127,9 @@ export type FormError<T extends Record<string, any>> = {
 	formErrors: FormErrors<T>
 };
 
-export type FormStateRef<T extends Record<string, any>> = {
-	diff: ValidationErrors
-	errors: ValidationErrors
-	formErrors: FormErrors<T>
-	formRender: Map<string, OnRenderType[]>
-	preventStateUpdate: boolean
-	validateSubmission: (
-		shouldIncludeError?: ((key: string) => boolean),
-		validateErrors?: ValidateSubmissionErrors
-	) => Promise<ValidationErrors>
-	verifyErrors: () => void
-} & CacheConfig;
-
 export type FormErrors<T extends Record<string, any>> = {
 	[K in FormKey<T>]?: FormError<T[K]>
 };
-
-export type ErrorsOptions = {
-	/**
-	 * Includes the children errors on the array (@default false)
-	 */
-	includeChildsIntoArray?: boolean
-};
-
-export type GetErrorsOptions = ErrorsOptions & {
-	/**
-	 * Filters repeating errors
-	 * @default true
-	 */
-	unique?: boolean
-};
-
-export type ResetMethod<T extends Record<string, any>> = (newFrom: Partial<T>, resetOptions?: ResetOptions | undefined) => void;
-
-export type FormValidationType = 'onSubmit' | 'always' | 'onTouch';
 
 export type FormOptions<T extends Record<string, any>> = {
 	/**
@@ -104,7 +161,7 @@ export type FormOptions<T extends Record<string, any>> = {
 	 * )
 	 * ```
 	 */
-	validate?: (form: T, changedKeys: string[]) => ValidationErrors | Promise<ValidationErrors>
+	validate?: (form: T, changedKeys: string[]) => Promise<ValidationErrors> | ValidationErrors
 	/**
 	 * Validation type, specifies the type of validation.
 	 * @default 'onSubmit'
@@ -117,71 +174,39 @@ export type FormOptions<T extends Record<string, any>> = {
 	watch?: { [K in FormKey<T>]?: (form: T) => Promise<void> | void }
 };
 
-export type FieldFormBlur<Value = any, Name = string> = {
-	/**
-	 * Form value
-	 */
-	defaultValue: Value
-	/**
-	 * Attribute `name`
-	 */
-	name: Name
-	/**
-	 * Method to update values
-	 */
-	onBlur: (value: Value) => void
-	/**
-	 * When true onChange will not be returned
-	 */
-	readOnly?: boolean
+export type FormStateRef<T extends Record<string, any>> = CacheConfig & {
+	diff: ValidationErrors
+	errors: ValidationErrors
+	formErrors: FormErrors<T>
+	formRender: Map<string, OnRenderType[]>
+	preventStateUpdate: boolean
+	validateSubmission: (
+		shouldIncludeError?: ((key: string) => boolean),
+		validateErrors?: ValidateSubmissionErrors
+	) => Promise<ValidationErrors>
+	verifyErrors: () => void
 };
 
-export type FieldFormReadonly<Value = any, Name = string> = {
-	/**
-	 * Attribute `name`
-	 */
-	name: Name
-	/**
-	 * Form value
-	 */
-	value: Value
-	/**
-	 * When true onChange will not be returned
-	 */
-	readOnly?: boolean
-};
+export type FormTypes = 'form' | 'formContext' | 'formSplitter';
 
-export type FieldFormChange<Value = any, Name = string> = {
-	/**
-	 * Attribute `name`
-	 */
-	name: Name
-	/**
-	 * Method to update values
-	 */
-	onChange: (value: Value) => void
-	/**
-	 * Form value
-	 */
-	value: Value
-	/**
-	 * When true onChange will not be returned
-	 */
-	readOnly?: boolean
-};
-
-export type FieldForm<T extends Record<string, any>> = {
-	(key: FormKey<T>, options: FieldOptions & { blur: true }): FieldFormBlur
-	(key: FormKey<T>, options: FieldOptions & { readonly: true }): FieldFormReadonly
-	(key: FormKey<T>, options?: FieldOptions): FieldFormChange
-};
+export type FormValidationType = 'always' | 'onSubmit' | 'onTouch';
 
 export type GetErrors<T extends Record<string, any>> = (
 	key: FormKey<T>, 
 	options?: GetErrorsOptions
 ) => string[];
 
-export type FieldFormReturn<Value = any, Name = string> = FieldFormReadonly<Value, Name> | FieldFormBlur<Value, Name> | FieldFormChange<Value, Name>;
+export type GetErrorsOptions = ErrorsOptions & {
+	/**
+	 * Filters repeating errors
+	 * @default true
+	 */
+	unique?: boolean
+};
+
+export type OnFunctionChange<T extends Record<string, any>, Result = void> = ((form: T) => Promise<Result>) | ((form: T) => Result);
+
+export type ResetMethod<T extends Record<string, any>> = (newFrom: Partial<T>, resetOptions?: ResetOptions ) => void;
 
 export type ResetOptions = {
 	/**
@@ -192,43 +217,15 @@ export type ResetOptions = {
 	clearTouched?: boolean
 };
 
-export type FieldOptions = {
-	/**
-	 * Turns the field from a onChange to onBlur
-	 */
-	blur?: boolean
-	/**
-	 * Built-in debouncing number
-	 * @default 0 (no debounce)
-	 */
-	debounce?: number
-	/**
-	 * For cases where the onChange value needs to be different
-	 */
-	onChange?: (value: any) => any
-	/**
-	 * Disables `onChange` method
-	 */
-	readOnly?: boolean
-};
-
-export type OnFunctionChange<T extends Record<string, any>, Result = void> = ((form: T) => Result) | ((form: T) => Promise<Result>);
-
 export type SubmitHandler<T extends Record<string, any>, K = void> = (form: T) => K | Promise<K>;
 
-export type ValidateSubmissionErrors = (newErrors: ValidationErrors) => ValidationErrors | boolean | Promise<ValidationErrors | boolean>;
+export type Touches = Map<any, ToucheType>;
 
-export type FormTypes = 'form' | 'formSplitter' | 'formContext';
-
-export type FormContextType<T extends Record<string, any>, FT extends FormTypes = 'form'> = {
-	changedKeys: Array<FormKey<T>>
-	formState: UseFormReturn<T, FT>
-	formValue: T
-	getFormSplitterValue: (key: string) => object
-	onRender: OnRenderType
-	toJSON: () => object
-	type: FT
-} & FormCoreOptions<T>;
+export type ToucheType = {
+	errorWasShown: boolean
+	submitted: boolean
+	touch: boolean
+};
 
 export type UseFormReturn<T extends Record<string, any>, FT extends FormTypes = 'form'> = {
 	/**
@@ -368,7 +365,7 @@ export type UseFormReturn<T extends Record<string, any>, FT extends FormTypes = 
 	handleSubmit: <K = void>(
 		onValid: SubmitHandler<T, K>, 
 		validateErrors?: ValidateSubmissionErrors
-	) => (e?: FormEvent<HTMLFormElement> | MouseEvent<any, MouseEvent> | BaseSyntheticEvent) => Promise<K | undefined>
+	) => (e?: BaseSyntheticEvent | FormEvent<HTMLFormElement> | MouseEvent<any, MouseEvent>) => Promise<K | undefined>
 	/**
 	 * Method to verify if `key` has errors
 	 * 
@@ -522,3 +519,5 @@ export type UseFormReturn<T extends Record<string, any>, FT extends FormTypes = 
 export type UseFormSplitterResult<
 	T extends Record<string, any>
 > = UseFormReturn<T, 'formSplitter'>;
+
+export type ValidateSubmissionErrors = (newErrors: ValidationErrors) => boolean | Promise<boolean | ValidationErrors> | ValidationErrors;

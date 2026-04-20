@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { type JSX, memo, type ReactNode } from 'react';
+import { type JSX, memo, type ReactNode, useMemo } from 'react';
 
 import { ControllerContext } from '../contexts/ControllerContext';
 import { type FormKey } from '../types/FormKey';
@@ -8,8 +7,8 @@ import { type FormContextType } from '../types/formTypes';
 export type ControllerProps<T extends Record<string, any>> = {
 	children: ReactNode
 	context: FormContextType<T, any>
-	name: FormKey<T>
 	deps?: any[]
+	name: FormKey<T>
 };
 
 /**
@@ -40,12 +39,14 @@ export type ControllerProps<T extends Record<string, any>> = {
  * )
  * ```
  */
-export const Controller = memo(function Controller({ name, children }: ControllerProps<Record<string, any>>): JSX.Element {
+const Controller = memo(function Controller({ children, name }: ControllerProps<Record<string, any>>): JSX.Element {
 	return (
 		<ControllerContext.Provider
-			value={{
-				name
-			}}
+			value={
+				useMemo(() => ({
+					name 
+				}), [name])
+			}
 		>
 			{ children }
 		</ControllerContext.Provider>
@@ -53,7 +54,7 @@ export const Controller = memo(function Controller({ name, children }: Controlle
 }, (
 	prevProps, 
 	{
-		context, name, deps 
+		context, deps, name 
 	}
 ) => {
 	const isSameDeps = !deps 
@@ -74,3 +75,5 @@ export const Controller = memo(function Controller({ name, children }: Controlle
 		prevProps.name === name && !shouldUpdate && isSameDeps
 	);
 }) as <T extends Record<string, any>>(props: ControllerProps<T>) => JSX.Element;
+
+export default Controller;

@@ -1,8 +1,7 @@
 import { type FormHTMLAttributes, type JSX } from 'react';
 
 import { type SubmitHandler } from '../types';
-
-import { FormProvider, type FormProviderProps } from './FormProvider';
+import FormProvider, { type FormProviderProps } from './FormProvider';
 
 export type FormProps<T extends Record<string, any>> = FormProviderProps<T> 
 	& Omit<FormHTMLAttributes<HTMLFormElement>, 'onSubmit'>
@@ -25,7 +24,7 @@ export type FormProps<T extends Record<string, any>> = FormProviderProps<T>
  * </Form>
  * ```
  */
-export const Form = <T extends Record<string, any>>({
+const Form = <T extends Record<string, any>>({
 	children, context, onSubmit, ...formProps 
 }: FormProps<T>): JSX.Element => {
 	return (
@@ -34,10 +33,16 @@ export const Form = <T extends Record<string, any>>({
 		>
 			<form 
 				{...formProps}
-				onSubmit={onSubmit ? context.formState.handleSubmit(onSubmit) : undefined}
+				onSubmit={
+					onSubmit
+						? context.formState.handleSubmit(onSubmit)
+						: undefined
+				}
 			>
 				{ children }
 			</form>
 		</FormProvider>
 	);
 };
+
+export default Form;

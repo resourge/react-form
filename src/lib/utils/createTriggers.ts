@@ -1,10 +1,7 @@
 import type { Dispatch, SetStateAction } from 'react';
 
 import type { OnRenderType } from '../types/types';
-
 import type { OnKeyTouchMetadataType } from './getProxy/getProxyTypes';
-
-export type FormTrigger = Map<string, Array<(key: string) => void>>;
 
 export type CreateTriggersConfig = {
 	formKey: string
@@ -19,6 +16,8 @@ export type CreateTriggersResult = {
 	triggers?: FormTrigger
 };
 
+export type FormTrigger = Map<string, Array<(key: string) => void>>;
+
 export function createTriggers(
 	{
 		formKey, onRender, state, 
@@ -29,7 +28,9 @@ export function createTriggers(
 		for (const [keyRender, includeChildren] of onRender.renderKeys) {
 			// Check to see if key is observed
 			// For keys observed that includeChildren (error with includeChildsIntoArray) too
-			if ( includeChildren ? key.startsWith(keyRender) : keyRender.startsWith(key) ) {
+			if ( includeChildren
+				? key.startsWith(keyRender)
+				: keyRender.startsWith(key) ) {
 				return true;
 			}
 		}
@@ -47,7 +48,6 @@ export function createTriggers(
 		triggers.set(formKey, []);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 	const events = triggers.get(formKey)!;
 	events.push(triggerRender);
 
@@ -63,13 +63,13 @@ export function createTriggers(
 	};
 	
 	return {
-		triggers,
+		removeForm,
 		triggerRender: (key: string) => {
 			triggers
 			.forEach((trigger) => {
 				trigger.forEach((cb) => cb(key));
 			});
 		},
-		removeForm
+		triggers
 	};
 }

@@ -1,14 +1,12 @@
-import { act } from 'react';
-
 import { renderHook, waitFor } from '@testing-library/react';
+import { act } from 'react';
+import { type ValidationErrors } from 'src/lib/types/errorsTypes';
 import {
 	describe,
 	expect,
 	it,
 	vi
 } from 'vitest';
-
-import { type ValidationErrors } from 'src/lib/types/errorsTypes';
 
 import { useForm } from '../useForm';
 
@@ -18,36 +16,36 @@ interface FormData {
 	name: string
 }
 
+const getDefaultValues = (): FormData => ({
+	age: 0,
+	name: ''
+});
+	
 describe('useForm', () => {
-	const getDefaultValues = (): FormData => ({
-		name: '',
-		age: 0 
-	});
-
 	describe('array', () => {
 		describe('onSubmit validation', () => {
 			it('should mark an array field as touched only after submit', async () => {
-				const { result } = renderHook(() => 
+				const { result } = renderHook(() =>
 					useForm({
 						array: [] as number[]
 					}, {
-						validationType: 'onSubmit',
 						validate: (form) => {
 							return form.array.map((_, index) => ({
-								path: `array[${index}]`,
-								error: 'Error'	
+								error: 'Error',
+								path: `array[${index}]`
 							}));
-						}
+						},
+						validationType: 'onSubmit'
 					})
 				);
-	
+
 				act(() => result.current.form.array.push(1));
 				expect(result.current.hasError('array[0]')).toBeFalsy();
 
 				act(() => result.current.form.array[0] = 10);
 				expect(result.current.hasError('array[0]')).toBeFalsy();
 
-				await act(() => result.current.handleSubmit(() => {})().catch(() => []));
+				await act(() => result.current.handleSubmit(() => { })().catch(() => []));
 				expect(result.current.hasError('array[0]')).toBeTruthy();
 
 				act(() => result.current.form.array.push(1));
@@ -58,35 +56,35 @@ describe('useForm', () => {
 			it('should track touch state correctly for multiple elements', async () => {
 				const { result } = renderHook(() =>
 					useForm({
-						array: [3, 2, 1, 5] as number[] 
+						array: [3, 2, 1, 5] as number[]
 					}, {
-						validationType: 'onSubmit',
 						validate: (form) => {
 							return form.array.map((_, index) => ({
-								path: `array[${index}]`,
-								error: 'Error'	
+								error: 'Error',
+								path: `array[${index}]`
 							}));
-						}
+						},
+						validationType: 'onSubmit'
 					})
 				);
-	
+
 				[0, 1, 2, 3].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeFalsy());
-	
-				await act(() => result.current.handleSubmit(() => {})().catch(() => []));
+
+				await act(() => result.current.handleSubmit(() => { })().catch(() => []));
 				[0, 1, 2, 3].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeTruthy());
 
 				act(() => result.current.form.array.push(0));
 				[0, 1, 2].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeTruthy());
 				expect(result.current.hasError('array[4]')).toBeFalsy();
-				
+
 				act(() => result.current.form.array.reverse());
 				expect(result.current.hasError('array[0]')).toBeFalsy();
 				[1, 2, 3, 4].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeTruthy());
-				
+
 				act(() => result.current.form.array.fill(0, 0, 5));
 				[0, 1, 2, 3, 4].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeFalsy());
-				
-				await act(() => result.current.handleSubmit(() => {})().catch(() => []));
+
+				await act(() => result.current.handleSubmit(() => { })().catch(() => []));
 				[0, 1, 2, 3, 4].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeTruthy());
 
 				act(() => result.current.form.array.pop());
@@ -142,55 +140,57 @@ describe('useForm', () => {
 							array: [
 								{
 									id: 1,
-									value: 'A' 
+									value: 'A'
 								},
 								{
 									id: 2,
-									value: 'B' 
+									value: 'B'
 								},
 								{
 									id: 3,
-									value: 'C' 
+									value: 'C'
 								},
 								{
 									id: 4,
-									value: 'D' 
+									value: 'D'
 								}
-							] as Array<{ id: number
-								value: string }>
+							] as Array<{
+								id: number
+								value: string
+							}>
 						},
 						{
-							validationType: 'onSubmit',
 							validate: (form) => {
 								return form.array.map((_, index) => ({
-									path: `array[${index}]`,
-									error: 'Error'	
+									error: 'Error',
+									path: `array[${index}]`
 								}));
-							}
+							},
+							validationType: 'onSubmit'
 						}
 					)
 				);
-			
+
 				[0, 1, 2, 3].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeFalsy());
-			
-				await act(() => result.current.handleSubmit(() => {})().catch(() => []));
+
+				await act(() => result.current.handleSubmit(() => { })().catch(() => []));
 				[0, 1, 2, 3].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeTruthy());
-			
+
 				act(() => result.current.form.array.push({
 					id: 5,
-					value: 'E' 
+					value: 'E'
 				}));
 				[0, 1, 2, 3].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeTruthy());
 				expect(result.current.hasError('array[4]')).toBeFalsy();
-			
+
 				act(() => result.current.form.array.reverse());
 				expect(result.current.hasError('array[0]')).toBeFalsy();
 				[1, 2, 3, 4].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeTruthy());
-			
+
 				act(() => {
 					result.current.form.array.fill({
 						id: 6,
-						value: 'F' 
+						value: 'F'
 					}, 0, 5);
 					// This because in jest for some reason works different from browser
 					/* result.current.form.array = result.current.form.array.map(() => ({
@@ -199,42 +199,42 @@ describe('useForm', () => {
 					})); */
 				});
 				[0, 1, 2, 3, 4].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeFalsy());
-			
-				await act(() => result.current.handleSubmit(() => {})().catch(() => []));
+
+				await act(() => result.current.handleSubmit(() => { })().catch(() => []));
 				[0, 1, 2, 3, 4].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeTruthy());
-			
+
 				act(() => result.current.form.array.pop());
 				act(() => result.current.form.array.push({
 					id: 7,
-					value: 'G' 
+					value: 'G'
 				}));
 				[0, 1, 2, 3].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeTruthy());
 				expect(result.current.hasError('array[4]')).toBeFalsy();
-			
+
 				act(() => result.current.form.array.shift());
 				act(() => result.current.form.array.push({
 					id: 8,
-					value: 'H' 
+					value: 'H'
 				}));
 				[0, 1, 2].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeTruthy());
 				expect(result.current.hasError('array[3]')).toBeFalsy();
 				expect(result.current.hasError('array[4]')).toBeFalsy();
-			
+
 				act(() => result.current.form.array.unshift({
 					id: 9,
-					value: 'I' 
+					value: 'I'
 				}));
 				expect(result.current.hasError('array[0]')).toBeFalsy();
 				[1, 2, 3].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeTruthy());
 				expect(result.current.hasError('array[4]')).toBeFalsy();
 				expect(result.current.hasError('array[5]')).toBeFalsy();
-			
+
 				act(() => result.current.form.array.splice(1, 0, {
 					id: 10,
-					value: 'J' 
+					value: 'J'
 				}, {
 					id: 11,
-					value: 'K' 
+					value: 'K'
 				}));
 				expect(result.current.hasError('array[0]')).toBeFalsy();
 				expect(result.current.hasError('array[1]')).toBeFalsy();
@@ -244,23 +244,23 @@ describe('useForm', () => {
 				expect(result.current.hasError('array[5]')).toBeTruthy();
 				expect(result.current.hasError('array[6]')).toBeFalsy();
 				expect(result.current.hasError('array[7]')).toBeFalsy();
-			
+
 				act(() => result.current.form.array.sort((a, b) => a.id - b.id));
-		
+
 				[0, 1, 2].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeTruthy());
 				[3, 4, 5, 6, 7].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeFalsy());
-			
+
 				act(() => (result.current.form.array = result.current.form.array.map((a) => ({
-					...a 
+					...a
 				}))));
 				[0, 1, 2, 3, 4, 5, 6, 7].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeFalsy());
-			
+
 				act(() => {
 					result.current.form.array = result.current.form.array.sort((a, b) => a.id - b.id).map((a) => ({
-						...a 
+						...a
 					}));
 				});
-			
+
 				[0, 1, 2, 3, 4, 5, 6, 7].forEach((i) => expect(result.current.hasError(`array[${i}]`)).toBeFalsy());
 			});
 		});
@@ -281,33 +281,33 @@ describe('useForm', () => {
 
 	it('should form be valid only after onSubmit', async () => {
 		const { result } = renderHook(() => useForm(
-			getDefaultValues(), 
+			getDefaultValues(),
 			{
 				validate: () => [{
-					path: 'name',
-					error: 'Required'
+					error: 'Required',
+					path: 'name'
 				}]
 			}
 		));
 
 		expect(result.current.isValid).toBeTruthy();
 
-		await act(() => (result.current.handleSubmit(() => {})()).catch(() => []));
+		await act(() => (result.current.handleSubmit(() => { })()).catch(() => []));
 
 		expect(result.current.isValid).toBeFalsy();
 	});
 
 	it('should validate in first render', () => {
 		const initialForm = {
-			name: 'John',
-			age: 30 
+			age: 30,
+			name: 'John'
 		};
 		const { result } = renderHook(() => useForm(initialForm, {
 			validate: () => {
 				return [
 					{
-						path: 'name',
-						error: 'Min 5'
+						error: 'Min 5',
+						path: 'name'
 					}
 				];
 			},
@@ -324,8 +324,8 @@ describe('useForm', () => {
 		act(() => {
 			result.current.setError([
 				{
-					path: 'name', 
-					errors: ['Name is required']
+					errors: ['Name is required'],
+					path: 'name'
 				}
 			]);
 		});
@@ -353,13 +353,13 @@ describe('useForm', () => {
 		act(() => {
 			result.current.setError([
 				{
-					path: 'name', 
-					errors: ['Name is required']
+					errors: ['Name is required'],
+					path: 'name'
 				}
 			]);
 		});
 
-		await vi.waitFor(() => {		
+		await vi.waitFor(() => {
 			expect(result.current.hasError('name')).toBe(true);
 		});
 		expect(result.current.hasError('age')).toBe(false);
@@ -390,8 +390,8 @@ describe('useForm', () => {
 
 		act(() => {
 			result.current.reset({
-				name: '',
-				age: 10
+				age: 10,
+				name: ''
 			});
 		});
 
@@ -400,7 +400,7 @@ describe('useForm', () => {
 		act(() => {
 			result.current.form.age = 100;
 		});
-		
+
 		expect(result.current.hasTouch('age')).toBeTruthy();
 
 		expect(result.current.form.age).toBe(100);
@@ -430,8 +430,8 @@ describe('useForm', () => {
 		act(() => {
 			result.current.setError([
 				{
-					path: 'name', 
-					errors: ['Name is required']
+					errors: ['Name is required'],
+					path: 'name'
 				}
 			]);
 		});
@@ -448,7 +448,7 @@ describe('useForm', () => {
 			return useForm(getDefaultValues(), {
 				watch: {
 					name: watchFn
-				} 
+				}
 			});
 		});
 
@@ -463,8 +463,8 @@ describe('useForm', () => {
 
 	it('should initialize with provided values', () => {
 		const initialValues = {
-			name: 'John',
-			age: 30 
+			age: 30,
+			name: 'John'
 		};
 		const { result } = renderHook(() => useForm(initialValues));
 
@@ -473,8 +473,8 @@ describe('useForm', () => {
 
 	it('should change field values correctly', () => {
 		const initialValues = {
-			name: 'John',
-			age: 30 
+			age: 30,
+			name: 'John'
 		};
 		const { result } = renderHook(() => useForm(initialValues));
 
@@ -487,8 +487,8 @@ describe('useForm', () => {
 
 	it('should handle form submission', async () => {
 		const initialValues = {
-			name: 'John',
-			age: 30 
+			age: 30,
+			name: 'John'
 		};
 		const mockCallback = vi.fn();
 		const { result } = renderHook(() => useForm(initialValues));
@@ -502,29 +502,30 @@ describe('useForm', () => {
 
 	it('should not submit the form if validation fails', async () => {
 		const initialValues = {
-			name: '',
-			age: 30 
+			age: 30,
+			name: ''
 		};
 		const validate = (values: any) => {
 			const errors = [];
 			if (!values.name) {
 				errors.push({
-					path: 'name',
-					error: 'Name is required'
+					error: 'Name is required',
+					path: 'name'
 				});
 			}
 			return errors;
 		};
 		const mockCallback = vi.fn();
 		const { result } = renderHook(() => useForm(initialValues, {
-			validate 
+			validate
 		}));
 
 		await act(async () => {
 			try {
 				await result.current.handleSubmit(mockCallback)();
 			}
-			catch {}
+			// eslint-disable-next-line no-empty
+			catch { }
 		});
 
 		expect(mockCallback).not.toHaveBeenCalled();
@@ -536,8 +537,8 @@ describe('useForm', () => {
 
 	it('should handle field changes correctly', () => {
 		const initialForm = {
-			name: 'John',
-			age: 30 
+			age: 30,
+			name: 'John'
 		};
 		const { result } = renderHook(() => useForm(initialForm));
 
@@ -553,23 +554,27 @@ describe('useForm', () => {
 	describe('validationType onTouch', () => {
 		it('should handle field changes correctly', async () => {
 			const initialForm = {
-				name: '',
-				age: undefined 
+				age: undefined,
+				name: ''
 			};
 			const { result } = renderHook(() => useForm(initialForm, {
 				validate: (form) => {
 					return [
-						!form.name ? {
-							path: 'name',
-							error: 'Missing'
-						} : undefined,
-						!form.age ? {
-							path: 'age',
-							error: 'Missing'
-						} : undefined
+						form.name
+							? undefined
+							: {
+								error: 'Missing',
+								path: 'name'
+							},
+						form.age
+							? undefined
+							: {
+								error: 'Missing',
+								path: 'age'
+							}
 					].filter(Boolean) as ValidationErrors;
 				},
-				validationType: 'onTouch' 
+				validationType: 'onTouch'
 			}));
 
 			// Verify the form state

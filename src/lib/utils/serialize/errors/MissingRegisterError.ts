@@ -5,7 +5,5 @@ export class MissingRegisterError extends Error {
 		this.name = 'MissingRegisterError';
 
 		this.cause = 'Q';
-
-		Error.captureStackTrace(this, MissingRegisterError);
 	}
 }

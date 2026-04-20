@@ -1,8 +1,6 @@
-import { type MutableRefObject } from 'react';
+import { RefObject } from 'react';
 
 import { type Touches, type ToucheType } from '../../types/formTypes';
-
-export type TouchType = Array<[string, ToucheType]>;
 
 export type CacheConfig = {
 	touch: WeakMap<
@@ -11,14 +9,21 @@ export type CacheConfig = {
 			keys: Set<string>
 			values: Array<[
 				any,
-				{
+				undefined | {
 					key: string
 					touch: TouchType
-				} | undefined
+				}
 			]>
 		}
 	>
 };
+
+export type OnGetTouches = (key: string) => TouchType;
+
+export type OnKeyTouch = (
+	key: string, 
+	metadata?: OnKeyTouchMetadataType
+) => Promise<void> | void;
 
 export type OnKeyTouchMetadataType = {
 	isArray: boolean
@@ -28,17 +33,12 @@ export type OnKeyTouchMetadataType = {
 	}
 };
 
-export type OnKeyTouch = (
-	key: string, 
-	metadata?: OnKeyTouchMetadataType
-) => void | Promise<void>;
-
-export type OnGetTouches = (key: string) => TouchType;
-
 export type ProxyConfig = {
 	cache: CacheConfig
 	onKeyGet: (key: string) => void
 	onKeyTouch: OnKeyTouch
 	proxyCache: WeakMap<any, any>
-	touchesRef: MutableRefObject<Touches>
+	touchesRef: RefObject<Touches>
 };
+
+export type TouchType = Array<[string, ToucheType]>;

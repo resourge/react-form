@@ -1,6 +1,5 @@
 import { type FormOptions, type UseFormReturn } from '../types/formTypes';
 import { type FormCoreConfig } from '../utils/createFormCore';
-
 import { useFormCore } from './useFormCore';
 import { useTouches } from './useTouches';
 
@@ -43,25 +42,25 @@ import { useTouches } from './useTouches';
  * ```
  */
 export function useForm<T extends Record<string, any>>(
-	defaultValue: new() => T, 
+	defaultValue: new () => T,
 	formOptions?: FormOptions<T>
 ): UseFormReturn<T>;
 export function useForm<T extends Record<string, any>>(
-	defaultValue: () => T, 
+	defaultValue: () => T,
 	formOptions?: FormOptions<T>
 ): UseFormReturn<T>;
 export function useForm<T extends Record<string, any>>(
-	defaultValue: T, 
+	defaultValue: T,
 	formOptions?: FormOptions<T>
 ): UseFormReturn<T>;
 export function useForm<T extends Record<string, any>>(
-	defaultValue: T | (() => T) | ((new() => T)), 
+	defaultValue: (() => T) | (new () => T) | (T),
 	formOptions: FormOptions<T> = {}
 ): UseFormReturn<T> {
 	return useFormCore<T>({
 		context: {
-			touchHook: useTouches<T>(formOptions.validationType),
-			formOptions
+			formOptions,
+			touchHook: useTouches<T>(formOptions.validationType)
 		} as unknown as FormCoreConfig<T, 'form'>['context'],
 		defaultValue,
 		type: 'form'

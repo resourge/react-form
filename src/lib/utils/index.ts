@@ -1,4 +1,4 @@
 export { PreserveClass } from './preserveClass';
 export {
-	deserialize, serialize, registerClass 
+	deserialize, registerClass, serialize 
 } from './serialize';

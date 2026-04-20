@@ -1,8 +1,7 @@
-import { type FormKey } from '../types/FormKey';
 import { type ValidationError, type ValidationErrors } from '../types/errorsTypes';
+import { type FormKey } from '../types/FormKey';
 import { type FormValidationType, type GetErrorsOptions } from '../types/formTypes';
 import { type FormCoreOptions, type OnRenderType } from '../types/types';
-
 import { deepCompareValidationErrors } from './comparationUtils';
 import { formatErrors } from './formatErrors';
 
@@ -16,11 +15,11 @@ export type UseErrorsConfig<T extends Record<string, any>> = {
 
 export function createErrors<T extends Record<string, any>>(
 	{
-		touchHook: { touchesRef },
-		stateRef,
-		validationType,
+		onRender,
 		resolveKey,
-		onRender
+		stateRef,
+		touchHook: { touchesRef },
+		validationType
 	}: UseErrorsConfig<T>
 ) {
 	function check(key: string) {
@@ -55,7 +54,9 @@ export function createErrors<T extends Record<string, any>>(
 							// errorWasShown should only be changed 
 							// if the user has touched the field
 							// or when submitted the form
-							!isFromSubmission ? touch.touch : true
+							isFromSubmission
+								? true
+								: touch.touch
 						)
 					);
 					return touch.errorWasShown;
@@ -109,11 +110,11 @@ export function createErrors<T extends Record<string, any>>(
 			: list.errors;
 	}
 
-	const hasError = (key: FormKey<T>, options: GetErrorsOptions = {}): boolean => !!getErrors(key, options).length;
+	const hasError = (key: FormKey<T>, options: GetErrorsOptions = {}): boolean => getErrors(key, options).length > 0;
 
 	return {
-		hasError,
 		getErrors,
+		hasError,
 		setErrors
 	};
 }

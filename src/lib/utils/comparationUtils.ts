@@ -1,14 +1,17 @@
 import { type ValidationErrors } from '../types/errorsTypes';
-
 import { REF } from './getProxy/getProxyUtils';
 
 export const deepCompareValidationErrors = (
 	arr1: ValidationErrors,
 	arr2: ValidationErrors
 ): boolean => {
-	if (arr1 === arr2) return true;
+	if (arr1 === arr2) {
+		return true; 
+	}
 
-	if (arr1.length !== arr2.length) return false;
+	if (arr1.length !== arr2.length) {
+		return false; 
+	}
 
 	return arr1.every((item1) => 
 		arr2.some((item2) => 
@@ -45,13 +48,13 @@ export function deepCompare(
 	}
 
 	// Get the keys of each object
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 	const keys1 = Object.keys(obj1);
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 	const keys2 = Object.keys(obj2);
 
 	// Check if both objects have the same number of keys
-	if (keys1.length !== keys2.length) return false;
+	if (keys1.length !== keys2.length) {
+		return false; 
+	}
 
 	return keys1
 	.filter((key) => key !== (REF as unknown as string) )

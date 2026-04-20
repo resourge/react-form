@@ -1,3 +1,4 @@
+/* eslint-disable perfectionist/sort-objects */
 export type SerializePrototypeType = {
 	[K: string]: string
 	Array: 'Array'

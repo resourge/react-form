@@ -2,22 +2,22 @@ export type { OnErrors } from '../types/errorsTypes';
 
 export type { FormKey } from './FormKey';
 export type {
-	FieldFormReturn,
-	FormErrors,
-	FormOptions,
-	OnFunctionChange,
-	FieldOptions,
-	ResetOptions,
-	SubmitHandler,
-	ValidateSubmissionErrors,
-	GetErrorsOptions,
-	UseFormReturn,
+	FieldForm,
 	FieldFormBlur,
 	FieldFormChange,
 	FieldFormReadonly,
-	FieldForm,
-	ResetMethod,
-	UseFormSplitterResult, 
+	FieldFormReturn,
+	FieldOptions,
 	FormContextType,
-	FormValidationType
+	FormErrors,
+	FormOptions,
+	FormValidationType,
+	GetErrorsOptions,
+	OnFunctionChange,
+	ResetMethod,
+	ResetOptions,
+	SubmitHandler,
+	UseFormReturn, 
+	UseFormSplitterResult,
+	ValidateSubmissionErrors
 } from './formTypes';

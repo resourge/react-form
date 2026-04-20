@@ -29,7 +29,7 @@
 	},
 	"include": [
 		"./**/src/**/*",
-		".eslintrc.cjs",
+		"eslint.config.ts",
 		"rollup.config.js"
 	],
 	"exclude": [

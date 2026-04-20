@@ -37,7 +37,7 @@
 	},
 	"include": [
 		"./**/src/**/*",
-		".eslintrc.cjs",
+		"eslint.config.ts",
 		"./config/*"
 	],
 	"exclude": [

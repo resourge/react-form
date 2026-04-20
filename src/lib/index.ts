@@ -12,12 +12,12 @@ export {
 	ControllerContext,
 	type ControllerContextObject,
 	FormContext,
-	useFormContext,
 	FormSplitterContext,
+	useFormContext,
 	useFormSplitterContext
 } from './contexts';
 export {
-	useForm, useFormSplitter, useFormStorage, type UseFormSplitterResultByKey
+	useForm, useFormSplitter, type UseFormSplitterResultByKey, useFormStorage
 } from './hooks';
 export {
 	setupJsonForm, type SetupJsonFormConfig, type SetupJsonFormProps 
@@ -29,9 +29,11 @@ export type {
 	FieldFormReadonly,
 	FieldFormReturn,
 	FieldOptions,
+	FormContextType,
 	FormErrors,
 	FormKey,
 	FormOptions,
+	FormValidationType,
 	GetErrorsOptions,
 	OnErrors,
 	OnFunctionChange,
@@ -39,14 +41,12 @@ export type {
 	ResetOptions,
 	SubmitHandler,
 	UseFormReturn,
-	ValidateSubmissionErrors,
 	UseFormSplitterResult,
-	FormContextType,
-	FormValidationType
+	ValidateSubmissionErrors
 } from './types';
 export {
-	PreserveClass,
 	deserialize,
+	PreserveClass,
 	registerClass,
 	serialize
 } from './utils';

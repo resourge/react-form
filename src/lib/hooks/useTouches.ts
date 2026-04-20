@@ -17,16 +17,17 @@ export const useTouches = <T extends Record<string, any>>(validationType: FormVa
 	) {
 		if ( !touchesRef.current.has(key) ) {
 			touchesRef.current.set(key, {
+				errorWasShown: false,
 				submitted: false,
-				touch: false,
-				errorWasShown: false
+				touch: false
 			});
 		}
-
-		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+		
 		const newTouch = touchesRef.current.get(key)!;
 		
-		newTouch.touch = isPossibilityKey ? (newTouch.touch || touch) : touch;
+		newTouch.touch = isPossibilityKey
+			? (newTouch.touch || touch)
+			: touch;
 		newTouch.submitted = newTouch.submitted || submitted;
 
 		// Necessary for array functions
@@ -56,11 +57,11 @@ export const useTouches = <T extends Record<string, any>>(validationType: FormVa
 	});
 
 	return {
-		touchesRef,
-		shouldUpdateErrorsRef,
 		changedKeysRef,
 		changeTouch,
-		setTouch
+		setTouch,
+		shouldUpdateErrorsRef,
+		touchesRef
 	};
 };
 

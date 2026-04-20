@@ -15,95 +15,95 @@ describe('formatErrors', () => {
 			}
 		]);
 
-		expect(JSON.parse(JSON.stringify(result['']?.formErrors))).toEqual({
-			description: {
+		expect(structuredClone(result['']?.formErrors)).toEqual({
+			'description': {
 				every: {
-					errors: [
+					child: [
 						'validations.required'
 					],
-					child: [
+					errors: [
 						'validations.required'
 					]
 				},
 				form: {
-					errors: [
+					child: [
 						'validations.required'
 					],
-					child: [
+					errors: [
 						'validations.required'
 					]
 				}
 			},
-			'nodes[0].data.prompt.content': {
+			'nodes': {
 				every: {
-					errors: [
+					child: [
 						'promptModel.promptIsRequired'
 					],
-					child: [
-						'promptModel.promptIsRequired'
-					]
+					errors: []
 				},
 				form: {
-					errors: [
+					child: [
 						'promptModel.promptIsRequired'
 					],
-					child: [
-						'promptModel.promptIsRequired'
-					]
-				}
-			},
-			'nodes[0].data.prompt': {
-				every: {
-					errors: [],
-					child: [
-						'promptModel.promptIsRequired'
-					]
-				},
-				form: {
-					errors: [],
-					child: [
-						'promptModel.promptIsRequired'
-					]
-				}
-			},
-			'nodes[0].data': {
-				every: {
-					errors: [],
-					child: [
-						'promptModel.promptIsRequired'
-					]
-				},
-				form: {
-					errors: [],
-					child: [
-						'promptModel.promptIsRequired'
-					]
+					errors: []
 				}
 			},
 			'nodes[0]': {
 				every: {
-					errors: [],
 					child: [
 						'promptModel.promptIsRequired'
-					]
+					],
+					errors: []
 				},
 				form: {
-					errors: [],
 					child: [
 						'promptModel.promptIsRequired'
-					]
+					],
+					errors: []
 				}
 			},
-			nodes: {
+			'nodes[0].data': {
 				every: {
-					errors: [],
 					child: [
+						'promptModel.promptIsRequired'
+					],
+					errors: []
+				},
+				form: {
+					child: [
+						'promptModel.promptIsRequired'
+					],
+					errors: []
+				}
+			},
+			'nodes[0].data.prompt': {
+				every: {
+					child: [
+						'promptModel.promptIsRequired'
+					],
+					errors: []
+				},
+				form: {
+					child: [
+						'promptModel.promptIsRequired'
+					],
+					errors: []
+				}
+			},
+			'nodes[0].data.prompt.content': {
+				every: {
+					child: [
+						'promptModel.promptIsRequired'
+					],
+					errors: [
 						'promptModel.promptIsRequired'
 					]
 				},
 				form: {
-					errors: [],
 					child: [
+						'promptModel.promptIsRequired'
+					],
+					errors: [
 						'promptModel.promptIsRequired'
 					]
 				}

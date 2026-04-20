@@ -3,24 +3,15 @@ import { useEffect, useRef } from 'react';
 import { type FormOptions, type UseFormReturn } from '../types';
 import { deserialize, serialize } from '../utils';
 import { IS_DEV } from '../utils/constants';
-
 import { useForm } from './useForm';
 
 type FormStorage = {
-	getItem: (key: string) => (string | null) | Promise<string | null>
-	removeItem: (key: string) => void | Promise<void>
-	setItem: (key: string, value: string) => void | Promise<void>
+	getItem: (key: string) => (null | string) | Promise<null | string>
+	removeItem: (key: string) => Promise<void> | void
+	setItem: (key: string, value: string) => Promise<void> | void
 };
 
 type FormStorageOptions<T extends Record<string, any>> = FormOptions<T> & {
-	/**
-	 * Storage
-	 */
-	storage: FormStorage
-	/**
-	 * Unique id for storage
-	 */
-	uniqueId: string
 	/**
 	 * When true, will automatically sync the form data with storage one
 	 * 
@@ -42,6 +33,14 @@ type FormStorageOptions<T extends Record<string, any>> = FormOptions<T> & {
 	 */
 	shouldClearAfterSubmit?: boolean
 	/**
+	 * Storage
+	 */
+	storage: FormStorage
+	/**
+	 * Unique id for storage
+	 */
+	uniqueId: string
+	/**
 	 * Storage version (to clear when changes are done to the form)
 	 */
 	version?: string
@@ -60,43 +59,40 @@ type UseFormStorageReturn<T extends Record<string, any>> = UseFormReturn<T> & {
  * * By default it will clear the form from storage when submitted with success.
  */
 export function useFormStorage<T extends Record<string, any>>(
-	// eslint-disable-next-line @typescript-eslint/prefer-function-type
-	defaultValue: ({ new(): T }), 
+
+	defaultValue: ({ new(): T }),
 	options: FormStorageOptions<T>
 ): UseFormStorageReturn<T>;
 export function useFormStorage<T extends Record<string, any>>(
-	defaultValue: (() => T), 
+	defaultValue: (() => T),
 	options: FormStorageOptions<T>
 ): UseFormStorageReturn<T>;
 export function useFormStorage<T extends Record<string, any>>(
-	defaultValue: T, 
+	defaultValue: T,
 	options: FormStorageOptions<T>
 ): UseFormStorageReturn<T>;
 export function useFormStorage<T extends Record<string, any>>(
-	// eslint-disable-next-line @typescript-eslint/prefer-function-type
-	defaultValue: T | (() => T) | ({ new(): T }), 
+
+	defaultValue: (() => T) | T | ({ new(): T }),
 	options: FormStorageOptions<T>
 ): UseFormStorageReturn<T> {
 	const {
+		autoSyncWithStorage = true,
+		onChange,
+		onLoading = () => { },
+		onStorageError = () => { },
+		onSubmit,
+		shouldClearAfterSubmit = true,
 		storage,
 		uniqueId,
-		autoSyncWithStorage = true,
-		onLoading = () => {},
-		onStorageError = () => {},
-		shouldClearAfterSubmit = true,
-		version = '1.0.0',
-		onChange,
-		onSubmit
+		version = '1.0.0'
 	} = options;
-	if ( IS_DEV ) {
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		if ( uniqueId !== useRef(uniqueId).current ) {
-			throw new Error('uniqueId must be a static value');
-		}
+	if (IS_DEV // eslint-disable-next-line react-hooks/rules-of-hooks
+		&& uniqueId !== useRef(uniqueId).current) {
+		throw new Error('uniqueId must be a static value');
 	}
 
 	const formResult = useForm<T>(
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 		defaultValue as any,
 		{
 			...options,
@@ -106,10 +102,10 @@ export function useFormStorage<T extends Record<string, any>>(
 					storage.setItem(
 						uniqueId,
 						JSON.stringify({
-							version,
 							serializedState: {
 								form: serialize(form)
-							}
+							},
+							version
 						})
 					)
 				)
@@ -117,7 +113,7 @@ export function useFormStorage<T extends Record<string, any>>(
 			},
 			onSubmit: (form) => {
 				onSubmit?.(form);
-				if ( shouldClearAfterSubmit ) {
+				if (shouldClearAfterSubmit) {
 					Promise.resolve(storage.removeItem(uniqueId))
 					.catch(onStorageError);
 				}
@@ -132,16 +128,16 @@ export function useFormStorage<T extends Record<string, any>>(
 			return;
 		};
 
-		const { version: storageVersion, serializedState } = JSON.parse(storageState) as { 
+		const { serializedState, version: storageVersion } = JSON.parse(storageState) as {
 			serializedState: { form: string }
-			version: string 
+			version: string
 		};
-			
-		if ( storageVersion === version ) {
+
+		if (storageVersion === version) {
 			const deserializeForm = deserialize<T>(serializedState.form);
 
 			formResult.reset(deserializeForm, {
-				clearTouched: false 
+				clearTouched: false
 			});
 			return;
 		}
@@ -151,23 +147,23 @@ export function useFormStorage<T extends Record<string, any>>(
 	};
 
 	useEffect(() => {
-		if ( autoSyncWithStorage ) {
+		if (autoSyncWithStorage) {
 			(async () => {
 				onLoading(true);
 				try {
 					await restoreFromStorage();
 				}
-				catch ( e ) {
-					onStorageError(e);
+				catch (error) {
+					onStorageError(error);
 				}
 				finally {
 					onLoading(false);
 				}
 			})();
 		}
-	// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
+	// eslint-disable-next-line react-hooks/immutability
 	(formResult as UseFormStorageReturn<T>).restoreFromStorage = restoreFromStorage;
 
 	return (formResult as UseFormStorageReturn<T>);

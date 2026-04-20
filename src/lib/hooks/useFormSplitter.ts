@@ -2,10 +2,9 @@ import { useControllerContext } from '../contexts/ControllerContext';
 import { useBaseFormContext } from '../contexts/FormContext';
 import { useBaseFormSplitterContext } from '../contexts/FormSplitterContext';
 import { type FormKey } from '../types/FormKey';
-import { type PathValue } from '../types/PathValue';
 import { type UseFormSplitterResult } from '../types/formTypes';
+import { type PathValue } from '../types/PathValue';
 import { IS_DEV } from '../utils/constants';
-
 import { useFormCore } from './useFormCore';
 
 export type UseFormSplitterResultByKey<
@@ -35,16 +34,14 @@ export function useFormSplitter<
 	const context = useBaseFormSplitterContext<PathValue<T, K>>() ?? useBaseFormContext<PathValue<T, K>>();
 	const formFieldKey = fieldKey ?? (controllerContext?.name as K);
 
-	if ( IS_DEV ) {
-		if ( !formFieldKey ) {
-			throw new Error('\'formFieldKey\' undefined can only used inside a Controller component.');
-		}
+	if (IS_DEV && !formFieldKey) {
+		throw new Error('\'formFieldKey\' undefined can only used inside a Controller component.');
 	}
 
 	return useFormCore<PathValue<T, K>, 'formSplitter'>({
 		context,
-		type: 'formSplitter',
 		formFieldKey,
+		type: 'formSplitter',
 		value: context.getFormSplitterValue(formFieldKey)
 	}) as unknown as UseFormSplitterResultByKey<T, K>;
 }

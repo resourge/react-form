@@ -1,6 +1,5 @@
 import { IS_DEV } from '../constants';
 import { isObjectOrArray } from '../utils';
-
 import { type ProxyConfig } from './getProxyTypes';
 import {
 	constructKey,
@@ -12,35 +11,82 @@ import {
 	TARGET_VALUE
 } from './getProxyUtils';
 
+export function getProxy<T extends object>(
+	target: T, 
+	config: ProxyConfig,
+	baseKey: string,
+	currentIndex?: string
+): T {
+	let reference = Reflect.get(target, REF) as undefined | { 
+		currentIndex: string
+		target: T
+	};
+	if ( currentIndex !== undefined && (!reference || reference.currentIndex !== currentIndex)) {
+		reference = {
+			currentIndex,
+			target
+		};
+	
+		Reflect.set(target, REF, reference);
+	}
+
+	reference ??= target as any;
+
+	// Return existing proxy if this object is already in cache
+	if (!config.proxyCache.has(reference as object)) {
+		// Store the proxy in the WeakMap to handle circular references
+		config.proxyCache.set(
+			reference as object, 
+			new Proxy<T>(
+				target, 
+				getProxyHandler(target, config, baseKey)
+			)
+		);
+	}
+
+	return config.proxyCache.get(reference as object);
+}
+
+export function setFormProxy<T extends object>(target: T, config: ProxyConfig, baseKey: string = ''): T {
+	if ( !target ) {
+		return undefined as unknown as T;
+	}
+
+	return new Proxy<T>(
+		target, 
+		getProxyHandler(target, config, baseKey)
+	);
+}
+
 /**
  * Extracts deep properties while ensuring they exist to avoid errors.
  */
 function getContext<T>({
-	prop, receiver, target, config, baseKey
+	baseKey, config, prop, receiver, target
 }: {
 	baseKey: string
 	config: ProxyConfig
 	prop: any
-	target: any
 	receiver?: any
+	target: any
 }): {
-		deepProp: string
-		deepReceiver: any
-		deepTarget: T
-		isArray: boolean
-		key: string
-	} {
+	deepProp: string
+	deepReceiver: any
+	deepTarget: T
+	isArray: boolean
+	key: string
+} {
 	if (typeof prop === 'string' && (prop.includes('.') || prop.includes('['))) {
-		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		const parts = prop.match(/([^\\.\\[\]]+)/g)!; 
-		// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 		const lastKey = parts.pop()!;
 
 		const proxy = getProxy(
 			target, 
 			config,
 			baseKey,
-			!isNaN(lastKey as unknown as number) ? lastKey : undefined
+			isNaN(lastKey as unknown as number)
+				? undefined
+				: lastKey
 		);
 
 		const deepReceiver = parts.reduce((obj, key) => obj?.[key], proxy);
@@ -50,9 +96,9 @@ function getContext<T>({
 			const isArray = Array.isArray(deepTarget);
 
 			return {
-				deepTarget,
 				deepProp: lastKey,
 				deepReceiver,
+				deepTarget,
 				isArray,
 				key: constructKey(baseKey, prop, isArray)
 			};
@@ -65,9 +111,9 @@ function getContext<T>({
 	const isArray = Array.isArray(target);
 
 	return {
-		deepTarget: target,
 		deepProp: prop as string,
 		deepReceiver: receiver,
+		deepTarget: target,
 		isArray,
 		key: constructKey(baseKey, prop as string, isArray)
 	};
@@ -76,13 +122,13 @@ function getContext<T>({
 /**
  * Proxy handler for tracking property accesses and mutations.
  */
-function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | WeakMap<any, any>>(
+function getProxyHandler<T extends Date | Map<any, any> | object | Set<any> | WeakMap<any, any>>(
 	target2: T, 
 	config: ProxyConfig,
 	baseKey: string = ''
 ): ProxyHandler<T> {
 	const {
-		cache, touchesRef, onKeyGet, onKeyTouch 
+		cache, onKeyGet, onKeyTouch, touchesRef 
 	} = config;
 
 	if ( isMutableBuiltin(target2) ) {
@@ -166,12 +212,11 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 
 							// Proxy the iterator result values
 							return {
-								[Symbol.iterator]() {
-									return this;
-								},
 								next() {
 									const result = iterator.next();
-									if (result.done) return result;
+									if (result.done) {
+										return result; 
+									}
 
 									// For `entries`, result.value is [key, value]
 									if (prop === 'entries') {
@@ -180,8 +225,8 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 											? getProxy(val, config, baseKey)
 											: val;
 										return {
-											value: [key, proxiedVal],
-											done: false 
+											done: false,
+											value: [key, proxiedVal] 
 										};
 									}
 
@@ -192,13 +237,16 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 											? getProxy(val, config, baseKey)
 											: val;
 										return {
-											value: proxiedVal,
-											done: false 
+											done: false,
+											value: proxiedVal 
 										};
 									}
 
 									// For `keys`, just return as-is (keys are not proxied)
 									return result;
+								},
+								[Symbol.iterator]() {
+									return this;
 								}
 							};
 						};
@@ -210,6 +258,32 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 	}
 
 	return {
+		deleteProperty(target, prop) {
+			const {
+				deepProp,
+				deepTarget,
+				isArray,
+				key
+			} = getContext<object>({
+				baseKey,
+				config,
+				prop,
+				target
+			});
+
+			const success = Reflect.deleteProperty(deepTarget, deepProp);
+
+			if ( success ) {
+				onKeyTouch(
+					key,
+					{
+						isArray
+					}
+				);
+			}
+
+			return success;
+		},
 		get(target, prop, receiver) {
 			if (prop === TARGET_VALUE ) {
 				return target;
@@ -219,14 +293,14 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 				deepProp,
 				deepReceiver,
 				deepTarget,
-				key,
-				isArray
+				isArray,
+				key
 			} = getContext<T>({
-				target,
+				baseKey,
 				config,
 				prop,
 				receiver,
-				baseKey
+				target
 			});
 
 			const value = Reflect.get(deepTarget, deepProp, deepReceiver);
@@ -253,10 +327,12 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 					
 				originalTouch.values.push([
 					originalValue, 
-					touch.length ? {
-						touch,
-						key
-					} : undefined
+					touch.length > 0
+						? {
+							key,
+							touch
+						}
+						: undefined
 				]);
 	
 				originalTouch.keys.add(key);
@@ -267,27 +343,30 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 			return (
 				isObjectOrArray(originalValue) 
 				&& !isImmutableBuiltin(originalValue) 
-			) ? getProxy(
+			)
+				? getProxy(
 					originalValue, 
 					config, 
 					key,
-					isNumber ? deepProp : undefined
+					isNumber
+						? deepProp
+						: undefined
 				)
 				: originalValue;
 		},
 		set(target, prop, value, receiver) {
 			const {
-				deepTarget,
 				deepProp,
 				deepReceiver,
-				key,
-				isArray
+				deepTarget,
+				isArray,
+				key
 			} = getContext<any>({
+				baseKey,
+				config,
 				prop,
 				receiver,
-				target,
-				config,
-				baseKey
+				target
 			});
 		
 			value = getTargetValue(value);
@@ -307,34 +386,8 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 				onKeyTouch(
 					key, 
 					{
-						touch,
-						isArray: isArray || Array.isArray(value)
-					}
-				);
-			}
-
-			return success;
-		},
-		deleteProperty(target, prop) {
-			const {
-				deepTarget,
-				deepProp,
-				isArray,
-				key
-			} = getContext<object>({
-				prop,
-				target,
-				config,
-				baseKey
-			});
-
-			const success = Reflect.deleteProperty(deepTarget, deepProp);
-
-			if ( success ) {
-				onKeyTouch(
-					key,
-					{
-						isArray
+						isArray: isArray || Array.isArray(value),
+						touch
 					}
 				);
 			}
@@ -342,51 +395,4 @@ function getProxyHandler<T extends object | Date | Map<any, any> | Set<any> | We
 			return success;
 		}
 	};
-}
-
-export function getProxy<T extends object>(
-	target: T, 
-	config: ProxyConfig,
-	baseKey: string,
-	currentIndex?: string
-): T {
-	let reference = Reflect.get(target, REF) as undefined | { 
-		currentIndex: string
-		target: T
-	};
-	if ( currentIndex !== undefined && (!reference || reference.currentIndex !== currentIndex)) {
-		reference = {
-			target,
-			currentIndex
-		};
-	
-		Reflect.set(target, REF, reference);
-	}
-
-	reference ??= target as any;
-
-	// Return existing proxy if this object is already in cache
-	if (!config.proxyCache.has(reference as object)) {
-		// Store the proxy in the WeakMap to handle circular references
-		config.proxyCache.set(
-			reference as object, 
-			new Proxy<T>(
-				target, 
-				getProxyHandler(target, config, baseKey)
-			)
-		);
-	}
-
-	return config.proxyCache.get(reference as object);
-}
-
-export function setFormProxy<T extends object>(target: T, config: ProxyConfig, baseKey: string = ''): T {
-	if ( !target ) {
-		return undefined as unknown as T;
-	}
-
-	return new Proxy<T>(
-		target, 
-		getProxyHandler(target, config, baseKey)
-	);
 }

@@ -9,10 +9,8 @@ export const FormContext = createContext<FormContextType<any, any> | null>(null)
 export const useBaseFormContext = <T extends object>(): FormContextType<T> => {
 	const context = useContext(FormContext) as FormContextType<T>;
 
-	if ( IS_DEV ) {
-		if ( !context ) {
-			throw new Error('useFormContext can only be used in the context of a <FormProvider> component.');
-		}
+	if (IS_DEV && !context) {
+		throw new Error('useFormContext can only be used in the context of a <FormProvider> component.');
 	}
 
 	return context;
