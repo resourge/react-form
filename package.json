@@ -64,7 +64,7 @@
 		"cross-env": "^10.1.0",
 		"cz-conventional-changelog": "^3.3.0",
 		"dayjs": "^1.11.20",
-		"eslint-config-resourge": "^1.8.1",
+		"eslint-config-resourge": "^1.8.2",
 		"glob": "^13.0.6",
 		"jsdom": "^29.1.0",
 		"object.groupby": "^1.0.3",
