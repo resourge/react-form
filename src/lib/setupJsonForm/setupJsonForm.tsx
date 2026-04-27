@@ -44,7 +44,7 @@ export function setupJsonForm<
 				props.initialData
 				?? (getInitialData
 					? getInitialData(props.schema)
-					: ({} as Record<string, any>)),
+					: ({})),
 			{
 				...props,
 				validate: schemaValidation

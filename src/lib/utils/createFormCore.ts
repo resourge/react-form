@@ -26,11 +26,11 @@ import type {
 	ValidateSubmissionErrors
 } from '../types/formTypes';
 import type { DebounceOptions, FormCoreOptions, OnRenderType } from '../types/types';
-import type { OnKeyTouch } from './getProxy/getProxyTypes';
 
 import { createErrors } from './createErrors';
 import { createTriggers } from './createTriggers';
 import { setFormProxy } from './getProxy/getProxy';
+import type { OnKeyTouch } from './getProxy/getProxyTypes';
 import { TARGET_VALUE } from './getProxy/getProxyUtils';
 import { isClass, mergeKeys, setSubmitDeepKeys } from './utils';
 
@@ -83,6 +83,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		stateRef = {
 			diff: [],
 			errors: [],
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 			formErrors: {} as FormErrors<T>,
 			formRender: new Map(),
 			hasTouch: new WeakMap(),
@@ -168,8 +169,8 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 				typeof defaultValue === 'function' 
 					? (
 						isClass(defaultValue) 
-							? new (defaultValue as new () => T)() 
-							: (defaultValue as () => T)()
+							? new (defaultValue)() 
+							: (defaultValue)()
 					)
 					: defaultValue
 			) 
@@ -242,7 +243,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		
 				if ( !stateRef.preventStateUpdate ) {
 					changeTouch(
-						key as FormKey<T>, 
+						key, 
 						(
 							metadata && metadata.isArray 
 								? touchesRef.current.get(key)?.touch 

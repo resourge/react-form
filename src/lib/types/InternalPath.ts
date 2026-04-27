@@ -1,5 +1,5 @@
-export type AddDot<Prev extends string | undefined, Next extends string> 
-	= Prev extends undefined
+export type AddDot<Prev extends string | undefined, Next extends string> = 
+	Prev extends undefined
 		? Next
 		: `${Prev}.${Next}`;
 
@@ -57,11 +57,11 @@ export type InternalPath<
 // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 export type NonRecursiveType = Function | (new (...arguments_: any[]) => unknown);
 
-export type Primitive
-	= | bigint
-		| boolean
-		| null
-		| number
-		| string
-		| symbol
-		| undefined;
+export type Primitive =
+	| bigint
+	| boolean
+	| null
+	| number
+	| string
+	| symbol
+	| undefined;

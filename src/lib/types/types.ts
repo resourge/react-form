@@ -1,5 +1,6 @@
 import { type TouchesResult } from '../hooks/useTouches';
 import { type FormTrigger } from '../utils/createTriggers';
+
 import { type FormOptions, type FormStateRef } from './formTypes';
 
 export type DebounceOptions = { 

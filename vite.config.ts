@@ -9,11 +9,11 @@ import { defineLibConfig } from './config/defineLibConfig';
 export default defineLibConfig(() => ({
 	plugins: [
 		react()
-		/* checker({ 
+		/* checker({
 			typescript: true,
 			enableBuild: true,
 			overlay: {
-				initialIsOpen: false
+			initialIsOpen: false
 			},
 			eslint: { */
 		// lintCommand: 'eslint "./src/**/*.{ts,tsx}"'

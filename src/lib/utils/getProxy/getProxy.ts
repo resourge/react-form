@@ -1,5 +1,6 @@
 import { IS_DEV } from '../constants';
 import { isObjectOrArray } from '../utils';
+
 import { type ProxyConfig } from './getProxyTypes';
 import {
 	constructKey,
@@ -33,10 +34,10 @@ export function getProxy<T extends object>(
 	reference ??= target as any;
 
 	// Return existing proxy if this object is already in cache
-	if (!config.proxyCache.has(reference as object)) {
+	if (!config.proxyCache.has(reference)) {
 		// Store the proxy in the WeakMap to handle circular references
 		config.proxyCache.set(
-			reference as object, 
+			reference, 
 			new Proxy<T>(
 				target, 
 				getProxyHandler(target, config, baseKey)
@@ -44,7 +45,7 @@ export function getProxy<T extends object>(
 		);
 	}
 
-	return config.proxyCache.get(reference as object);
+	return config.proxyCache.get(reference);
 }
 
 export function setFormProxy<T extends object>(target: T, config: ProxyConfig, baseKey: string = ''): T {

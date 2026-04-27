@@ -1,5 +1,6 @@
 import { type UseFormReturn, type UseFormSplitterResult } from '../types';
 import { type FormContextType } from '../types/formTypes';
+
 import { useFormCore } from './useFormCore';
 
 export const useBaseContext = <
@@ -8,4 +9,4 @@ export const useBaseContext = <
 	context,
 	type: 'formContext',
 	value: context.formValue
-}) as unknown as UseFormReturn<T, 'formContext'> | UseFormSplitterResult<T>;
+});

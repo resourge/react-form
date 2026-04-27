@@ -1,4 +1,5 @@
 import { IS_DEV } from '../constants';
+
 import { ClassRegisterError } from './errors/ClassRegisterError';
 import { SerializePrototypes } from './SerializePrototypes';
 import { type DeserializeContext, type SerializeMetaType } from './types';
@@ -101,6 +102,7 @@ export function deserialize<T extends object>(serializedMeta: string): T {
 		}
 	);
 }
+
 /**
  * Registers a class for serialization.
  * @param classObj Class

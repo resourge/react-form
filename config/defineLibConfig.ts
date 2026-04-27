@@ -18,51 +18,54 @@ const external = [
 
 const packagesNames = packages.map((pack) => pack.name);
 
-const entryLib = './src/lib/index.ts';
+const entryLibrary = './src/lib/index.ts';
 
 const deepMerge = deepmerge();
 
 export const defineLibConfig = (
 	config: UserConfigExport,
-	afterBuild?: (() => void | Promise<void>)
+	afterBuild?: (() => Promise<void> | void)
 ): UserConfigExport => defineConfig((originalConfig) => deepMerge(
-	typeof config === 'function' ? config(originalConfig) : config,
+	typeof config === 'function'
+		? config(originalConfig)
+		: config,
 	{
-		test: {
-			globals: true,
-			environment: 'jsdom',
-			setupFiles: './src/setupTests.ts'
-		},
 		build: {
-			minify: false,
 			lib: {
-				entry: entryLib,
-				name: 'index',
+				entry: entryLibrary,
 				fileName: 'index',
-				formats: ['es']
+				formats: ['es'],
+				name: 'index'
 			},
+			minify: false,
 			outDir: './dist',
-			sourcemap: true,
 			rollupOptions: {
 				external
-			}
-		},
-		resolve: {
-			preserveSymlinks: true,
-			tsconfigPaths: true
+			},
+			sourcemap: true
 		},
 		plugins: [
 			banner(createBanner()),
 			dts({
-				insertTypesEntry: true,
-				rollupTypes: true,
+				afterBuild,
 				bundledPackages: packagesNames,
 				compilerOptions: {
-					preserveSymlinks: true,
-					paths: {}
+					baseUrl: '.',
+					paths: {},
+					preserveSymlinks: true
 				},
-				afterBuild
+				insertTypesEntry: true,
+				rollupTypes: true
 			})
-		]
+		],
+		resolve: {
+			preserveSymlinks: true,
+			tsconfigPaths: true
+		},
+		test: {
+			environment: 'jsdom',
+			globals: true,
+			setupFiles: './src/setupTests.ts'
+		}
 	}
 ));

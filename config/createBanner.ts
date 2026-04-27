@@ -1,8 +1,12 @@
 import PackageJson from '../package.json';
 
 const {
-	name, version, license, author 
+	author, license, name, version
 } = PackageJson;
+
+export function createBanner() {
+	return getBanner(process.env.PROJECT_VERSION ?? version);
+}
 
 function getBanner(version: string) {
 	return `/**
@@ -15,8 +19,4 @@ function getBanner(version: string) {
  *
  * @license ${license}
  */`;
-}
-
-export function createBanner() {
-	return getBanner(process.env.PROJECT_VERSION ?? version);
 }

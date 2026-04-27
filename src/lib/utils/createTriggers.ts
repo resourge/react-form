@@ -1,6 +1,7 @@
 import type { Dispatch, SetStateAction } from 'react';
 
 import type { OnRenderType } from '../types/types';
+
 import type { OnKeyTouchMetadataType } from './getProxy/getProxyTypes';
 
 export type CreateTriggersConfig = {

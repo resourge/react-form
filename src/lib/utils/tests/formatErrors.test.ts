@@ -15,7 +15,8 @@ describe('formatErrors', () => {
 			}
 		]);
 
-		expect(structuredClone(result['']?.formErrors)).toEqual({
+		// eslint-disable-next-line unicorn/prefer-structured-clone
+		expect(JSON.parse(JSON.stringify(result['']?.formErrors))).toEqual({
 			'description': {
 				every: {
 					child: [

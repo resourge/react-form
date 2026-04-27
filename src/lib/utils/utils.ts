@@ -40,13 +40,13 @@ export function setSubmitDeepKeys({
 	shouldIncludeError,
 	touches
 }: SubmitDeepKeysType) {
-	if (!isObjectOrArray(obj) || seen.has(obj as WeakKey)) {
+	if (!isObjectOrArray(obj) || seen.has(obj)) {
 		return;
 	}
 
-	seen.add(obj as WeakKey);
+	seen.add(obj);
 
-	for (const key of Object.keys(obj as WeakKey)) {
+	for (const key of Object.keys(obj)) {
 		const fullKey = resolveKey(
 			Array.isArray(obj)
 				? `${prefix}[${key}]`

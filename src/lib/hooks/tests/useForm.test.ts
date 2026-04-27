@@ -1,12 +1,14 @@
-import { renderHook, waitFor } from '@testing-library/react';
 import { act } from 'react';
-import { type ValidationErrors } from 'src/lib/types/errorsTypes';
+
+import { renderHook, waitFor } from '@testing-library/react';
 import {
 	describe,
 	expect,
 	it,
 	vi
 } from 'vitest';
+
+import { type ValidationErrors } from 'src/lib/types/errorsTypes';
 
 import { useForm } from '../useForm';
 
