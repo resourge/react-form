@@ -487,7 +487,7 @@ export type UseFormReturn<T extends Record<string, any>, FT extends FormTypes = 
 	 */
 	setError: (errors: Array<{ 
 		errors: string[]
-		path: FormKey<T> 
+		path: string
 	}>) => void
 	/**
 	 * Manually force Controller component to update.
