@@ -205,6 +205,14 @@ export type GetErrorsOptions = ErrorsOptions & {
 	unique?: boolean
 };
 
+export type HasErrorsOptions = GetErrorsOptions & {
+	/**
+	 * Ignores validationType 'onTouch'
+	 * @default false
+	 */
+	ignoreTouch?: boolean
+};
+
 export type OnFunctionChange<T extends Record<string, any>, Result = void> = ((form: T) => Promise<Result>) | ((form: T) => Result);
 
 export type ResetMethod<T extends Record<string, any>> = (newFrom: Partial<T>, resetOptions?: ResetOptions ) => void;
@@ -259,6 +267,7 @@ export type UseFormReturn<T extends Record<string, any>, FT extends FormTypes = 
 	/**
 	 * Form errors
 	 * * Note: Depends on {@link FormOptions#validate}.
+	 * @deprecated "errors" is only meant to use internally, and is not subjected to the same "form rules", use {@link UseFormReturn['getErrors']} and {@link UseFormReturn['hasErrors']} instead
 	 */
 	errors: FormErrors<T>
 	/**
@@ -387,7 +396,7 @@ export type UseFormReturn<T extends Record<string, any>, FT extends FormTypes = 
 	 * ///
 	 * ```
 	 */
-	hasError: (key: FormKey<T>, options?: ErrorsOptions) => boolean
+	hasError: (key: FormKey<T>, options?: HasErrorsOptions) => boolean
 	/**
 	 * Method to verify if `key` has being 'touched'
 	 * 

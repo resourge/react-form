@@ -287,7 +287,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 	const setError = (
 		newErrors: Array<{
 			errors: string[]
-			path: FormKey<T>
+			path: string
 		}>
 	) => {
 		newErrors.forEach(({ path }) => {
@@ -299,7 +299,7 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 
 			touchHook.touchesRef.current.get(path)!.errorWasShown = true;
 	
-			changedKeysRef.current.add(path);
+			changedKeysRef.current.add(path as FormKey<T>);
 		});
 	
 		renderNewErrors([
@@ -327,14 +327,30 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 	) => {
 		stateRef.preventStateUpdate = true;
 
-		// Needs to be like this, otherwise it looses Class instance
-		(Object.keys((newFrom as NonNullable<T>).length > 0
-			? newFrom
-			: form) as Array<keyof T>)
-		.forEach((key) => form[key] = newFrom[key] as T[keyof T]);
+		if ( newFrom && Array.isArray(newFrom) ) {
+			(form as unknown as any[]).length = newFrom.length;
+
+			newFrom.forEach((value, index) => {
+				(form as unknown as any[])[index] = value;
+			});
+		} 
+		else {
+			// Needs to be like this, otherwise it looses Class instance
+			(
+				Object.keys((newFrom as NonNullable<T>).length > 0
+					? newFrom
+					: form
+				) as Array<keyof T>
+			)
+			.forEach((key) => form[key] = newFrom[key] as T[keyof T]);
+		}
 
 		if ( clearTouched ) {
 			resetTouch();
+		}
+
+		if ( validationType !== 'onSubmit' ) {
+			shouldUpdateErrorsRef.current = true;
 		}
 
 		triggerRender(formKey);
@@ -490,7 +506,8 @@ export function createFormCore<T extends Record<string, any>, FT extends FormTyp
 		},
 		get isValid(): boolean {
 			return !hasError('' as FormKey<T>, {
-				includeChildsIntoArray: true 
+				ignoreTouch: true,
+				includeChildsIntoArray: true
 			});
 		},
 		reset,

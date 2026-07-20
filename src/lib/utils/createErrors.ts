@@ -1,9 +1,9 @@
 import { type ValidationError, type ValidationErrors } from '../types/errorsTypes';
 import { type FormKey } from '../types/FormKey';
-import { type FormValidationType, type GetErrorsOptions } from '../types/formTypes';
+import { type FormValidationType, HasErrorsOptions } from '../types/formTypes';
 import { type FormCoreOptions, type OnRenderType } from '../types/types';
 
-import { deepCompareValidationErrors } from './comparationUtils';
+import { deepCompareValidationErrors } from './comparisonUtils';
 import { formatErrors } from './formatErrors';
 
 export type UseErrorsConfig<T extends Record<string, any>> = {
@@ -84,7 +84,9 @@ export function createErrors<T extends Record<string, any>>(
 
 	function getErrors<Model extends Record<string, any> = T>(
 		key: FormKey<Model>, 
-		{ includeChildsIntoArray = false, unique = true }: GetErrorsOptions = {}
+		{
+			ignoreTouch = false, includeChildsIntoArray = false, unique = true 
+		}: HasErrorsOptions = {}
 	): string[] {
 		const resolvedKey = resolveKey(key);
 		onRender.renderKeys.set(resolvedKey, includeChildsIntoArray);
@@ -94,7 +96,7 @@ export function createErrors<T extends Record<string, any>>(
 			return [];
 		}
 
-		if ( validationType === 'onTouch' ) {
+		if ( validationType === 'onTouch' && !ignoreTouch ) {
 			const touch = touchesRef.current.get(resolvedKey);
 
 			if ( !(touch && (touch.submitted || touch.touch)) ) {
@@ -111,7 +113,7 @@ export function createErrors<T extends Record<string, any>>(
 			: list.errors;
 	}
 
-	const hasError = (key: FormKey<T>, options: GetErrorsOptions = {}): boolean => getErrors(key, options).length > 0;
+	const hasError = (key: FormKey<T>, options: HasErrorsOptions = {}): boolean => getErrors(key, options).length > 0;
 
 	return {
 		getErrors,

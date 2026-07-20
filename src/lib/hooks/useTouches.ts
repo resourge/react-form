@@ -7,10 +7,10 @@ import { forEachPossibleKey } from '../utils/utils';
 export const useTouches = <T extends Record<string, any>>(validationType: FormValidationType = 'onSubmit') => {
 	const touchesRef = useRef<Touches>(new Map());
 	const changedKeysRef = useRef<Set<FormKey<T>>>(new Set());
-	const shouldUpdateErrorsRef = useRef<boolean>(validationType === 'always');
+	const shouldUpdateErrorsRef = useRef<boolean>(validationType !== 'onSubmit');
 
 	function setTouch<Model extends Record<string, any> = T>(
-		key: FormKey<Model>,
+		key: FormKey<Model> | string,
 		touch: boolean,
 		submitted: boolean = false,
 		isPossibilityKey: boolean = false
